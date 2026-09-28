@@ -4,59 +4,19 @@ import '../../../core/theme/theme.dart';
 import '../../home/category/screens/category_screen.dart';
 import '../../home/payment/screens/payment_screen.dart';
 
-
 class HomeDeliverySettingsScreen extends StatelessWidget {
   const HomeDeliverySettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< Updated upstream
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Row(
-          children: [
-            _buildSidebar(),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(28, 24, 28, 40),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildTopBar(),
-                    const SizedBox(height: 24),
-                    _buildPageHeader(),
-=======
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
->>>>>>> Stashed changes
 
         final bool isMobile = width < 600;
         final bool isTablet = width >= 600 && width < 900;
         final bool isDesktop = width >= 900;
 
-<<<<<<< Updated upstream
-                    // --------------------------------------------------
-                    // BUSINESS SETUP
-                    // --------------------------------------------------
-                    _buildSection(
-                      icon: Icons.business_outlined,
-                      title: 'Business Setup',
-                      subtitle:
-                          'Manage your business information and basic configuration',
-                      children: [
-                        _settingCard(
-                          context,
-                          title: 'Business Profile',
-                          subtitle:
-                              'Edit your business name, address and contact details',
-                          icon: Icons.storefront_outlined,
-                          iconBackground: const Color(0xFFEDE9FE),
-                          iconColor: const Color(0xFF7C3AED),
-                        ),
-                      ],
-=======
         return Scaffold(
           backgroundColor: AppColors.background,
 
@@ -73,7 +33,6 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                       width: 280,
                       compact: false,
                       isDrawer: true,
->>>>>>> Stashed changes
                     ),
                   ),
                 )
@@ -86,18 +45,6 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                 // DESKTOP SIDEBAR
                 // ======================================================
 
-<<<<<<< Updated upstream
-                    // --------------------------------------------------
-                    // MENU & PRODUCTS
-                    // --------------------------------------------------
-                    _buildSection(
-                      icon: Icons.restaurant_menu_outlined,
-                      title: 'Menu & Products',
-                      subtitle:
-                          'Manage your categories, items, pricing and menu schedule',
-                      children: [
-                        _settingCard(
-=======
                 if (isDesktop)
                   _buildSidebar(
                     width: 225,
@@ -139,7 +86,6 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                           CrossAxisAlignment.start,
                       children: [
                         _buildTopBar(
->>>>>>> Stashed changes
                           context,
                           isMobile: isMobile,
                           isTablet: isTablet,
@@ -293,48 +239,9 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-<<<<<<< Updated upstream
-                        _settingCard(
-                          context,
-                          title: 'Paymodes',
-                          subtitle: 'Manage payment methods and configurations',
-                          icon: Icons.payment_outlined,
-                          iconBackground: const Color.fromARGB(
-                            255,
-                            248,
-                            247,
-                            246,
-                          ),
-                          iconColor: const Color.fromARGB(255, 133, 71, 0),
-                          // onTap: () {
-                          //   Navigator.push(
-                          //     context,
-                          //     MaterialPageRoute(
-                          //       builder: (_) => const PaymentModeScreen(),
-                          //     ),
-                          //   );
-                          // },
-                        ),
-                      ],
-                    ),
-=======
->>>>>>> Stashed changes
 
                         const SizedBox(height: 18),
 
-<<<<<<< Updated upstream
-                    // --------------------------------------------------
-                    // CUSTOMERS
-                    // --------------------------------------------------
-                    _buildSection(
-                      icon: Icons.people_outline,
-                      title: 'Customers',
-                      subtitle:
-                          'Manage customers and their delivery information',
-                      children: [
-                        _settingCard(
-                          context,
-=======
                         // ==================================================
                         // CUSTOMERS
                         // ==================================================
@@ -342,7 +249,6 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                         _buildSection(
                           icon:
                               Icons.people_outline,
->>>>>>> Stashed changes
                           title: 'Customers',
                           subtitle:
                               'Manage customers and their delivery information',
@@ -575,146 +481,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-<<<<<<< Updated upstream
-
-                    const SizedBox(height: 18),
-
-                    // --------------------------------------------------
-                    // DELIVERY MANAGEMENT
-                    // --------------------------------------------------
-                    _buildSection(
-                      icon: Icons.local_shipping_outlined,
-                      title: 'Delivery Management',
-                      subtitle:
-                          'Manage delivery persons and daily delivery schedules',
-                      children: [
-                        _settingCard(
-                          context,
-                          title: 'Delivery Persons',
-                          subtitle: 'Add and manage delivery staff',
-                          icon: Icons.delivery_dining_outlined,
-                          iconBackground: const Color(0xFFE5F0FF),
-                          iconColor: const Color(0xFF2563EB),
-                        ),
-                        _settingCard(
-                          context,
-                          title: 'Delivery Schedule',
-                          subtitle:
-                              'Create and manage daily delivery schedules',
-                          icon: Icons.calendar_today_outlined,
-                          iconBackground: const Color(0xFFF0E9FF),
-                          iconColor: const Color(0xFF7C3AED),
-                        ),
-                        _settingCard(
-                          context,
-                          title: 'Assign Deliveries',
-                          subtitle: 'Assign customers and deliveries to staff',
-                          icon: Icons.route_outlined,
-                          iconBackground: const Color(0xFFE2F8EF),
-                          iconColor: const Color(0xFF059669),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 18),
-
-                    // --------------------------------------------------
-                    // INVENTORY
-                    // --------------------------------------------------
-                    _buildSection(
-                      icon: Icons.inventory_2_outlined,
-                      title: 'Inventory',
-                      subtitle:
-                          'Manage stock items, units, inventory categories and suppliers',
-                      children: [
-                        _settingCard(
-                          context,
-                          title: 'Units',
-                          subtitle:
-                              'Manage measurement units such as kg, litre and piece',
-                          icon: Icons.straighten_outlined,
-                          iconBackground: const Color(0xFFE6F0FF),
-                          iconColor: const Color(0xFF2563EB),
-                        ),
-                        _settingCard(
-                          context,
-                          title: 'Inventory Categories',
-                          subtitle: 'Create and manage inventory categories',
-                          icon: Icons.category_outlined,
-                          iconBackground: const Color(0xFFFFE8E5),
-                          iconColor: const Color(0xFFEF4444),
-                        ),
-                        _settingCard(
-                          context,
-                          title: 'Inventory Sub Categories',
-                          subtitle:
-                              'Organize inventory items into sub categories',
-                          icon: Icons.account_tree_outlined,
-                          iconBackground: const Color(0xFFF0E9FF),
-                          iconColor: const Color(0xFF7C3AED),
-                        ),
-                        _settingCard(
-                          context,
-                          title: 'Inventory Items',
-                          subtitle:
-                              'Add and manage raw materials and stock items',
-                          icon: Icons.inventory_outlined,
-                          iconBackground: const Color(0xFFFFF0DA),
-                          iconColor: const Color(0xFFD97706),
-                        ),
-                        _settingCard(
-                          context,
-                          title: 'Suppliers',
-                          subtitle:
-                              'Manage suppliers for your inventory purchases',
-                          icon: Icons.local_shipping_outlined,
-                          iconBackground: const Color(0xFFE3F8F1),
-                          iconColor: const Color(0xFF059669),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 18),
-
-                    // --------------------------------------------------
-                    // USERS & SYSTEM
-                    // --------------------------------------------------
-                    _buildSection(
-                      icon: Icons.manage_accounts_outlined,
-                      title: 'Users & System',
-                      subtitle:
-                          'Manage operators, printers and application settings',
-                      children: [
-                        _settingCard(
-                          context,
-                          title: 'Operators / Users',
-                          subtitle: 'Add and manage system users and operators',
-                          icon: Icons.group_outlined,
-                          iconBackground: const Color(0xFFFFF0DA),
-                          iconColor: const Color(0xFFD97706),
-                        ),
-                        _settingCard(
-                          context,
-                          title: 'Printer Settings',
-                          subtitle: 'Configure printers for orders and bills',
-                          icon: Icons.print_outlined,
-                          iconBackground: const Color(0xFFE6F0FF),
-                          iconColor: const Color(0xFF2563EB),
-                        ),
-                        _settingCard(
-                          context,
-                          title: 'System Settings',
-                          subtitle: 'Manage general application settings',
-                          icon: Icons.settings_outlined,
-                          iconBackground: const Color(0xFFFFE8EE),
-                          iconColor: const Color(0xFFE11D48),
-                        ),
-                      ],
-                    ),
-                  ],
-=======
                   ),
->>>>>>> Stashed changes
                 ),
               ],
             ),
@@ -739,11 +506,6 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
           ? const EdgeInsets.all(8)
           : const EdgeInsets.all(16),
       decoration: BoxDecoration(
-<<<<<<< Updated upstream
-        color: Colors.white.withValues(alpha: 0.82),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white),
-=======
         color: Colors.white.withValues(
           alpha: 0.92,
         ),
@@ -752,7 +514,6 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
         border: Border.all(
           color: Colors.white,
         ),
->>>>>>> Stashed changes
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF64748B)
@@ -794,12 +555,6 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
               ),
             ),
 
-<<<<<<< Updated upstream
-          const Text(
-            'Management System',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
-          ),
-=======
             const Text(
               'Management System',
               style: TextStyle(
@@ -809,22 +564,17 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
               ),
             ),
           ],
->>>>>>> Stashed changes
 
           SizedBox(
             height: compact ? 28 : 32,
           ),
 
-<<<<<<< Updated upstream
-          _sidebarItem(icon: Icons.dashboard_outlined, title: 'Dashboard'),
-=======
           _sidebarItem(
             icon:
                 Icons.dashboard_outlined,
             title: 'Dashboard',
             compact: compact,
           ),
->>>>>>> Stashed changes
 
           _sidebarItem(
             icon:
@@ -834,30 +584,6 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
             compact: compact,
           ),
 
-<<<<<<< Updated upstream
-          _sidebarItem(icon: Icons.grid_view_outlined, title: 'Management'),
-
-          const Spacer(),
-
-          Container(
-            margin: const EdgeInsets.all(14),
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF4F7FF),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.help_outline, color: AppColors.primary, size: 20),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'Manage your business, customers and deliveries all in one place.',
-                    style: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 11,
-                      height: 1.4,
-=======
           _sidebarItem(
             icon:
                 Icons.grid_view_outlined,
@@ -899,7 +625,6 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                         fontSize: 11,
                         height: 1.4,
                       ),
->>>>>>> Stashed changes
                     ),
                   ),
                 ],
@@ -921,15 +646,6 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
     bool compact = false,
   }) {
     return Container(
-<<<<<<< Updated upstream
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: selected ? AppColors.primarySoft : Colors.transparent,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-=======
       margin: EdgeInsets.symmetric(
         horizontal: compact ? 8 : 12,
         vertical: 4,
@@ -946,7 +662,6 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
           horizontal: compact ? 10 : 14,
           vertical: 12,
         ),
->>>>>>> Stashed changes
         child: Row(
           mainAxisAlignment: compact
               ? MainAxisAlignment.center
@@ -959,23 +674,6 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                   ? AppColors.primary
                   : AppColors.textSecondary,
             ),
-<<<<<<< Updated upstream
-            const SizedBox(width: 12),
-            Text(
-              title,
-              style: TextStyle(
-                color: selected ? AppColors.primary : AppColors.textSecondary,
-                fontSize: 14,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-              ),
-            ),
-            if (selected) ...[
-              const Spacer(),
-              const Icon(
-                Icons.chevron_right,
-                color: AppColors.primary,
-                size: 19,
-=======
 
             if (!compact) ...[
               const SizedBox(width: 12),
@@ -993,7 +691,6 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                         : FontWeight.w500,
                   ),
                 ),
->>>>>>> Stashed changes
               ),
 
               if (selected)
@@ -1025,28 +722,6 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
         // MOBILE MENU
         // ==========================================================
 
-<<<<<<< Updated upstream
-        Container(
-          width: 220,
-          height: 42,
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.75),
-            borderRadius: BorderRadius.circular(13),
-            border: Border.all(color: Colors.white),
-          ),
-          child: const Row(
-            children: [
-              SizedBox(width: 13),
-              Icon(Icons.search, color: AppColors.textSecondary, size: 19),
-              SizedBox(width: 9),
-              Text(
-                'Search...',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
-              ),
-            ],
-          ),
-        ),
-=======
         if (isMobile)
           Builder(
             builder: (drawerContext) {
@@ -1130,7 +805,6 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
               ],
             ),
           ),
->>>>>>> Stashed changes
 
         if (!isMobile && !isTablet)
           const SizedBox(width: 14),
@@ -1143,11 +817,6 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
           width: 42,
           height: 42,
           decoration: BoxDecoration(
-<<<<<<< Updated upstream
-            color: Colors.white.withValues(alpha: 0.75),
-            borderRadius: BorderRadius.circular(13),
-            border: Border.all(color: Colors.white),
-=======
             color: Colors.white
                 .withValues(
               alpha: 0.75,
@@ -1157,7 +826,6 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
             border: Border.all(
               color: Colors.white,
             ),
->>>>>>> Stashed changes
           ),
           child: const Icon(
             Icons
@@ -1172,25 +840,6 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
         // PROFILE
         // ==========================================================
 
-<<<<<<< Updated upstream
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.75),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.white),
-          ),
-          child: const Row(
-            children: [
-              CircleAvatar(
-                radius: 15,
-                backgroundColor: AppColors.primary,
-                child: Text(
-                  'B',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-=======
         if (!isMobile) ...[
           const SizedBox(width: 12),
 
@@ -1226,7 +875,6 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                       fontWeight:
                           FontWeight.w700,
                     ),
->>>>>>> Stashed changes
                   ),
                 ),
                 SizedBox(width: 8),
@@ -1277,9 +925,14 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
             const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFEFF4FF), Color(0xFFF8F6FF)],
+          colors: [
+            Color(0xFFEFF4FF),
+            Color(0xFFF8F6FF),
+          ],
         ),
-        border: Border.all(color: Colors.white),
+        border: Border.all(
+          color: Colors.white,
+        ),
         boxShadow: [
           BoxShadow(
             color: const Color(
@@ -1368,13 +1021,6 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
   }) {
     return Container(
       width: double.infinity,
-<<<<<<< Updated upstream
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.58),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.95)),
-=======
       padding:
           const EdgeInsets.fromLTRB(
         16,
@@ -1395,7 +1041,6 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
             alpha: 0.95,
           ),
         ),
->>>>>>> Stashed changes
         boxShadow: [
           BoxShadow(
             color: const Color(
@@ -1435,16 +1080,12 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                     12,
                   ),
                 ),
-<<<<<<< Updated upstream
-                child: Icon(icon, color: AppColors.primary, size: 20),
-=======
                 child: Icon(
                   icon,
                   color:
                       AppColors.primary,
                   size: 20,
                 ),
->>>>>>> Stashed changes
               ),
 
               const SizedBox(
@@ -1518,26 +1159,16 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                 columns = 1;
               }
 
-<<<<<<< Updated upstream
-              final width =
-                  (constraints.maxWidth - ((columns - 1) * 14)) / columns;
-=======
               final cardWidth =
                   (constraints
                           .maxWidth -
                       ((columns - 1) *
                           14)) /
                   columns;
->>>>>>> Stashed changes
 
               return Wrap(
                 spacing: 14,
                 runSpacing: 14,
-<<<<<<< Updated upstream
-                children: children.map((child) {
-                  return SizedBox(width: width, child: child);
-                }).toList(),
-=======
                 children:
                     children.map(
                   (child) {
@@ -1547,7 +1178,6 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                     );
                   },
                 ).toList(),
->>>>>>> Stashed changes
               );
             },
           ),
@@ -1572,17 +1202,6 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-<<<<<<< Updated upstream
-        borderRadius: BorderRadius.circular(17),
-        onTap:
-            onTap ??
-            () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('$title will be implemented here.'),
-                  behavior: SnackBarBehavior.floating,
-                  duration: const Duration(seconds: 2),
-=======
         borderRadius:
             BorderRadius.circular(17),
         onTap: onTap ??
@@ -1601,19 +1220,10 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                       const Duration(
                     seconds: 2,
                   ),
->>>>>>> Stashed changes
                 ),
               );
             },
         child: Container(
-<<<<<<< Updated upstream
-          constraints: const BoxConstraints(minHeight: 88),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.72),
-            borderRadius: BorderRadius.circular(17),
-            border: Border.all(color: AppColors.white),
-=======
           constraints:
               const BoxConstraints(
             minHeight: 88,
@@ -1632,7 +1242,6 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
             border: Border.all(
               color: AppColors.white,
             ),
->>>>>>> Stashed changes
             boxShadow: [
               BoxShadow(
                 color: AppColors
@@ -1665,7 +1274,11 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                     14,
                   ),
                 ),
-                child: Icon(icon, color: iconColor, size: 22),
+                child: Icon(
+                  icon,
+                  color: iconColor,
+                  size: 22,
+                ),
               ),
 
               const SizedBox(
@@ -1678,17 +1291,12 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
 
               Expanded(
                 child: Column(
-<<<<<<< Updated upstream
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-=======
                   mainAxisAlignment:
                       MainAxisAlignment
                           .center,
                   crossAxisAlignment:
                       CrossAxisAlignment
                           .start,
->>>>>>> Stashed changes
                   children: [
                     Text(
                       title,

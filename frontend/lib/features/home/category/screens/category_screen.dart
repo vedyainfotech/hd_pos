@@ -30,6 +30,11 @@ class _CategoryScreenState extends State<CategoryScreen> {
   @override
   void initState() {
     super.initState();
+
+    _searchController.addListener(() {
+      setState(() {});
+    });
+
     _loadCategories();
   }
 
@@ -1520,46 +1525,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
                         // CATEGORY LIST
                         // ==================================================
 
-<<<<<<< Updated upstream
-                    Expanded(
-                      child: _isLoading
-                          ? const Center(
-                              child:
-                                  CircularProgressIndicator(
-                                color:
-                                    AppColors
-                                        .primary,
-                              ),
-                            )
-                          : categories.isEmpty
-                              ? _buildEmptyState()
-                              : ListView.separated(
-                                  padding:
-                                      EdgeInsets
-                                          .zero,
-                                  itemCount:
-                                      categories
-                                          .length,
-                                  separatorBuilder:
-    (
-  _,
-  _,
-) =>
-        const SizedBox(
-  height: 10,
-),
-                                  itemBuilder:
-                                      (
-                                    context,
-                                    index,
-                                  ) {
-                                    return _buildCategoryCard(
-                                      categories[
-                                          index],
-                                    );
-                                  },
-                                ),
-=======
                         Expanded(
                           child: _isLoading
                               ? const Center(
@@ -1603,7 +1568,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
                                     ),
                         ),
                       ],
->>>>>>> Stashed changes
                     ),
                   ),
                 ),
