@@ -1490,29 +1490,37 @@ class _CategoryScreenState extends State<CategoryScreen> {
                         // ==================================================
                         // STATUS FILTER
                         // ==================================================
-
-                        SingleChildScrollView(
-                          scrollDirection:
-                              Axis.horizontal,
-                          child: Row(
-                            children: [
-                              _buildStatusFilter(
-                                'All',
-                                compact: isMobile,
-                              ),
-                              const SizedBox(width: 6),
-                              _buildStatusFilter(
-                                'Active',
-                                compact: isMobile,
-                              ),
-                              const SizedBox(width: 6),
-                              _buildStatusFilter(
-                                'Inactive',
-                                compact: isMobile,
-                              ),
-                            ],
-                          ),
-                        ),
+                           Container(
+  padding: const EdgeInsets.all(4),
+  decoration: BoxDecoration(
+    color: AppColors.surface,
+    borderRadius: BorderRadius.circular(28),
+    border: Border.all(
+      color: AppColors.border,
+    ),
+  ),
+  child: SingleChildScrollView(
+    scrollDirection: Axis.horizontal,
+    child: Row(
+       mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildStatusFilter(
+          'All',
+          compact: isMobile,
+        ),
+        _buildStatusFilter(
+          'Active',
+          compact: isMobile,
+        ),
+        _buildStatusFilter(
+          'Inactive',
+          compact: isMobile,
+        ),
+      ],
+    ),
+  ),
+),
+                        
 
                         SizedBox(
                           height:
@@ -1731,51 +1739,43 @@ class _CategoryScreenState extends State<CategoryScreen> {
   // STATUS FILTER
   // ============================================================
 
-  Widget _buildStatusFilter(
-    String status, {
-    bool compact = false,
-  }) {
-    final isSelected =
-        _statusFilter == status;
+ Widget _buildStatusFilter(
+  String status, {
+  bool compact = false,
+}) {
+  final isSelected = _statusFilter == status;
 
-    return ChoiceChip(
-      showCheckmark: false,
-      label: Text(
+  return GestureDetector(
+    onTap: () {
+      setState(() {
+        _statusFilter = status;
+      });
+    },
+    child: Container(
+      height: 40,
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? 18 : 22,
+      ),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: isSelected
+            ? AppColors.primarySoft
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Text(
         status,
         style: TextStyle(
           fontSize: compact ? 11 : 13,
           fontWeight: FontWeight.w600,
+          color: isSelected
+              ? AppColors.primary
+              : AppColors.textPrimary,
         ),
       ),
-      selected: isSelected,
-      onSelected: (_) {
-        setState(() {
-          _statusFilter = status;
-        });
-      },
-      selectedColor:
-          AppColors.primary.withValues(
-        alpha: 0.12,
-      ),
-      backgroundColor:
-          AppColors.surface,
-      labelStyle: TextStyle(
-        color: isSelected
-            ? AppColors.primary
-            : AppColors.textSecondary,
-        fontWeight: FontWeight.w600,
-      ),
-      visualDensity: compact
-          ? VisualDensity.compact
-          : VisualDensity.standard,
-      side: BorderSide(
-        color: isSelected
-            ? AppColors.primary
-            : AppColors.border,
-      ),
-    );
-  }
-
+    ),
+  );
+}
   // ============================================================
   // RESPONSIVE CATEGORY CARD
   // ============================================================

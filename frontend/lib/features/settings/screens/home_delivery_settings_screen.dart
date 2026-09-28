@@ -4,6 +4,7 @@ import '../../../core/theme/theme.dart';
 import '../../home/category/screens/category_screen.dart';
 import '../../home/payment/screens/payment_screen.dart';
 import '../../home/roles/screens/role_screen.dart';
+import '../../home/sub_categories/screens/sub_category_screens.dart';
 
 class HomeDeliverySettingsScreen extends StatelessWidget {
   const HomeDeliverySettingsScreen({super.key});
@@ -164,19 +165,27 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                               },
                             ),
 
-                            _settingCard(
+                          _settingCard(
+                          context,
+                           title: 'Sub Categories',
+                           subtitle:
+                            'Add and manage sub categories',
+                             icon:
+                             Icons.layers_outlined,
+                             iconBackground:
+                               const Color(0xFFE6F0FF),
+                               iconColor:
+                                const Color(0xFF3B82F6),
+                               onTap: () {
+                              Navigator.push(
                               context,
-                              title: 'Sub Categories',
-                              subtitle:
-                                  'Add and manage sub categories',
-                              icon:
-                                  Icons.layers_outlined,
-                              iconBackground:
-                                  const Color(0xFFE6F0FF),
-                              iconColor:
-                                  const Color(0xFF3B82F6),
+                              MaterialPageRoute(
+                               builder: (_) =>
+                            const SubCategoriesScreen(),
                             ),
-
+                              );
+                             },
+                           ),
                             _settingCard(
                               context,
                               title: 'Items',

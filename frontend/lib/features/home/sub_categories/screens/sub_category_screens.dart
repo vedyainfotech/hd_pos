@@ -331,8 +331,7 @@ class _SubCategoriesScreenState
       backgroundColor:
           AppColors.background,
       appBar: AppBar(
-        title:
-            const Text('Sub Categories'),
+       title: const Text('Sub Categories'),
       ),
       body: _isLoading
           ? const Center(
@@ -354,10 +353,18 @@ class _SubCategoriesScreenState
             constraints.maxWidth < 900;
 
         return SingleChildScrollView(
-          padding: EdgeInsets.all(
+          padding: EdgeInsets.fromLTRB(
             isCompact ? 16 : 28,
+            isCompact ? 16 : 28,
+            isCompact ? 16 : 28,
+            8,
           ),
-          child: Column(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight -
+                  (isCompact ? 24 : 48),
+            ),
+            child: Column(
             crossAxisAlignment:
                 CrossAxisAlignment.start,
             children: [
@@ -374,6 +381,7 @@ class _SubCategoriesScreenState
               ),
             ],
           ),
+        ),
         );
       },
     );
@@ -391,16 +399,6 @@ class _SubCategoriesScreenState
         crossAxisAlignment:
             CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Sub Categories',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight:
-                  FontWeight.w700,
-              color:
-                  AppColors.textPrimary,
-            ),
-          ),
           const SizedBox(height: 6),
           const Text(
             'Manage your menu subcategories',
@@ -410,8 +408,7 @@ class _SubCategoriesScreenState
                   AppColors.textSecondary,
             ),
           ),
-          const SizedBox(height: 16),
-          _buildAddButton(),
+        
         ],
       );
     }
@@ -425,16 +422,6 @@ class _SubCategoriesScreenState
             crossAxisAlignment:
                 CrossAxisAlignment.start,
             children: [
-              Text(
-                'Sub Categories',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight:
-                      FontWeight.w700,
-                  color:
-                      AppColors.textPrimary,
-                ),
-              ),
               SizedBox(height: 6),
               Text(
                 'Manage your menu subcategories',
@@ -464,11 +451,11 @@ class _SubCategoriesScreenState
         size: 19,
       ),
       label:
-          const Text('Add Subcategory'),
+          const Text('Add'),
       style: ElevatedButton.styleFrom(
         padding:
             const EdgeInsets.symmetric(
-          horizontal: 18,
+          horizontal: 12,
           vertical: 14,
         ),
         backgroundColor:
@@ -514,24 +501,32 @@ class _SubCategoriesScreenState
                       CrossAxisAlignment
                           .stretch,
                   children: [
-                    _buildCategoryDropdown(),
+                    Row(
+  children: [
+    Expanded(
+      child: _buildSearchField(),
+    ),
+    const SizedBox(width: 10),
+    _buildAddButton(),
+  ],
+),
                     const SizedBox(height: 14),
-                    _buildSearchField(),
+                    _buildCategoryDropdown(),
                     const SizedBox(height: 14),
                     _buildStatusFilter(),
                   ],
                 )
               : Row(
                   children: [
+                    Expanded(
+                      child:
+                          _buildSearchField(),
+                    ),
+                    const SizedBox(width: 14),
                     SizedBox(
                       width: 250,
                       child:
                           _buildCategoryDropdown(),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child:
-                          _buildSearchField(),
                     ),
                     const SizedBox(width: 14),
                     SizedBox(
@@ -557,9 +552,7 @@ class _SubCategoriesScreenState
       decoration:
           const InputDecoration(
         labelText: 'Category',
-        prefixIcon: Icon(
-          Icons.category_outlined,
-        ),
+
       ),
       items: [
         const DropdownMenuItem<int?>(
@@ -1038,18 +1031,6 @@ class _SubCategoriesScreenState
 
             Row(
               children: [
-                const Icon(
-                  Icons
-                      .category_outlined,
-                  size: 15,
-                  color:
-                      AppColors.textTertiary,
-                ),
-
-                const SizedBox(
-                  width: 6,
-                ),
-
                 Expanded(
                   child: Text(
                     _categoryName(
@@ -1107,31 +1088,6 @@ class _SubCategoriesScreenState
   ) {
     return Row(
       children: [
-        Container(
-          width: 36,
-          height: 36,
-          decoration:
-              BoxDecoration(
-            color:
-                AppColors.primarySoft,
-            borderRadius:
-                BorderRadius.circular(
-              9,
-            ),
-          ),
-          child: const Icon(
-            Icons
-                .account_tree_outlined,
-            size: 18,
-            color:
-                AppColors.primary,
-          ),
-        ),
-
-        const SizedBox(
-          width: 12,
-        ),
-
         Expanded(
           child: Text(
             item.name,
@@ -1198,7 +1154,7 @@ class _SubCategoriesScreenState
       child: ConstrainedBox(
         constraints:
             const BoxConstraints(
-          minHeight: 320,
+          minHeight: 450,
         ),
         child: Center(
           child: Padding(
@@ -1208,29 +1164,6 @@ class _SubCategoriesScreenState
               mainAxisSize:
                   MainAxisSize.min,
               children: [
-                Container(
-                  width: 68,
-                  height: 68,
-                  decoration:
-                      const BoxDecoration(
-                    color:
-                        AppColors.primarySoft,
-                    shape:
-                        BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons
-                        .account_tree_outlined,
-                    color:
-                        AppColors.primary,
-                    size: 30,
-                  ),
-                ),
-
-                const SizedBox(
-                  height: 18,
-                ),
-
                 const Text(
                   'No subcategories found',
                   textAlign:
@@ -1265,18 +1198,6 @@ class _SubCategoriesScreenState
                   height: 20,
                 ),
 
-                OutlinedButton.icon(
-                  onPressed:
-                      _openAddPanel,
-                  icon: const Icon(
-                    Icons.add,
-                    size: 18,
-                  ),
-                  label:
-                      const Text(
-                    'Add Subcategory',
-                  ),
-                ),
               ],
             ),
           ),
@@ -1625,10 +1546,7 @@ class _SubCategoryFormSheetState
           const InputDecoration(
         hintText:
             'Enter subcategory name',
-        prefixIcon: Icon(
-          Icons
-              .account_tree_outlined,
-        ),
+
       ),
       validator: (value) {
         final name =
@@ -1659,9 +1577,7 @@ class _SubCategoryFormSheetState
           const InputDecoration(
         hintText:
             'Select category',
-        prefixIcon: Icon(
-          Icons.category_outlined,
-        ),
+
       ),
       items: widget.categories
           .map(
