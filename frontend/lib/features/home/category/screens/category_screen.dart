@@ -1574,13 +1574,13 @@ class _CategoryScreenState extends State<CategoryScreen> {
                                       categories
                                           .length,
                                   separatorBuilder:
-                                      (
-                                    _,
-                                    __,
-                                  ) =>
-                                          const SizedBox(
-                                    height: 10,
-                                  ),
+    (
+  _,
+  _,
+) =>
+        const SizedBox(
+  height: 10,
+),
                                   itemBuilder:
                                       (
                                     context,

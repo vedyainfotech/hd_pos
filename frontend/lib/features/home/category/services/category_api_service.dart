@@ -86,9 +86,6 @@ class CategoryApiService {
       ),
     );
 
-    print('GET categories: ${response.statusCode}');
-    print('GET response: ${response.body}');
-
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
 
@@ -96,7 +93,7 @@ class CategoryApiService {
         final Map<String, dynamic> category =
             Map<String, dynamic>.from(json as Map);
 
-        // Convert backend time to 12-hour format for the UI.
+        // Convert backend time to UI format.
         if (category['allotment_time'] != null) {
           category['allotment_time'] = _fromBackendTime(
             category['allotment_time'].toString(),
@@ -129,9 +126,6 @@ class CategoryApiService {
         'status': status,
       }),
     );
-
-    print('CREATE category: ${response.statusCode}');
-    print('CREATE response: ${response.body}');
 
     if (response.statusCode == 201) {
       final Map<String, dynamic> category =
@@ -173,9 +167,6 @@ class CategoryApiService {
       }),
     );
 
-    print('UPDATE category: ${response.statusCode}');
-    print('UPDATE response: ${response.body}');
-
     if (response.statusCode == 200) {
       final Map<String, dynamic> category =
           Map<String, dynamic>.from(
@@ -211,9 +202,6 @@ class CategoryApiService {
         'status': isActive,
       }),
     );
-
-    print('STATUS UPDATE: ${response.statusCode}');
-    print('STATUS UPDATE RESPONSE: ${response.body}');
 
     if (response.statusCode != 200) {
       throw Exception(
