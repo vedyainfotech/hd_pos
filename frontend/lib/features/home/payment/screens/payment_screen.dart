@@ -15,8 +15,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   final TextEditingController _searchController =
       TextEditingController();
 
-  final PaymentService _paymentService =
-      PaymentService();
+  final PaymentService _paymentService = PaymentService();
 
   List<PaymentModel> _payments = [];
 
@@ -51,8 +50,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         _isLoading = true;
       });
 
-      final payments =
-          await _paymentService.getPayments(
+      final payments = await _paymentService.getPayments(
         includeInactive: true,
       );
 
@@ -91,10 +89,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
       final matchesStatus =
           _statusFilter == 'All' ||
-          (_statusFilter == 'Active' &&
-              payment.isActive) ||
-          (_statusFilter == 'Inactive' &&
-              !payment.isActive);
+          (_statusFilter == 'Active' && payment.status) ||
+          (_statusFilter == 'Inactive' && !payment.status);
 
       return matchesSearch && matchesStatus;
     }).toList();
@@ -122,25 +118,21 @@ class _PaymentScreenState extends State<PaymentScreen> {
             vertical: 24,
           ),
           shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(16),
           ),
-          titlePadding:
-              const EdgeInsets.fromLTRB(
+          titlePadding: const EdgeInsets.fromLTRB(
             20,
             18,
             12,
             8,
           ),
-          contentPadding:
-              const EdgeInsets.fromLTRB(
+          contentPadding: const EdgeInsets.fromLTRB(
             20,
             8,
             20,
             10,
           ),
-          actionsPadding:
-              const EdgeInsets.fromLTRB(
+          actionsPadding: const EdgeInsets.fromLTRB(
             20,
             8,
             20,
@@ -153,18 +145,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   'Add Payment',
                   style: TextStyle(
                     fontSize: 20,
-                    fontWeight:
-                        FontWeight.w700,
-                    color:
-                        AppColors.textPrimary,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ),
               IconButton(
                 onPressed: () {
-                  Navigator.pop(
-                    dialogContext,
-                  );
+                  Navigator.pop(dialogContext);
                 },
                 icon: const Icon(
                   Icons.close_rounded,
@@ -175,15 +163,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ],
           ),
           content: ConstrainedBox(
-            constraints:
-                const BoxConstraints(
+            constraints: const BoxConstraints(
               maxWidth: 420,
             ),
             child: SizedBox(
               width: _dialogWidth(context),
               child: Column(
-                mainAxisSize:
-                    MainAxisSize.min,
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment:
                     CrossAxisAlignment.start,
                 children: [
@@ -191,22 +177,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     'Payment Mode Name',
                     style: TextStyle(
                       fontSize: 14,
-                      fontWeight:
-                          FontWeight.w600,
-                      color:
-                          AppColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
                     ),
                   ),
-
                   const SizedBox(height: 8),
-
                   TextField(
                     controller: controller,
                     autofocus: true,
                     textCapitalization:
                         TextCapitalization.words,
-                    decoration:
-                        _inputDecoration(
+                    decoration: _inputDecoration(
                       hintText:
                           'Enter payment mode name',
                     ),
@@ -218,21 +199,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
           actions: [
             OutlinedButton(
               onPressed: () {
-                Navigator.pop(
-                  dialogContext,
-                );
+                Navigator.pop(dialogContext);
               },
-              style:
-                  OutlinedButton.styleFrom(
-                minimumSize:
-                    const Size(100, 44),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(100, 44),
                 side: const BorderSide(
                   color: AppColors.border,
                 ),
-                shape:
-                    RoundedRectangleBorder(
-                  borderRadius:
-                      BorderRadius.circular(9),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(9),
                 ),
               ),
               child: const Text(
@@ -243,13 +218,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 ),
               ),
             ),
-
             const SizedBox(width: 8),
-
             ElevatedButton(
               onPressed: () async {
-                final name =
-                    controller.text.trim();
+                final name = controller.text.trim();
 
                 if (name.isEmpty) {
                   _showMessage(
@@ -259,33 +231,25 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   return;
                 }
 
-                Navigator.pop(
-                  dialogContext,
-                );
+                Navigator.pop(dialogContext);
 
                 await _createPayment(name);
               },
-              style:
-                  ElevatedButton.styleFrom(
-                backgroundColor:
-                    AppColors.primary,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
                 foregroundColor:
                     AppColors.textOnPrimary,
-                minimumSize:
-                    const Size(100, 44),
+                minimumSize: const Size(100, 44),
                 elevation: 0,
-                shape:
-                    RoundedRectangleBorder(
-                  borderRadius:
-                      BorderRadius.circular(9),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(9),
                 ),
               ),
               child: const Text(
                 'Add',
                 style: TextStyle(
                   fontSize: 14,
-                  fontWeight:
-                      FontWeight.w600,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
@@ -301,14 +265,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
   // CREATE PAYMENT
   // ============================================================
 
-  Future<void> _createPayment(
-    String name,
-  ) async {
+  Future<void> _createPayment(String name) async {
     try {
       final payment =
           await _paymentService.createPayment(
         name: name,
-        isActive: true,
+        status: true,
       );
 
       if (!mounted) return;
@@ -337,54 +299,44 @@ class _PaymentScreenState extends State<PaymentScreen> {
   Future<void> _openEditDialog(
     PaymentModel payment,
   ) async {
-    final controller =
-        TextEditingController(
+    final controller = TextEditingController(
       text: payment.name,
     );
 
-    bool isActive = payment.isActive;
+    bool status = payment.status;
 
     await showDialog<void>(
       context: context,
       barrierDismissible: true,
       builder: (dialogContext) {
         return StatefulBuilder(
-          builder:
-              (context, setDialogState) {
+          builder: (context, setDialogState) {
             return AlertDialog(
-              backgroundColor:
-                  AppColors.surface,
-              surfaceTintColor:
-                  Colors.transparent,
+              backgroundColor: AppColors.surface,
+              surfaceTintColor: Colors.transparent,
               insetPadding: EdgeInsets.symmetric(
                 horizontal:
-                    MediaQuery.of(context).size.width <
-                            400
+                    MediaQuery.of(context).size.width < 400
                         ? 12
                         : 24,
                 vertical: 24,
               ),
-              shape:
-                  RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
               ),
-              titlePadding:
-                  const EdgeInsets.fromLTRB(
+              titlePadding: const EdgeInsets.fromLTRB(
                 20,
                 18,
                 12,
                 8,
               ),
-              contentPadding:
-                  const EdgeInsets.fromLTRB(
+              contentPadding: const EdgeInsets.fromLTRB(
                 20,
                 8,
                 20,
                 10,
               ),
-              actionsPadding:
-                  const EdgeInsets.fromLTRB(
+              actionsPadding: const EdgeInsets.fromLTRB(
                 20,
                 8,
                 20,
@@ -397,18 +349,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       'Update Payment',
                       style: TextStyle(
                         fontSize: 20,
-                        fontWeight:
-                            FontWeight.w700,
-                        color:
-                            AppColors.textPrimary,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                   ),
                   IconButton(
                     onPressed: () {
-                      Navigator.pop(
-                        dialogContext,
-                      );
+                      Navigator.pop(dialogContext);
                     },
                     icon: const Icon(
                       Icons.close_rounded,
@@ -419,15 +367,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 ],
               ),
               content: ConstrainedBox(
-                constraints:
-                    const BoxConstraints(
+                constraints: const BoxConstraints(
                   maxWidth: 420,
                 ),
                 child: SizedBox(
                   width: _dialogWidth(context),
                   child: Column(
-                    mainAxisSize:
-                        MainAxisSize.min,
+                    mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment:
                         CrossAxisAlignment.start,
                     children: [
@@ -436,35 +382,27 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         autofocus: true,
                         textCapitalization:
                             TextCapitalization.words,
-                        decoration:
-                            _inputDecoration(
+                        decoration: _inputDecoration(
                           hintText:
                               'Enter payment mode name',
                         ),
                       ),
-
                       const SizedBox(height: 20),
 
                       // STATUS
                       Container(
                         width: double.infinity,
                         padding:
-                            const EdgeInsets
-                                .symmetric(
+                            const EdgeInsets.symmetric(
                           horizontal: 14,
                           vertical: 11,
                         ),
-                        decoration:
-                            BoxDecoration(
-                          color: AppColors
-                              .inputBackground,
+                        decoration: BoxDecoration(
+                          color: AppColors.inputBackground,
                           borderRadius:
-                              BorderRadius.circular(
-                            10,
-                          ),
+                              BorderRadius.circular(10),
                           border: Border.all(
-                            color:
-                                AppColors.border,
+                            color: AppColors.border,
                           ),
                         ),
                         child: Row(
@@ -472,86 +410,69 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             Expanded(
                               child: Column(
                                 crossAxisAlignment:
-                                    CrossAxisAlignment
-                                        .start,
+                                    CrossAxisAlignment.start,
                                 children: [
                                   const Text(
                                     'Status',
-                                    style:
-                                        TextStyle(
+                                    style: TextStyle(
                                       fontSize: 14,
                                       fontWeight:
-                                          FontWeight
-                                              .w600,
-                                      color: AppColors
-                                          .textPrimary,
+                                          FontWeight.w600,
+                                      color:
+                                          AppColors.textPrimary,
                                     ),
                                   ),
-
-                                  const SizedBox(
-                                    height: 3,
-                                  ),
-
+                                  const SizedBox(height: 3),
                                   Text(
-                                    isActive
+                                    status
                                         ? 'Active'
                                         : 'Inactive',
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: isActive
-                                          ? AppColors
-                                              .active
+                                      color: status
+                                          ? AppColors.active
                                           : AppColors
                                               .textSecondary,
                                       fontWeight:
-                                          FontWeight
-                                              .w600,
+                                          FontWeight.w600,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-
                             SwitchTheme(
-                              data:
-                                  SwitchThemeData(
+                              data: SwitchThemeData(
                                 thumbColor:
                                     WidgetStateProperty
                                         .resolveWith(
-                                  (_) =>
-                                      Colors.white,
+                                  (_) => Colors.white,
                                 ),
                                 trackColor:
                                     WidgetStateProperty
                                         .resolveWith(
                                   (states) {
-                                    if (states
-                                        .contains(
-                                      WidgetState
-                                          .selected,
+                                    if (states.contains(
+                                      WidgetState.selected,
                                     )) {
-                                      return AppColors
-                                          .primary;
+                                      return AppColors.primary;
                                     }
 
-                                    return Colors
-                                        .grey
+                                    return Colors.grey
                                         .withValues(
                                       alpha: 0.35,
                                     );
                                   },
                                 ),
                                 trackOutlineColor:
-                                    WidgetStateProperty
-                                        .all(
+                                    WidgetStateProperty.all(
                                   Colors.transparent,
                                 ),
                               ),
                               child: Switch(
-                                value: isActive,
+                                value: status,
                                 onChanged: (value) {
                                   setDialogState(() {
-                                    isActive = value;
+                                    status = value;
                                   });
                                 },
                               ),
@@ -566,19 +487,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
               actions: [
                 OutlinedButton(
                   onPressed: () {
-                    Navigator.pop(
-                      dialogContext,
-                    );
+                    Navigator.pop(dialogContext);
                   },
-                  style:
-                      OutlinedButton.styleFrom(
-                    minimumSize:
-                        const Size(100, 44),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(100, 44),
                     side: const BorderSide(
                       color: AppColors.border,
                     ),
-                    shape:
-                        RoundedRectangleBorder(
+                    shape: RoundedRectangleBorder(
                       borderRadius:
                           BorderRadius.circular(9),
                     ),
@@ -591,9 +507,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(width: 8),
-
                 ElevatedButton(
                   onPressed: () async {
                     final name =
@@ -607,18 +521,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       return;
                     }
 
-                    Navigator.pop(
-                      dialogContext,
-                    );
+                    Navigator.pop(dialogContext);
 
                     await _updatePayment(
                       payment.id,
                       name,
-                      isActive,
+                      status,
                     );
                   },
-                  style:
-                      ElevatedButton.styleFrom(
+                  style: ElevatedButton.styleFrom(
                     backgroundColor:
                         AppColors.primary,
                     foregroundColor:
@@ -626,8 +537,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     minimumSize:
                         const Size(130, 44),
                     elevation: 0,
-                    shape:
-                        RoundedRectangleBorder(
+                    shape: RoundedRectangleBorder(
                       borderRadius:
                           BorderRadius.circular(9),
                     ),
@@ -636,8 +546,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     'Update Payment',
                     style: TextStyle(
                       fontSize: 14,
-                      fontWeight:
-                          FontWeight.w600,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -665,7 +574,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           await _paymentService.updatePayment(
         id: id,
         name: name,
-        isActive: status,
+        status: status,
       );
 
       if (!mounted) return;
@@ -701,14 +610,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
   Future<void> _toggleStatus(
     PaymentModel payment,
   ) async {
-    final newStatus = !payment.isActive;
+    final newStatus = !payment.status;
 
     try {
       final updated =
-          await _paymentService
-              .updatePaymentStatus(
+          await _paymentService.updatePaymentStatus(
         id: payment.id,
-        isActive: newStatus,
+        status: newStatus,
       );
 
       if (!mounted) return;
@@ -747,32 +655,26 @@ class _PaymentScreenState extends State<PaymentScreen> {
         color: AppColors.textTertiary,
       ),
       filled: true,
-      fillColor:
-          AppColors.inputBackground,
+      fillColor: AppColors.inputBackground,
       contentPadding:
           const EdgeInsets.symmetric(
         horizontal: 15,
         vertical: 14,
       ),
       border: OutlineInputBorder(
-        borderRadius:
-            BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(10),
         borderSide: const BorderSide(
           color: AppColors.border,
         ),
       ),
-      enabledBorder:
-          OutlineInputBorder(
-        borderRadius:
-            BorderRadius.circular(10),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
         borderSide: const BorderSide(
           color: AppColors.border,
         ),
       ),
-      focusedBorder:
-          OutlineInputBorder(
-        borderRadius:
-            BorderRadius.circular(10),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
         borderSide: const BorderSide(
           color: AppColors.primary,
           width: 1.5,
@@ -789,8 +691,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     String message, {
     bool isError = false,
   }) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           message,
@@ -798,11 +699,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
             fontSize: 14,
           ),
         ),
-        behavior:
-            SnackBarBehavior.floating,
-        backgroundColor: isError
-            ? AppColors.error
-            : null,
+        behavior: SnackBarBehavior.floating,
+        backgroundColor:
+            isError ? AppColors.error : null,
       ),
     );
   }
@@ -819,50 +718,75 @@ class _PaymentScreenState extends State<PaymentScreen> {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final width = constraints.maxWidth;
+
             final isMobile = width < 600;
-            final isTablet = width >= 600 && width < 1000;
+
+            final isTablet =
+                width >= 600 && width < 1000;
 
             return Column(
               children: [
-                _buildAppBar(isMobile: isMobile),
-
+                _buildAppBar(
+                  isMobile: isMobile,
+                ),
                 Expanded(
                   child: Padding(
                     padding: EdgeInsets.fromLTRB(
-                      isMobile ? 14 : isTablet ? 20 : 32,
+                      isMobile
+                          ? 14
+                          : isTablet
+                              ? 20
+                              : 32,
                       isMobile ? 14 : 28,
-                      isMobile ? 14 : isTablet ? 20 : 32,
+                      isMobile
+                          ? 14
+                          : isTablet
+                              ? 20
+                              : 32,
                       isMobile ? 10 : 24,
                     ),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment:
+                          CrossAxisAlignment.start,
                       children: [
                         Text(
                           'Manage payment methods for your home delivery orders.',
-                          maxLines: isMobile ? 2 : 1,
-                          overflow: TextOverflow.ellipsis,
+                          maxLines:
+                              isMobile ? 2 : 1,
+                          overflow:
+                              TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: isMobile ? 13 : 15,
-                            color: AppColors.textSecondary,
-                            fontWeight: FontWeight.w500,
+                            fontSize:
+                                isMobile ? 13 : 15,
+                            color:
+                                AppColors.textSecondary,
+                            fontWeight:
+                                FontWeight.w500,
                           ),
                         ),
-
-                        SizedBox(height: isMobile ? 10 : 20),
-
+                        SizedBox(
+                          height:
+                              isMobile ? 10 : 20,
+                        ),
                         _buildSearchAndAdd(
                           isMobile: isMobile,
                           isTablet: isTablet,
                         ),
-
-                        SizedBox(height: isMobile ? 8 : 14),
-
-                        _buildFilters(isMobile: isMobile),
-
-                        SizedBox(height: isMobile ? 8 : 16),
-
+                        SizedBox(
+                          height:
+                              isMobile ? 8 : 14,
+                        ),
+                        _buildFilters(
+                          isMobile: isMobile,
+                        ),
+                        SizedBox(
+                          height:
+                              isMobile ? 8 : 16,
+                        ),
                         Expanded(
-                          child: _buildPaymentList(isMobile: isMobile),
+                          child: _buildPaymentList(
+                            isMobile: isMobile,
+                          ),
                         ),
                       ],
                     ),
@@ -880,7 +804,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
   // RESPONSIVE PAYMENT LIST
   // ============================================================
 
-  Widget _buildPaymentList({required bool isMobile}) {
+  Widget _buildPaymentList({
+    required bool isMobile,
+  }) {
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(
@@ -892,7 +818,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
     final payments = _filteredPayments;
 
     if (payments.isEmpty) {
-      return _buildEmptyState(isMobile: isMobile);
+      return _buildEmptyState(
+        isMobile: isMobile,
+      );
     }
 
     return ListView.separated(
@@ -914,7 +842,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
   // APP BAR
   // ============================================================
 
-  Widget _buildAppBar({required bool isMobile}) {
+  Widget _buildAppBar({
+    required bool isMobile,
+  }) {
     return Container(
       height: isMobile ? 54 : 72,
       padding: EdgeInsets.symmetric(
@@ -946,9 +876,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               color: AppColors.icon,
             ),
           ),
-
           const SizedBox(width: 10),
-
           Text(
             'Payment Modes',
             style: TextStyle(
@@ -974,7 +902,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
       return Row(
         children: [
           Expanded(
-            child: _buildSearchField(compact: true),
+            child: _buildSearchField(
+              compact: true,
+            ),
           ),
           const SizedBox(width: 7),
           _buildCompactAddButton(),
@@ -987,13 +917,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
         Expanded(
           child: _buildSearchField(),
         ),
-        SizedBox(width: isTablet ? 10 : 12),
-        _buildAddButton(width: isTablet ? 140 : 180),
+        SizedBox(
+          width: isTablet ? 10 : 12,
+        ),
+        _buildAddButton(
+          width: isTablet ? 140 : 180,
+        ),
       ],
     );
   }
 
-  Widget _buildSearchField({bool compact = false}) {
+  Widget _buildSearchField({
+    bool compact = false,
+  }) {
     return SizedBox(
       height: compact ? 40 : 46,
       child: TextField(
@@ -1017,39 +953,44 @@ class _PaymentScreenState extends State<PaymentScreen> {
             size: compact ? 18 : 22,
             color: AppColors.textTertiary,
           ),
-          suffixIcon: _searchController.text.isNotEmpty
-              ? IconButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: () {
-                    _searchController.clear();
-                    setState(() {});
-                  },
-                  icon: Icon(
-                    Icons.close_rounded,
-                    size: compact ? 16 : 19,
-                  ),
-                )
-              : null,
+          suffixIcon:
+              _searchController.text.isNotEmpty
+                  ? IconButton(
+                      padding: EdgeInsets.zero,
+                      onPressed: () {
+                        _searchController.clear();
+                        setState(() {});
+                      },
+                      icon: Icon(
+                        Icons.close_rounded,
+                        size: compact ? 16 : 19,
+                      ),
+                    )
+                  : null,
           filled: true,
           fillColor: AppColors.surface,
-          contentPadding: const EdgeInsets.symmetric(
+          contentPadding:
+              const EdgeInsets.symmetric(
             horizontal: 10,
             vertical: 8,
           ),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius:
+                BorderRadius.circular(10),
             borderSide: const BorderSide(
               color: AppColors.border,
             ),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius:
+                BorderRadius.circular(10),
             borderSide: const BorderSide(
               color: AppColors.border,
             ),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius:
+                BorderRadius.circular(10),
             borderSide: const BorderSide(
               color: AppColors.primary,
               width: 1.5,
@@ -1069,10 +1010,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
         style: ElevatedButton.styleFrom(
           padding: EdgeInsets.zero,
           backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.textOnPrimary,
+          foregroundColor:
+              AppColors.textOnPrimary,
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(9),
+            borderRadius:
+                BorderRadius.circular(9),
           ),
         ),
         child: const Icon(
@@ -1083,7 +1026,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  Widget _buildAddButton({required double width}) {
+  Widget _buildAddButton({
+    required double width,
+  }) {
     return SizedBox(
       width: width,
       height: 46,
@@ -1102,10 +1047,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.textOnPrimary,
+          foregroundColor:
+              AppColors.textOnPrimary,
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius:
+                BorderRadius.circular(10),
           ),
         ),
       ),
@@ -1116,16 +1063,27 @@ class _PaymentScreenState extends State<PaymentScreen> {
   // STATUS FILTERS
   // ============================================================
 
-  Widget _buildFilters({required bool isMobile}) {
+  Widget _buildFilters({
+    required bool isMobile,
+  }) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          _buildStatusFilter('All', compact: isMobile),
+          _buildStatusFilter(
+            'All',
+            compact: isMobile,
+          ),
           const SizedBox(width: 6),
-          _buildStatusFilter('Active', compact: isMobile),
+          _buildStatusFilter(
+            'Active',
+            compact: isMobile,
+          ),
           const SizedBox(width: 6),
-          _buildStatusFilter('Inactive', compact: isMobile),
+          _buildStatusFilter(
+            'Inactive',
+            compact: isMobile,
+          ),
         ],
       ),
     );
@@ -1135,7 +1093,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
     String status, {
     bool compact = false,
   }) {
-    final isSelected = _statusFilter == status;
+    final isSelected =
+        _statusFilter == status;
 
     return ChoiceChip(
       showCheckmark: false,
@@ -1152,7 +1111,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
           _statusFilter = status;
         });
       },
-      selectedColor: AppColors.primary.withValues(alpha: 0.12),
+      selectedColor:
+          AppColors.primary.withValues(
+        alpha: 0.12,
+      ),
       backgroundColor: AppColors.surface,
       labelStyle: TextStyle(
         color: isSelected
@@ -1189,14 +1151,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
       ),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius:
+            BorderRadius.circular(12),
         border: Border.all(
           color: AppColors.borderLight,
         ),
       ),
       child: isMobile
           ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
@@ -1204,18 +1168,22 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       child: Text(
                         payment.name,
                         maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                        overflow:
+                            TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
+                          fontWeight:
+                              FontWeight.w700,
+                          color:
+                              AppColors.textPrimary,
                         ),
                       ),
                     ),
                     IconButton(
                       tooltip: 'Edit',
                       padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(
+                      constraints:
+                          const BoxConstraints(
                         minWidth: 40,
                         minHeight: 40,
                       ),
@@ -1234,13 +1202,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 Row(
                   children: [
                     Text(
-                      payment.isActive ? 'Active' : 'Inactive',
+                      payment.status
+                          ? 'Active'
+                          : 'Inactive',
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: payment.isActive
+                        fontWeight:
+                            FontWeight.w600,
+                        color: payment.status
                             ? AppColors.active
-                            : AppColors.textSecondary,
+                            : AppColors
+                                .textSecondary,
                       ),
                     ),
                     const SizedBox(width: 5),
@@ -1255,23 +1227,30 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   child: Text(
                     payment.name,
                     maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    overflow:
+                        TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
+                      fontWeight:
+                          FontWeight.w700,
+                      color:
+                          AppColors.textPrimary,
                     ),
                   ),
                 ),
                 const SizedBox(width: 24),
                 Text(
-                  payment.isActive ? 'Active' : 'Inactive',
+                  payment.status
+                      ? 'Active'
+                      : 'Inactive',
                   style: TextStyle(
                     fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: payment.isActive
+                    fontWeight:
+                        FontWeight.w600,
+                    color: payment.status
                         ? AppColors.active
-                        : AppColors.textSecondary,
+                        : AppColors
+                            .textSecondary,
                   ),
                 ),
                 const SizedBox(width: 5),
@@ -1325,7 +1304,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         ),
       ),
       child: Switch(
-        value: payment.isActive,
+        value: payment.status,
         onChanged: (_) {
           _toggleStatus(payment);
         },
@@ -1337,7 +1316,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
   // EMPTY STATE
   // ============================================================
 
-  Widget _buildEmptyState({required bool isMobile}) {
+  Widget _buildEmptyState({
+    required bool isMobile,
+  }) {
     return Container(
       width: double.infinity,
       constraints: const BoxConstraints(
@@ -1345,7 +1326,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
       ),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius:
+            BorderRadius.circular(12),
         border: Border.all(
           color: AppColors.borderLight,
         ),
@@ -1367,8 +1349,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
+                  fontWeight:
+                      FontWeight.w600,
+                  color:
+                      AppColors.textSecondary,
                 ),
               ),
               const SizedBox(height: 6),

@@ -47,7 +47,7 @@ class PaymentService {
 
   Future<PaymentModel> createPayment({
     required String name,
-    bool isActive = true,
+    bool status = true,
   }) async {
     final response = await http.post(
       Uri.parse('$_baseUrl$_endpoint'),
@@ -56,7 +56,7 @@ class PaymentService {
       },
       body: jsonEncode({
         'name': name,
-        'is_active': isActive,
+        'status': status,
       }),
     );
 
@@ -81,7 +81,7 @@ class PaymentService {
   Future<PaymentModel> updatePayment({
     required int id,
     required String name,
-    required bool isActive,
+    required bool status,
   }) async {
     final response = await http.put(
       Uri.parse('$_baseUrl$_endpoint/$id'),
@@ -90,7 +90,7 @@ class PaymentService {
       },
       body: jsonEncode({
         'name': name,
-        'is_active': isActive,
+        'status': status,
       }),
     );
 
@@ -109,12 +109,12 @@ class PaymentService {
   }
 
   // ============================================================
-  // UPDATE STATUS
+  // UPDATE PAYMENT STATUS
   // ============================================================
 
   Future<PaymentModel> updatePaymentStatus({
     required int id,
-    required bool isActive,
+    required bool status,
   }) async {
     final response = await http.patch(
       Uri.parse('$_baseUrl$_endpoint/$id/status'),
@@ -122,7 +122,7 @@ class PaymentService {
         'Content-Type': 'application/json',
       },
       body: jsonEncode({
-        'is_active': isActive,
+        'status': status,
       }),
     );
 

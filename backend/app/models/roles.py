@@ -4,8 +4,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.core.database import Base
 
 
-class PaymentMode(Base):
-    __tablename__ = "payment_methods"
+class Role(Base):
+    __tablename__ = "roles"
 
     id: Mapped[int] = mapped_column(
         Integer,
@@ -16,6 +16,7 @@ class PaymentMode(Base):
     name: Mapped[str] = mapped_column(
         String(100),
         nullable=False,
+        unique=True,
     )
 
     status: Mapped[bool] = mapped_column(

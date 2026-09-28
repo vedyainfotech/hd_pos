@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/theme.dart';
 import '../../home/category/screens/category_screen.dart';
 import '../../home/payment/screens/payment_screen.dart';
+import '../../home/roles/screens/role_screen.dart';
 
 class HomeDeliverySettingsScreen extends StatelessWidget {
   const HomeDeliverySettingsScreen({super.key});
@@ -223,6 +224,27 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                                 );
                               },
                             ),
+                               _settingCard(
+                              context,
+                              title: 'Roles',
+                              subtitle:
+                                  'Add and manage user roles ',
+                              icon:
+                                  Icons.grid_view_rounded,
+                              iconBackground:
+                                  const Color(0xFFFFE8E5),
+                              iconColor:
+                                  const Color(0xFFEF4444),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        const RoleScreen(),
+                                  ),
+                                );
+                              },
+                            ),
 
                             _settingCard(
                               context,
@@ -239,6 +261,8 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                             ),
                           ],
                         ),
+
+                      
 
                         const SizedBox(height: 18),
 

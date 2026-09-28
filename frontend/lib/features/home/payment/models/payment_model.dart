@@ -1,19 +1,19 @@
 class PaymentModel {
   final int id;
   final String name;
-  final bool isActive;
+  final bool status;
 
   PaymentModel({
     required this.id,
     required this.name,
-    required this.isActive,
+    required this.status,
   });
 
   factory PaymentModel.fromJson(Map<String, dynamic> json) {
     return PaymentModel(
       id: json['id'] as int,
       name: json['name'] as String,
-      isActive: json['is_active'] as bool,
+      status: json['status'] as bool,
     );
   }
 
@@ -21,19 +21,19 @@ class PaymentModel {
     return {
       'id': id,
       'name': name,
-      'is_active': isActive,
+      'status': status,
     };
   }
 
   PaymentModel copyWith({
     int? id,
     String? name,
-    bool? isActive,
+    bool? status,
   }) {
     return PaymentModel(
       id: id ?? this.id,
       name: name ?? this.name,
-      isActive: isActive ?? this.isActive,
+      status: status ?? this.status,
     );
   }
 }
