@@ -112,29 +112,36 @@ class _CategoryScreenState extends State<CategoryScreen> {
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
+            final screenWidth =
+                MediaQuery.of(context).size.width;
+
             return AlertDialog(
               backgroundColor: AppColors.surface,
               surfaceTintColor: Colors.transparent,
+              insetPadding: EdgeInsets.symmetric(
+                horizontal: screenWidth < 400 ? 12 : 24,
+                vertical: 24,
+              ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
               titlePadding: const EdgeInsets.fromLTRB(
-                24,
-                22,
+                20,
                 18,
+                12,
                 8,
               ),
               contentPadding: const EdgeInsets.fromLTRB(
-                24,
+                20,
                 8,
-                24,
+                20,
                 10,
               ),
               actionsPadding: const EdgeInsets.fromLTRB(
-                24,
-                8,
-                24,
                 20,
+                8,
+                20,
+                18,
               ),
               title: Row(
                 children: [
@@ -160,68 +167,73 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   ),
                 ],
               ),
-              content: SizedBox(
-                width: _dialogWidth(context),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Category Name',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+              content: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: 420,
+                ),
+                child: SizedBox(
+                  width: _dialogWidth(context),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Category Name',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
-                    ),
 
-                    const SizedBox(height: 8),
+                      const SizedBox(height: 8),
 
-                    TextField(
-                      controller: controller,
-                      autofocus: true,
-                      textCapitalization:
-                          TextCapitalization.words,
-                      decoration: _inputDecoration(
-                        hintText: 'Enter category name',
+                      TextField(
+                        controller: controller,
+                        autofocus: true,
+                        textCapitalization:
+                            TextCapitalization.words,
+                        decoration: _inputDecoration(
+                          hintText: 'Enter category name',
+                        ),
                       ),
-                    ),
 
-                    const SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
-                    const Text(
-                      'Allowance Time',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                      const Text(
+                        'Allowance Time',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
-                    ),
 
-                    const SizedBox(height: 8),
+                      const SizedBox(height: 8),
 
-                    InkWell(
-                      borderRadius:
-                          BorderRadius.circular(10),
-                      onTap: () async {
-                        final picked =
-                            await _showTimePicker(
+                      InkWell(
+                        borderRadius:
+                            BorderRadius.circular(10),
+                        onTap: () async {
+                          final picked =
+                              await _showTimePicker(
+                            selectedAllotmentTime,
+                          );
+
+                          if (picked != null) {
+                            setDialogState(() {
+                              selectedAllotmentTime =
+                                  picked;
+                            });
+                          }
+                        },
+                        child: _timeField(
                           selectedAllotmentTime,
-                        );
-
-                        if (picked != null) {
-                          setDialogState(() {
-                            selectedAllotmentTime =
-                                picked;
-                          });
-                        }
-                      },
-                      child: _timeField(
-                        selectedAllotmentTime,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               actions: [
@@ -366,29 +378,36 @@ class _CategoryScreenState extends State<CategoryScreen> {
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
+            final screenWidth =
+                MediaQuery.of(context).size.width;
+
             return AlertDialog(
               backgroundColor: AppColors.surface,
               surfaceTintColor: Colors.transparent,
+              insetPadding: EdgeInsets.symmetric(
+                horizontal: screenWidth < 400 ? 12 : 24,
+                vertical: 24,
+              ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
               titlePadding: const EdgeInsets.fromLTRB(
-                24,
-                22,
+                20,
                 18,
+                12,
                 8,
               ),
               contentPadding: const EdgeInsets.fromLTRB(
-                24,
+                20,
                 8,
-                24,
+                20,
                 10,
               ),
               actionsPadding: const EdgeInsets.fromLTRB(
-                24,
-                8,
-                24,
                 20,
+                8,
+                20,
+                18,
               ),
               title: Row(
                 children: [
@@ -414,166 +433,170 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   ),
                 ],
               ),
-              content: SizedBox(
-                width: _dialogWidth(context),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Category Name',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    TextField(
-                      controller: controller,
-                      autofocus: true,
-                      textCapitalization:
-                          TextCapitalization.words,
-                      decoration: _inputDecoration(
-                        hintText: 'Enter category name',
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    const Text(
-                      'Allowance Time',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    InkWell(
-                      borderRadius:
-                          BorderRadius.circular(10),
-                      onTap: () async {
-                        final picked =
-                            await _showTimePicker(
-                          selectedAllotmentTime,
-                        );
-
-                        if (picked != null) {
-                          setDialogState(() {
-                            selectedAllotmentTime =
-                                picked;
-                          });
-                        }
-                      },
-                      child: _timeField(
-                        selectedAllotmentTime,
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // STATUS
-                    Container(
-                      width: double.infinity,
-                      padding:
-                          const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 11,
-                      ),
-                      decoration: BoxDecoration(
-                        color:
-                            AppColors.inputBackground,
-                        borderRadius:
-                            BorderRadius.circular(10),
-                        border: Border.all(
-                          color: AppColors.border,
+              content: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: 420,
+                ),
+                child: SizedBox(
+                  width: _dialogWidth(context),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Category Name',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
                         ),
                       ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Status',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight:
-                                        FontWeight.w600,
-                                    color: AppColors
-                                        .textPrimary,
-                                  ),
-                                ),
-                                const SizedBox(height: 3),
-                                Text(
-                                  isActive
-                                      ? 'Active'
-                                      : 'Inactive',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: isActive
-                                        ? AppColors.active
-                                        : AppColors
-                                            .textSecondary,
-                                    fontWeight:
-                                        FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
+
+                      const SizedBox(height: 8),
+
+                      TextField(
+                        controller: controller,
+                        autofocus: true,
+                        textCapitalization:
+                            TextCapitalization.words,
+                        decoration: _inputDecoration(
+                          hintText: 'Enter category name',
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      const Text(
+                        'Allowance Time',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      InkWell(
+                        borderRadius:
+                            BorderRadius.circular(10),
+                        onTap: () async {
+                          final picked =
+                              await _showTimePicker(
+                            selectedAllotmentTime,
+                          );
+
+                          if (picked != null) {
+                            setDialogState(() {
+                              selectedAllotmentTime =
+                                  picked;
+                            });
+                          }
+                        },
+                        child: _timeField(
+                          selectedAllotmentTime,
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      Container(
+                        width: double.infinity,
+                        padding:
+                            const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 11,
+                        ),
+                        decoration: BoxDecoration(
+                          color:
+                              AppColors.inputBackground,
+                          borderRadius:
+                              BorderRadius.circular(10),
+                          border: Border.all(
+                            color: AppColors.border,
                           ),
-
-                          SwitchTheme(
-                            data: SwitchThemeData(
-                              thumbColor:
-                                  WidgetStateProperty
-                                      .resolveWith(
-                                (_) => Colors.white,
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Status',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight:
+                                          FontWeight.w600,
+                                      color: AppColors
+                                          .textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    isActive
+                                        ? 'Active'
+                                        : 'Inactive',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: isActive
+                                          ? AppColors.active
+                                          : AppColors
+                                              .textSecondary,
+                                      fontWeight:
+                                          FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              trackColor:
-                                  WidgetStateProperty
-                                      .resolveWith(
-                                (states) {
-                                  if (states.contains(
-                                    WidgetState.selected,
-                                  )) {
-                                    return AppColors
-                                        .primary;
-                                  }
+                            ),
 
-                                  return Colors.grey
-                                      .withValues(
-                                    alpha: 0.35,
-                                  );
+                            SwitchTheme(
+                              data: SwitchThemeData(
+                                thumbColor:
+                                    WidgetStateProperty
+                                        .resolveWith(
+                                  (_) => Colors.white,
+                                ),
+                                trackColor:
+                                    WidgetStateProperty
+                                        .resolveWith(
+                                  (states) {
+                                    if (states.contains(
+                                      WidgetState.selected,
+                                    )) {
+                                      return AppColors
+                                          .primary;
+                                    }
+
+                                    return Colors.grey
+                                        .withValues(
+                                      alpha: 0.35,
+                                    );
+                                  },
+                                ),
+                                trackOutlineColor:
+                                    WidgetStateProperty
+                                        .all(
+                                  Colors.transparent,
+                                ),
+                              ),
+                              child: Switch(
+                                value: isActive,
+                                onChanged: (value) {
+                                  setDialogState(() {
+                                    isActive = value;
+                                  });
                                 },
                               ),
-                              trackOutlineColor:
-                                  WidgetStateProperty
-                                      .all(
-                                Colors.transparent,
-                              ),
                             ),
-                            child: Switch(
-                              value: isActive,
-                              onChanged: (value) {
-                                setDialogState(() {
-                                  isActive = value;
-                                });
-                              },
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               actions: [
@@ -770,6 +793,22 @@ class _CategoryScreenState extends State<CategoryScreen> {
       builder: (sheetContext) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
+            final screenHeight =
+                MediaQuery.of(context).size.height;
+
+            final screenWidth =
+                MediaQuery.of(context).size.width;
+
+            final sheetHeight =
+                screenHeight < 650
+                    ? screenHeight * 0.78
+                    : screenWidth < 600
+                        ? 470.0
+                        : 500.0;
+
+            final horizontalSpacing =
+                screenWidth < 380 ? 6.0 : 10.0;
+
             final selectedTime =
                 _formatTime(
               selectedHour,
@@ -779,7 +818,11 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
             return SafeArea(
               child: Container(
-                height: 500,
+                height: sheetHeight,
+                padding: EdgeInsets.symmetric(
+                  horizontal:
+                      screenWidth < 400 ? 12 : 20,
+                ),
                 decoration: const BoxDecoration(
                   color: AppColors.surface,
                   borderRadius:
@@ -801,29 +844,36 @@ class _CategoryScreenState extends State<CategoryScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 16),
 
-                    const Text(
-                      'Select Allowance Time',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: const Text(
+                        'Select Allowance Time',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color:
+                              AppColors.textPrimary,
+                        ),
                       ),
                     ),
 
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
 
-                    Text(
-                      selectedTime,
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.primary,
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        selectedTime,
+                        style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.primary,
+                        ),
                       ),
                     ),
 
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 14),
 
                     Expanded(
                       child: Row(
@@ -848,7 +898,9 @@ class _CategoryScreenState extends State<CategoryScreen> {
                             ),
                           ),
 
-                          const SizedBox(width: 10),
+                          SizedBox(
+                            width: horizontalSpacing,
+                          ),
 
                           Expanded(
                             child: _buildTimeWheel(
@@ -870,7 +922,9 @@ class _CategoryScreenState extends State<CategoryScreen> {
                             ),
                           ),
 
-                          const SizedBox(width: 10),
+                          SizedBox(
+                            width: horizontalSpacing,
+                          ),
 
                           Expanded(
                             child: _buildTimeWheel(
@@ -897,11 +951,9 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
                     Padding(
                       padding:
-                          const EdgeInsets.fromLTRB(
-                        20,
-                        8,
-                        20,
-                        20,
+                          const EdgeInsets.only(
+                        top: 8,
+                        bottom: 16,
                       ),
                       child: SizedBox(
                         width: double.infinity,
@@ -983,7 +1035,8 @@ class _CategoryScreenState extends State<CategoryScreen> {
                 color: AppColors.border,
               ),
             ),
-            child: ListWheelScrollView.useDelegate(
+            child:
+                ListWheelScrollView.useDelegate(
               itemExtent: 52,
               diameterRatio: 1.8,
               perspective: 0.002,
@@ -1163,18 +1216,22 @@ class _CategoryScreenState extends State<CategoryScreen> {
       ),
       child: Row(
         children: [
-          Text(
-            hasValue ? value : '--:-- --',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: hasValue
-                  ? AppColors.textPrimary
-                  : AppColors.textTertiary,
+          Expanded(
+            child: Text(
+              hasValue
+                  ? value
+                  : '--:-- --',
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight:
+                    FontWeight.w500,
+                color: hasValue
+                    ? AppColors.textPrimary
+                    : AppColors.textTertiary,
+              ),
             ),
           ),
-
-          const Spacer(),
 
           const Icon(
             Icons.access_time_rounded,
@@ -1190,9 +1247,15 @@ class _CategoryScreenState extends State<CategoryScreen> {
   // DIALOG WIDTH
   // ============================================================
 
-  double _dialogWidth(BuildContext context) {
+  double _dialogWidth(
+    BuildContext context,
+  ) {
     final width =
         MediaQuery.of(context).size.width;
+
+    if (width < 360) {
+      return width * 0.78;
+    }
 
     if (width < 500) {
       return width * 0.82;
@@ -1237,323 +1300,227 @@ class _CategoryScreenState extends State<CategoryScreen> {
     final categories =
         _filteredCategories;
 
-    return Scaffold(
-      backgroundColor:
-          AppColors.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ========================================================
-            // TOP BAR
-            // ========================================================
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
 
-            Container(
-              height: 72,
-              padding:
-                  EdgeInsets.symmetric(
-                horizontal:
-                    _horizontalPadding(
-                  context,
-                ),
-              ),
-              decoration:
-                  const BoxDecoration(
-                color: AppColors.surface,
-                border: Border(
-                  bottom: BorderSide(
-                    color:
-                        AppColors.borderLight,
+        final isSmallMobile =
+            width < 400;
+
+        final isMobile =
+            width < 600;
+
+        final isTablet =
+            width >= 600 &&
+            width < 1000;
+
+        final isDesktop =
+            width >= 1000;
+
+        final horizontalPadding =
+            _horizontalPadding(context);
+
+        final topBarHeight =
+            isSmallMobile
+                ? 60.0
+                : isMobile
+                    ? 64.0
+                    : 72.0;
+
+        final contentTopSpacing =
+            isSmallMobile
+                ? 18.0
+                : isMobile
+                    ? 22.0
+                    : 28.0;
+
+        return Scaffold(
+          backgroundColor:
+              AppColors.background,
+          body: SafeArea(
+            child: Column(
+              children: [
+                // ======================================================
+                // TOP BAR
+                // ======================================================
+
+                Container(
+                  height: topBarHeight,
+                  padding:
+                      EdgeInsets.symmetric(
+                    horizontal:
+                        horizontalPadding,
                   ),
-                ),
-              ),
-              child: Row(
-                children: [
-                  IconButton(
-                    tooltip: 'Back',
-                    onPressed: () =>
-                        Navigator.of(
+                  decoration:
+                      const BoxDecoration(
+                    color: AppColors.surface,
+                    border: Border(
+                      bottom: BorderSide(
+                        color:
+                            AppColors.borderLight,
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        padding:
+                            EdgeInsets.zero,
+                        constraints:
+                            const BoxConstraints(
+                          minWidth: 40,
+                          minHeight: 40,
+                        ),
+                        tooltip: 'Back',
+                        onPressed: () =>
+                            Navigator.of(
                           context,
                         ).pop(),
-                    icon:
-                        const Icon(
-                      Icons
-                          .arrow_back_rounded,
-                      size: 23,
-                      color:
-                          AppColors.icon,
-                    ),
-                  ),
+                        icon:
+                            Icon(
+                          Icons
+                              .arrow_back_rounded,
+                          size: isSmallMobile
+                              ? 21
+                              : 23,
+                          color:
+                              AppColors.icon,
+                        ),
+                      ),
 
-                  const SizedBox(width: 8),
+                      SizedBox(
+                        width:
+                            isSmallMobile
+                                ? 4
+                                : 8,
+                      ),
 
-                  const Text(
-                    'Categories',
-                    style: TextStyle(
-                      fontSize: 19,
-                      fontWeight:
-                          FontWeight.w700,
-                      color:
-                          AppColors
-                              .textPrimary,
-                    ),
+                      Flexible(
+                        child: Text(
+                          'Categories',
+                          overflow:
+                              TextOverflow
+                                  .ellipsis,
+                          style: TextStyle(
+                            fontSize:
+                                isSmallMobile
+                                    ? 17
+                                    : isMobile
+                                        ? 18
+                                        : 19,
+                            fontWeight:
+                                FontWeight.w700,
+                            color: AppColors
+                                .textPrimary,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-
-            // ========================================================
-            // CONTENT
-            // ========================================================
-
-            Expanded(
-              child: Padding(
-                padding:
-                    EdgeInsets.fromLTRB(
-                  _horizontalPadding(
-                    context,
-                  ),
-                  28,
-                  _horizontalPadding(
-                    context,
-                  ),
-                  24,
                 ),
-                child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Manage your product categories.',
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: AppColors
-                            .textSecondary,
-                        fontWeight:
-                            FontWeight.w500,
-                      ),
+
+                // ======================================================
+                // CONTENT
+                // ======================================================
+
+                Expanded(
+                  child: Padding(
+                    padding:
+                        EdgeInsets.fromLTRB(
+                      horizontalPadding,
+                      contentTopSpacing,
+                      horizontalPadding,
+                      isSmallMobile
+                          ? 16
+                          : 24,
                     ),
-
-                    const SizedBox(height: 22),
-
-                    // ==================================================
-                    // SEARCH + ADD
-                    // ==================================================
-
-                    LayoutBuilder(
-                      builder:
-                          (
-                        context,
-                        constraints,
-                      ) {
-                        final isSmall =
-                            constraints.maxWidth <
-                                600;
-
-                        final searchField =
-                            TextField(
-                          controller:
-                              _searchController,
-                          decoration:
-                              InputDecoration(
-                            hintText:
-                                'Search categories...',
-                            hintStyle:
-                                const TextStyle(
-                              color: AppColors
-                                  .textTertiary,
-                              fontSize: 14,
-                            ),
-                            prefixIcon:
-                                const Icon(
-                              Icons
-                                  .search_rounded,
-                              size: 22,
-                              color: AppColors
-                                  .textTertiary,
-                            ),
-                            suffixIcon:
-                                _searchController
-                                        .text
-                                        .isNotEmpty
-                                    ? IconButton(
-                                        onPressed:
-                                            () {
-                                          _searchController
-                                              .clear();
-                                        },
-                                        icon:
-                                            const Icon(
-                                          Icons
-                                              .close_rounded,
-                                          size: 19,
-                                        ),
-                                      )
-                                    : null,
-                            filled: true,
-                            fillColor:
-                                AppColors.surface,
-                            contentPadding:
-                                const EdgeInsets
-                                    .symmetric(
-                              vertical: 14,
-                            ),
-                            border:
-                                OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius
-                                      .circular(
-                                10,
-                              ),
-                              borderSide:
-                                  const BorderSide(
-                                color: AppColors
-                                    .border,
-                              ),
-                            ),
-                            enabledBorder:
-                                OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius
-                                      .circular(
-                                10,
-                              ),
-                              borderSide:
-                                  const BorderSide(
-                                color: AppColors
-                                    .border,
-                              ),
-                            ),
-                            focusedBorder:
-                                OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius
-                                      .circular(
-                                10,
-                              ),
-                              borderSide:
-                                  const BorderSide(
-                                color: AppColors
-                                    .primary,
-                                width: 1.5,
-                              ),
-                            ),
+                    child: Column(
+                      crossAxisAlignment:
+                          CrossAxisAlignment
+                              .start,
+                      children: [
+                        Text(
+                          'Manage your product categories.',
+                          style: TextStyle(
+                            fontSize:
+                                isSmallMobile
+                                    ? 13
+                                    : 15,
+                            color: AppColors
+                                .textSecondary,
+                            fontWeight:
+                                FontWeight.w500,
                           ),
-                        );
+                        ),
 
-                        final addButton =
-                            SizedBox(
-                          width:
-                              isSmall
-                                  ? double.infinity
-                                  : 180,
-                          height: 46,
-                          child:
-                              ElevatedButton
-                                  .icon(
-                            onPressed:
-                                _openAddDialog,
-                            icon:
-                                const Icon(
-                              Icons
-                                  .add_rounded,
-                              size: 19,
-                            ),
-                            label:
-                                const Text(
-                              'Add Category',
-                              style:
-                                  TextStyle(
-                                fontSize: 13,
-                                fontWeight:
-                                    FontWeight
-                                        .w600,
-                              ),
-                            ),
-                            style:
-                                ElevatedButton
-                                    .styleFrom(
-                              backgroundColor:
-                                  AppColors
-                                      .primary,
-                              foregroundColor:
-                                  AppColors
-                                      .textOnPrimary,
-                              elevation: 0,
-                              shape:
-                                  RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius
-                                        .circular(
-                                  10,
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
+                        SizedBox(
+                          height:
+                              isSmallMobile
+                                  ? 16
+                                  : 22,
+                        ),
 
-                        if (isSmall) {
-                          return Column(
+                        // ==================================================
+                        // SEARCH + ADD
+                        // ==================================================
+
+                        _buildSearchAndAdd(
+                          isMobile:
+                              isMobile,
+                          isSmallMobile:
+                              isSmallMobile,
+                          isTablet:
+                              isTablet,
+                          isDesktop:
+                              isDesktop,
+                        ),
+
+                        SizedBox(
+                          height:
+                              isSmallMobile
+                                  ? 10
+                                  : 14,
+                        ),
+
+                        // ==================================================
+                        // STATUS FILTER
+                        // ==================================================
+
+                        SingleChildScrollView(
+                          scrollDirection:
+                              Axis.horizontal,
+                          child: Row(
                             children: [
-                              searchField,
-                              const SizedBox(
-                                height: 10,
+                              _buildStatusFilter(
+                                'All',
+                                compact: isMobile,
                               ),
-                              addButton,
+                              const SizedBox(width: 6),
+                              _buildStatusFilter(
+                                'Active',
+                                compact: isMobile,
+                              ),
+                              const SizedBox(width: 6),
+                              _buildStatusFilter(
+                                'Inactive',
+                                compact: isMobile,
+                              ),
                             ],
-                          );
-                        }
-
-                        return Row(
-                          children: [
-                            Expanded(
-                              child:
-                                  searchField,
-                            ),
-                            const SizedBox(
-                              width: 12,
-                            ),
-                            addButton,
-                          ],
-                        );
-                      },
-                    ),
-
-                    const SizedBox(height: 14),
-
-                    // ==================================================
-                    // STATUS FILTER
-                    // ==================================================
-
-                    SingleChildScrollView(
-                      scrollDirection:
-                          Axis.horizontal,
-                      child: Row(
-                        children: [
-                          _buildStatusFilter(
-                            'All',
                           ),
-                          const SizedBox(
-                            width: 8,
-                          ),
-                          _buildStatusFilter(
-                            'Active',
-                          ),
-                          const SizedBox(
-                            width: 8,
-                          ),
-                          _buildStatusFilter(
-                            'Inactive',
-                          ),
-                        ],
-                      ),
-                    ),
+                        ),
 
-                    const SizedBox(height: 16),
+                        SizedBox(
+                          height:
+                              isSmallMobile
+                                  ? 12
+                                  : 16,
+                        ),
 
-                    // ==================================================
-                    // CATEGORY LIST
-                    // ==================================================
+                        // ==================================================
+                        // CATEGORY LIST
+                        // ==================================================
 
+<<<<<<< Updated upstream
                     Expanded(
                       child: _isLoading
                           ? const Center(
@@ -1592,14 +1559,182 @@ class _CategoryScreenState extends State<CategoryScreen> {
                                     );
                                   },
                                 ),
+=======
+                        Expanded(
+                          child: _isLoading
+                              ? const Center(
+                                  child:
+                                      CircularProgressIndicator(
+                                    color:
+                                        AppColors
+                                            .primary,
+                                  ),
+                                )
+                              : categories
+                                      .isEmpty
+                                  ? _buildEmptyState()
+                                  : ListView.separated(
+                                      padding:
+                                          EdgeInsets.zero,
+                                      itemCount:
+                                          categories
+                                              .length,
+                                      separatorBuilder:
+                                          (
+                                        _,
+                                        __,
+                                      ) =>
+                                              SizedBox(
+                                        height:
+                                            isSmallMobile
+                                                ? 8
+                                                : 10,
+                                      ),
+                                      itemBuilder:
+                                          (
+                                        context,
+                                        index,
+                                      ) {
+                                        return _buildCategoryCard(
+                                          categories[
+                                              index],
+                                        );
+                                      },
+                                    ),
+                        ),
+                      ],
+>>>>>>> Stashed changes
                     ),
-                  ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ============================================================
+  // RESPONSIVE SEARCH + ADD
+  // ============================================================
+
+  Widget _buildSearchAndAdd({
+    required bool isMobile,
+    required bool isSmallMobile,
+    required bool isTablet,
+    required bool isDesktop,
+  }) {
+    final searchField = SizedBox(
+      height: isMobile ? 40 : 46,
+      child: TextField(
+        controller: _searchController,
+        textInputAction: TextInputAction.search,
+        decoration: InputDecoration(
+          hintText: 'Search categories...',
+          hintStyle: TextStyle(
+            color: AppColors.textTertiary,
+            fontSize: isMobile ? 12 : 14,
+          ),
+          prefixIcon: Icon(
+            Icons.search_rounded,
+            size: isMobile ? 18 : 22,
+            color: AppColors.textTertiary,
+          ),
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: () {
+                    _searchController.clear();
+                    setState(() {});
+                  },
+                  icon: Icon(
+                    Icons.close_rounded,
+                    size: isMobile ? 16 : 19,
+                  ),
+                )
+              : null,
+          filled: true,
+          fillColor: AppColors.surface,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 10,
+            vertical: 8,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: AppColors.border,
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: AppColors.border,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: AppColors.primary,
+              width: 1.5,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final addButton = SizedBox(
+      width: isMobile ? 40 : isTablet ? 140 : 180,
+      height: isMobile ? 40 : 46,
+      child: isMobile
+          ? ElevatedButton(
+              onPressed: _openAddDialog,
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.zero,
+                backgroundColor: AppColors.primary,
+                foregroundColor: AppColors.textOnPrimary,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(9),
+                ),
+              ),
+              child: const Icon(
+                Icons.add_rounded,
+                size: 20,
+              ),
+            )
+          : ElevatedButton.icon(
+              onPressed: _openAddDialog,
+              icon: const Icon(
+                Icons.add_rounded,
+                size: 19,
+              ),
+              label: const Text(
+                'Add Category',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: AppColors.textOnPrimary,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
             ),
-          ],
+    );
+
+    return Row(
+      children: [
+        Expanded(
+          child: searchField,
         ),
-      ),
+        SizedBox(width: isMobile ? 7 : 12),
+        addButton,
+      ],
     );
   }
 
@@ -1612,6 +1747,10 @@ class _CategoryScreenState extends State<CategoryScreen> {
   ) {
     final width =
         MediaQuery.of(context).size.width;
+
+    if (width < 400) {
+      return 12;
+    }
 
     if (width < 600) {
       return 16;
@@ -1629,8 +1768,9 @@ class _CategoryScreenState extends State<CategoryScreen> {
   // ============================================================
 
   Widget _buildStatusFilter(
-    String status,
-  ) {
+    String status, {
+    bool compact = false,
+  }) {
     final isSelected =
         _statusFilter == status;
 
@@ -1638,8 +1778,9 @@ class _CategoryScreenState extends State<CategoryScreen> {
       showCheckmark: false,
       label: Text(
         status,
-        style: const TextStyle(
-          fontSize: 13,
+        style: TextStyle(
+          fontSize: compact ? 11 : 13,
+          fontWeight: FontWeight.w600,
         ),
       ),
       selected: isSelected,
@@ -1658,9 +1799,11 @@ class _CategoryScreenState extends State<CategoryScreen> {
         color: isSelected
             ? AppColors.primary
             : AppColors.textSecondary,
-        fontWeight:
-            FontWeight.w600,
+        fontWeight: FontWeight.w600,
       ),
+      visualDensity: compact
+          ? VisualDensity.compact
+          : VisualDensity.standard,
       side: BorderSide(
         color: isSelected
             ? AppColors.primary
@@ -1670,80 +1813,218 @@ class _CategoryScreenState extends State<CategoryScreen> {
   }
 
   // ============================================================
-  // CATEGORY CARD
+  // RESPONSIVE CATEGORY CARD
   // ============================================================
 
   Widget _buildCategoryCard(
     CategoryModel category,
   ) {
-    return Container(
-      width: double.infinity,
-      constraints:
-          const BoxConstraints(
-        minHeight: 78,
-      ),
-      padding:
-          const EdgeInsets.symmetric(
-        horizontal: 20,
-        vertical: 15,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius:
-            BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.borderLight,
-        ),
-      ),
-      child: LayoutBuilder(
-        builder:
-            (context, constraints) {
-          final isSmall =
-              constraints.maxWidth < 500;
+    return LayoutBuilder(
+      builder:
+          (context, constraints) {
+        final width =
+            constraints.maxWidth;
 
-          if (isSmall) {
-            return Column(
+        final isSmallMobile =
+            width < 380;
+
+        final isMobile =
+            width < 600;
+
+        final isTablet =
+            width >= 600 &&
+            width < 850;
+
+        final horizontalPadding =
+            isSmallMobile
+                ? 12.0
+                : isMobile
+                    ? 16.0
+                    : isTablet
+                        ? 18.0
+                        : 20.0;
+
+        final verticalPadding =
+            isSmallMobile
+                ? 12.0
+                : 15.0;
+
+        return Container(
+          width: double.infinity,
+          constraints:
+              const BoxConstraints(
+            minHeight: 78,
+          ),
+          padding:
+              EdgeInsets.symmetric(
+            horizontal:
+                horizontalPadding,
+            vertical:
+                verticalPadding,
+          ),
+          decoration: BoxDecoration(
+            color:
+                AppColors.surface,
+            borderRadius:
+                BorderRadius.circular(12),
+            border: Border.all(
+              color:
+                  AppColors.borderLight,
+            ),
+          ),
+          child:
+              _buildResponsiveCardContent(
+            category,
+            isSmallMobile:
+                isSmallMobile,
+            isMobile:
+                isMobile,
+            isTablet:
+                isTablet,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildResponsiveCardContent(
+    CategoryModel category, {
+    required bool isSmallMobile,
+    required bool isMobile,
+    required bool isTablet,
+  }) {
+    // ==========================================================
+    // MOBILE
+    // ==========================================================
+
+    if (isMobile) {
+      return Column(
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  category.name,
+                  maxLines: 2,
+                  overflow:
+                      TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize:
+                        isSmallMobile
+                            ? 15
+                            : 16,
+                    fontWeight:
+                        FontWeight.w700,
+                    color: AppColors
+                        .textPrimary,
+                  ),
+                ),
+              ),
+
+              IconButton(
+                padding:
+                    EdgeInsets.zero,
+                constraints:
+                    const BoxConstraints(
+                  minWidth: 40,
+                  minHeight: 40,
+                ),
+                tooltip: 'Edit',
+                onPressed: () =>
+                    _openEditDialog(
+                  category,
+                ),
+                icon: Icon(
+                  Icons.edit_outlined,
+                  size:
+                      isSmallMobile
+                          ? 20
+                          : 21,
+                  color:
+                      AppColors.icon,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 4),
+
+          Text(
+            'Allowance Time: ${category.allotmentTime}',
+            overflow:
+                TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 13,
+              color:
+                  AppColors.textSecondary,
+              fontWeight:
+                  FontWeight.w500,
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          Row(
+            children: [
+              Text(
+                category.isActive
+                    ? 'Active'
+                    : 'Inactive',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight:
+                      FontWeight.w600,
+                  color: category.isActive
+                      ? AppColors.active
+                      : AppColors
+                          .textSecondary,
+                ),
+              ),
+
+              const SizedBox(width: 5),
+
+              _buildSwitch(category),
+            ],
+          ),
+        ],
+      );
+    }
+
+    // ==========================================================
+    // TABLET
+    // ==========================================================
+
+    if (isTablet) {
+      return Row(
+        children: [
+          Expanded(
+            child: Column(
               crossAxisAlignment:
                   CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        category.name,
-                        style:
-                            const TextStyle(
-                          fontSize: 16,
-                          fontWeight:
-                              FontWeight.w700,
-                          color: AppColors
-                              .textPrimary,
-                        ),
-                      ),
-                    ),
-
-                    IconButton(
-                      tooltip: 'Edit',
-                      onPressed: () =>
-                          _openEditDialog(
-                        category,
-                      ),
-                      icon:
-                          const Icon(
-                        Icons
-                            .edit_outlined,
-                        size: 21,
-                        color:
-                            AppColors.icon,
-                      ),
-                    ),
-                  ],
+                Text(
+                  category.name,
+                  maxLines: 1,
+                  overflow:
+                      TextOverflow.ellipsis,
+                  style:
+                      const TextStyle(
+                    fontSize: 16,
+                    fontWeight:
+                        FontWeight.w700,
+                    color: AppColors
+                        .textPrimary,
+                  ),
                 ),
 
                 const SizedBox(height: 4),
 
                 Text(
                   'Allowance Time: ${category.allotmentTime}',
+                  overflow:
+                      TextOverflow.ellipsis,
                   style:
                       const TextStyle(
                     fontSize: 13,
@@ -1753,124 +2034,131 @@ class _CategoryScreenState extends State<CategoryScreen> {
                         FontWeight.w500,
                   ),
                 ),
-
-                const SizedBox(height: 8),
-
-                Row(
-                  children: [
-                    Text(
-                      category.isActive
-                          ? 'Active'
-                          : 'Inactive',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight:
-                            FontWeight.w600,
-                        color: category
-                                .isActive
-                            ? AppColors
-                                .active
-                            : AppColors
-                                .textSecondary,
-                      ),
-                    ),
-
-                    const SizedBox(
-                      width: 5,
-                    ),
-
-                    _buildSwitch(
-                      category,
-                    ),
-                  ],
-                ),
               ],
-            );
-          }
+            ),
+          ),
 
-          // ==========================================================
-          // DESKTOP / WEB / WINDOWS
-          // ALLOWANCE TIME UNDER CATEGORY NAME
-          // ==========================================================
+          const SizedBox(width: 12),
 
-          return Row(
+          Text(
+            category.isActive
+                ? 'Active'
+                : 'Inactive',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight:
+                  FontWeight.w600,
+              color: category.isActive
+                  ? AppColors.active
+                  : AppColors
+                      .textSecondary,
+            ),
+          ),
+
+          _buildSwitch(category),
+
+          IconButton(
+            padding:
+                EdgeInsets.zero,
+            constraints:
+                const BoxConstraints(
+              minWidth: 40,
+              minHeight: 40,
+            ),
+            tooltip: 'Edit',
+            onPressed: () =>
+                _openEditDialog(
+              category,
+            ),
+            icon: const Icon(
+              Icons.edit_outlined,
+              size: 21,
+              color: AppColors.icon,
+            ),
+          ),
+        ],
+      );
+    }
+
+    // ==========================================================
+    // DESKTOP / WEB / WINDOWS
+    // ==========================================================
+
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
             children: [
-              // CATEGORY NAME + ALLOWANCE TIME
-              Expanded(
-                child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      category.name,
-                      style:
-                          const TextStyle(
-                        fontSize: 16,
-                        fontWeight:
-                            FontWeight.w700,
-                        color: AppColors
-                            .textPrimary,
-                      ),
-                    ),
-
-                    const SizedBox(height: 4),
-
-                    Text(
-                      'Allowance Time: ${category.allotmentTime}',
-                      style:
-                          const TextStyle(
-                        fontSize: 13,
-                        color: AppColors
-                            .textSecondary,
-                        fontWeight:
-                            FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(width: 24),
-
-              // STATUS
               Text(
-                category.isActive
-                    ? 'Active'
-                    : 'Inactive',
-                style: TextStyle(
-                  fontSize: 13,
+                category.name,
+                maxLines: 1,
+                overflow:
+                    TextOverflow.ellipsis,
+                style:
+                    const TextStyle(
+                  fontSize: 16,
                   fontWeight:
-                      FontWeight.w600,
-                  color: category
-                          .isActive
-                      ? AppColors.active
-                      : AppColors
-                          .textSecondary,
+                      FontWeight.w700,
+                  color:
+                      AppColors.textPrimary,
                 ),
               ),
 
-              const SizedBox(width: 5),
+              const SizedBox(height: 4),
 
-              // SWITCH
-              _buildSwitch(category),
-
-              // EDIT
-              IconButton(
-                tooltip: 'Edit',
-                onPressed: () =>
-                    _openEditDialog(
-                  category,
-                ),
-                icon: const Icon(
-                  Icons.edit_outlined,
-                  size: 22,
-                  color: AppColors.icon,
+              Text(
+                'Allowance Time: ${category.allotmentTime}',
+                overflow:
+                    TextOverflow.ellipsis,
+                style:
+                    const TextStyle(
+                  fontSize: 13,
+                  color:
+                      AppColors.textSecondary,
+                  fontWeight:
+                      FontWeight.w500,
                 ),
               ),
             ],
-          );
-        },
-      ),
+          ),
+        ),
+
+        const SizedBox(width: 24),
+
+        Text(
+          category.isActive
+              ? 'Active'
+              : 'Inactive',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight:
+                FontWeight.w600,
+            color: category.isActive
+                ? AppColors.active
+                : AppColors
+                    .textSecondary,
+          ),
+        ),
+
+        const SizedBox(width: 5),
+
+        _buildSwitch(category),
+
+        IconButton(
+          tooltip: 'Edit',
+          onPressed: () =>
+              _openEditDialog(
+            category,
+          ),
+          icon: const Icon(
+            Icons.edit_outlined,
+            size: 22,
+            color: AppColors.icon,
+          ),
+        ),
+      ],
     );
   }
 
@@ -1884,11 +2172,13 @@ class _CategoryScreenState extends State<CategoryScreen> {
     return SwitchTheme(
       data: SwitchThemeData(
         thumbColor:
-            WidgetStateProperty.resolveWith(
+            WidgetStateProperty
+                .resolveWith(
           (_) => Colors.white,
         ),
         trackColor:
-            WidgetStateProperty.resolveWith(
+            WidgetStateProperty
+                .resolveWith(
           (states) {
             if (states.contains(
               WidgetState.selected,
@@ -1923,50 +2213,63 @@ class _CategoryScreenState extends State<CategoryScreen> {
     return Container(
       width: double.infinity,
       height: double.infinity,
+      constraints:
+          const BoxConstraints(
+        minHeight: 220,
+      ),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius:
             BorderRadius.circular(12),
         border: Border.all(
-          color: AppColors.borderLight,
+          color:
+              AppColors.borderLight,
         ),
       ),
       child: Center(
-        child: Column(
-          mainAxisSize:
-              MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.grid_view_outlined,
-              size: 50,
-              color:
-                  AppColors.textTertiary,
-            ),
-
-            const SizedBox(height: 14),
-
-            const Text(
-              'No categories found',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight:
-                    FontWeight.w600,
-                color:
-                    AppColors.textSecondary,
-              ),
-            ),
-
-            const SizedBox(height: 6),
-
-            const Text(
-              'Add your first category to get started.',
-              style: TextStyle(
-                fontSize: 13,
+        child: Padding(
+          padding:
+              const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize:
+                MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.grid_view_outlined,
+                size: 50,
                 color:
                     AppColors.textTertiary,
               ),
-            ),
-          ],
+
+              const SizedBox(height: 14),
+
+              const Text(
+                'No categories found',
+                textAlign:
+                    TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight:
+                      FontWeight.w600,
+                  color: AppColors
+                      .textSecondary,
+                ),
+              ),
+
+              const SizedBox(height: 6),
+
+              const Text(
+                'Add your first category to get started.',
+                textAlign:
+                    TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  color:
+                      AppColors.textTertiary,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
