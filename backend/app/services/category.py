@@ -38,7 +38,8 @@ class CategoryService:
     ):
         category = Category(
             name=data.name.strip(),
-            status=True,
+            allotment_time=data.allotment_time,
+            status=data.status,
         )
 
         return CategoryRepository.create(
@@ -61,6 +62,8 @@ class CategoryService:
             return None
 
         category.name = data.name.strip()
+        category.allotment_time = data.allotment_time
+        category.status = data.status
 
         return CategoryRepository.update(
             db,

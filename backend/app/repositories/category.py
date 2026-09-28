@@ -14,11 +14,15 @@ class CategoryRepository:
         query = select(Category)
 
         if not include_inactive:
-            query = query.where(Category.status.is_(True))
+            query = query.where(
+                Category.status.is_(True)
+            )
 
         query = query.order_by(Category.id)
 
-        return list(db.scalars(query).all())
+        return list(
+            db.scalars(query).all()
+        )
 
     @staticmethod
     def get_by_id(
@@ -37,16 +41,6 @@ class CategoryRepository:
         name: str,
         exclude_id: int | None = None,
     ) -> Category | None:
-        """
-        Case-insensitive and space-insensitive duplicate check.
-
-        Examples treated as the same:
-        Cat
-        cat
-        CAT
-        C A T
-        C  A   T
-        """
 
         normalized_input = func.lower(
             func.regexp_replace(

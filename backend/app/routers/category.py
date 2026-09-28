@@ -62,11 +62,6 @@ def create_category(
     data: CategoryCreate,
     db: Session = Depends(get_db),
 ):
-    existing_category = CategoryService.get_category(
-        db,
-        0,
-    )
-
     category = CategoryService.create_category(
         db,
         data,
