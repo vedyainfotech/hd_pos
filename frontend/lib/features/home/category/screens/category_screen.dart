@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/theme.dart';
 import '../models/category_model.dart';
 import '../services/category_api_service.dart';
@@ -13,9 +14,11 @@ class CategoryScreen extends StatefulWidget {
 class _CategoryScreenState extends State<CategoryScreen> {
   final CategoryApiService _apiService = CategoryApiService();
 
-  final TextEditingController _categoryController = TextEditingController();
+  final TextEditingController _categoryController =
+      TextEditingController();
 
-  final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _allotmentTimeController =
+      TextEditingController();
 
   List<CategoryModel> _categories = [];
 
@@ -24,23 +27,20 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
   int? _editingId;
 
+  bool _formStatus = true;
+
   String _statusFilter = 'All';
 
   @override
   void initState() {
     super.initState();
-
-    _searchController.addListener(() {
-      setState(() {});
-    });
-
     _loadCategories();
   }
 
   @override
   void dispose() {
     _categoryController.dispose();
-    _searchController.dispose();
+    _allotmentTimeController.dispose();
     super.dispose();
   }
 
@@ -49,12 +49,16 @@ class _CategoryScreenState extends State<CategoryScreen> {
   // ============================================================
 
   Future<void> _loadCategories() async {
-    setState(() {
-      _isLoading = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
 
     try {
-      final categories = await _apiService.getCategories(includeInactive: true);
+      final categories = await _apiService.getCategories(
+        includeInactive: true,
+      );
 
       if (!mounted) return;
 
@@ -69,29 +73,51 @@ class _CategoryScreenState extends State<CategoryScreen> {
         _isLoading = false;
       });
 
-      _showMessage('Failed to load categories', isError: true);
+      _showMessage(
+        'Failed to load categories',
+        isError: true,
+      );
     }
   }
 
   Future<void> _saveCategory() async {
     final name = _categoryController.text.trim();
+    final allotmentTime = _allotmentTimeController.text.trim();
 
     if (name.isEmpty) {
-      _showMessage('Please enter category name', isError: true);
+      _showMessage(
+        'Please enter category name',
+        isError: true,
+      );
       return;
     }
 
-    final isEditing = _editingId != null;
+    if (allotmentTime.isEmpty) {
+      _showMessage(
+        'Please select allotment time',
+        isError: true,
+      );
+      return;
+    }
 
     setState(() {
       _isSaving = true;
     });
 
     try {
-      if (!isEditing) {
-        await _apiService.createCategory(name);
+      if (_editingId == null) {
+        await _apiService.createCategory(
+          name: name,
+          allotmentTime: allotmentTime,
+          status: _formStatus,
+        );
       } else {
-        await _apiService.updateCategory(_editingId!, name);
+        await _apiService.updateCategory(
+          id: _editingId!,
+          name: name,
+          allotmentTime: allotmentTime,
+          status: _formStatus,
+        );
       }
 
       if (!mounted) return;
@@ -103,14 +129,17 @@ class _CategoryScreenState extends State<CategoryScreen> {
       if (!mounted) return;
 
       _showMessage(
-        isEditing
-            ? 'Category updated successfully'
-            : 'Category added successfully',
+        _editingId == null
+            ? 'Category added successfully'
+            : 'Category updated successfully',
       );
     } catch (e) {
       if (!mounted) return;
 
-      _showMessage('Failed to save category', isError: true);
+      _showMessage(
+        'Failed to save category',
+        isError: true,
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -122,13 +151,27 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
   Future<void> _toggleStatus(CategoryModel category) async {
     try {
-      await _apiService.updateCategoryStatus(category.id, !category.isActive);
+      await _apiService.updateCategoryStatus(
+        category.id,
+        !category.isActive,
+      );
 
       await _loadCategories();
+
+      if (!mounted) return;
+
+      _showMessage(
+        category.isActive
+            ? 'Category deactivated'
+            : 'Category activated',
+      );
     } catch (e) {
       if (!mounted) return;
 
-      _showMessage('Failed to update category status', isError: true);
+      _showMessage(
+        'Failed to update category status',
+        isError: true,
+      );
     }
   }
 
@@ -138,24 +181,93 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
   void _openAddPanel() {
     _editingId = null;
+
     _categoryController.clear();
 
-    _showCategoryPanel(title: 'Add Category', buttonText: 'Add Category');
+    _allotmentTimeController.text = '23:55:00';
+
+    _formStatus = true;
+
+    _showCategoryPanel(
+      title: 'Add Category',
+      buttonText: 'Add Category',
+    );
   }
 
   void _openEditPanel(CategoryModel category) {
     _editingId = category.id;
+
     _categoryController.text = category.name;
 
-    _showCategoryPanel(title: 'Edit Category', buttonText: 'Update Category');
+    _allotmentTimeController.text = _formatTime(
+      category.allotmentTime,
+    );
+
+    _formStatus = category.isActive;
+
+    _showCategoryPanel(
+      title: 'Edit Category',
+      buttonText: 'Update Category',
+    );
   }
 
-  void _showCategoryPanel({required String title, required String buttonText}) {
+  String _formatTime(String value) {
+    if (value.length >= 8) {
+      return value.substring(0, 8);
+    }
+
+    return value;
+  }
+
+  Future<void> _selectAllotmentTime(BuildContext panelContext) async {
+    TimeOfDay initialTime = const TimeOfDay(
+      hour: 23,
+      minute: 55,
+    );
+
+    final currentValue = _allotmentTimeController.text.trim();
+
+    final parts = currentValue.split(':');
+
+    if (parts.length >= 2) {
+      final hour = int.tryParse(parts[0]);
+      final minute = int.tryParse(parts[1]);
+
+      if (hour != null &&
+          minute != null &&
+          hour >= 0 &&
+          hour <= 23 &&
+          minute >= 0 &&
+          minute <= 59) {
+        initialTime = TimeOfDay(
+          hour: hour,
+          minute: minute,
+        );
+      }
+    }
+
+    final selectedTime = await showTimePicker(
+      context: panelContext,
+      initialTime: initialTime,
+    );
+
+    if (selectedTime == null) return;
+
+    final hour = selectedTime.hour.toString().padLeft(2, '0');
+    final minute = selectedTime.minute.toString().padLeft(2, '0');
+
+    _allotmentTimeController.text = '$hour:$minute:00';
+  }
+
+  void _showCategoryPanel({
+    required String title,
+    required String buttonText,
+  }) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) {
+      builder: (panelContext) {
         return Align(
           alignment: Alignment.centerRight,
           child: Container(
@@ -174,6 +286,10 @@ class _CategoryScreenState extends State<CategoryScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // ==================================================
+                    // HEADER
+                    // ==================================================
+
                     Row(
                       children: [
                         Expanded(
@@ -189,7 +305,9 @@ class _CategoryScreenState extends State<CategoryScreen> {
                         IconButton(
                           onPressed: _isSaving
                               ? null
-                              : () => Navigator.of(context).pop(),
+                              : () {
+                                  Navigator.of(panelContext).pop();
+                                },
                           icon: const Icon(
                             Icons.close,
                             color: AppColors.icon,
@@ -202,10 +320,17 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
                     const Text(
                       'Create and manage your product category.',
-                      style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
 
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 30),
+
+                    // ==================================================
+                    // CATEGORY NAME
+                    // ==================================================
 
                     const Text(
                       'Category Name',
@@ -221,14 +346,16 @@ class _CategoryScreenState extends State<CategoryScreen> {
                     TextField(
                       controller: _categoryController,
                       autofocus: true,
-                      textInputAction: TextInputAction.done,
-                      onSubmitted: (_) => _saveCategory(),
+                      textInputAction: TextInputAction.next,
                       decoration: InputDecoration(
                         hintText: 'Enter category name',
-                        hintStyle: const TextStyle(color: AppColors.textTertiary),
+                        hintStyle: const TextStyle(
+                          color: AppColors.textTertiary,
+                        ),
                         filled: true,
                         fillColor: AppColors.inputBackground,
-                        contentPadding: const EdgeInsets.symmetric(
+                        contentPadding:
+                            const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 15,
                         ),
@@ -254,7 +381,143 @@ class _CategoryScreenState extends State<CategoryScreen> {
                       ),
                     ),
 
+                    const SizedBox(height: 22),
+
+                    // ==================================================
+                    // ALLOTMENT TIME
+                    // ==================================================
+
+                    const Text(
+                      'Allotment Time',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    TextField(
+                      controller: _allotmentTimeController,
+                      readOnly: true,
+                      onTap: () {
+                        _selectAllotmentTime(panelContext);
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Select allotment time',
+                        hintStyle: const TextStyle(
+                          color: AppColors.textTertiary,
+                        ),
+                        filled: true,
+                        fillColor: AppColors.inputBackground,
+                        suffixIcon: const Icon(
+                          Icons.access_time_outlined,
+                          color: AppColors.icon,
+                        ),
+                        contentPadding:
+                            const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 15,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: AppColors.border,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: AppColors.border,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: AppColors.primary,
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 22),
+
+                    // ==================================================
+                    // STATUS
+                    // ==================================================
+
+                    const Text(
+                      'Status',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.inputBackground,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: AppColors.border,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 9,
+                            height: 9,
+                            decoration: BoxDecoration(
+                              color: _formStatus
+                                  ? AppColors.active
+                                  : AppColors.inactive,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              _formStatus
+                                  ? 'Active'
+                                  : 'Inactive',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: _formStatus
+                                    ? AppColors.active
+                                    : AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                          Switch(
+                            value: _formStatus,
+                            activeThumbColor: AppColors.primary,
+                            onChanged: _isSaving
+                                ? null
+                                : (value) {
+                                    setState(() {
+                                      _formStatus = value;
+                                    });
+                                  },
+                          ),
+                        ],
+                      ),
+                    ),
+
                     const Spacer(),
+
+                    // ==================================================
+                    // BUTTONS
+                    // ==================================================
 
                     Row(
                       children: [
@@ -262,17 +525,27 @@ class _CategoryScreenState extends State<CategoryScreen> {
                           child: OutlinedButton(
                             onPressed: _isSaving
                                 ? null
-                                : () => Navigator.of(context).pop(),
+                                : () {
+                                    Navigator.of(panelContext).pop();
+                                  },
                             style: OutlinedButton.styleFrom(
-                              minimumSize: const Size(double.infinity, 48),
-                             side: BorderSide(color: AppColors.border),
+                              minimumSize: const Size(
+                                double.infinity,
+                                48,
+                              ),
+                              side: const BorderSide(
+                                color: AppColors.border,
+                              ),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius:
+                                    BorderRadius.circular(10),
                               ),
                             ),
                             child: const Text(
                               'Cancel',
-                              style: TextStyle(color: AppColors.icon),
+                              style: TextStyle(
+                                color: AppColors.icon,
+                              ),
                             ),
                           ),
                         ),
@@ -281,23 +554,32 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: _isSaving ? null : _saveCategory,
+                            onPressed:
+                                _isSaving ? null : _saveCategory,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                            foregroundColor: AppColors.textOnPrimary,
-                              minimumSize: const Size(double.infinity, 48),
+                              backgroundColor:
+                                  AppColors.primary,
+                              foregroundColor:
+                                  AppColors.textOnPrimary,
+                              minimumSize: const Size(
+                                double.infinity,
+                                48,
+                              ),
                               elevation: 0,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius:
+                                    BorderRadius.circular(10),
                               ),
                             ),
                             child: _isSaving
                                 ? const SizedBox(
                                     width: 18,
                                     height: 18,
-                                    child: CircularProgressIndicator(
+                                    child:
+                                        CircularProgressIndicator(
                                       strokeWidth: 2,
-                                     color: AppColors.textOnPrimary,
+                                      color: AppColors
+                                          .textOnPrimary,
                                     ),
                                   )
                                 : Text(buttonText),
@@ -320,30 +602,35 @@ class _CategoryScreenState extends State<CategoryScreen> {
   // ============================================================
 
   List<CategoryModel> get _filteredCategories {
-    final search = _searchController.text.trim().toLowerCase();
+    if (_statusFilter == 'Active') {
+      return _categories
+          .where((category) => category.isActive)
+          .toList();
+    }
 
-    return _categories.where((category) {
-      final matchesSearch = category.name.toLowerCase().contains(search);
+    if (_statusFilter == 'Inactive') {
+      return _categories
+          .where((category) => !category.isActive)
+          .toList();
+    }
 
-      final matchesStatus =
-          _statusFilter == 'All' ||
-          (_statusFilter == 'Active' && category.isActive) ||
-          (_statusFilter == 'Inactive' && !category.isActive);
-
-      return matchesSearch && matchesStatus;
-    }).toList();
+    return _categories;
   }
 
   // ============================================================
   // MESSAGE
   // ============================================================
 
-  void _showMessage(String message, {bool isError = false}) {
+  void _showMessage(
+    String message, {
+    bool isError = false,
+  }) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
         behavior: SnackBarBehavior.floating,
-backgroundColor: isError ? AppColors.error : null,
+        backgroundColor:
+            isError ? AppColors.error : null,
       ),
     );
   }
@@ -356,7 +643,6 @@ backgroundColor: isError ? AppColors.error : null,
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-
       body: SafeArea(
         child: Column(
           children: [
@@ -370,17 +656,19 @@ backgroundColor: isError ? AppColors.error : null,
                       ),
                     )
                   : SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(32, 28, 32, 40),
+                      padding: const EdgeInsets.fromLTRB(
+                        32,
+                        28,
+                        32,
+                        40,
+                      ),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment:
+                            CrossAxisAlignment.stretch,
                         children: [
-                          _buildPageHeader(),
+                          _buildActionRow(),
 
-                          const SizedBox(height: 24),
-
-                          _buildToolbar(),
-
-                          const SizedBox(height: 14),
+                          const SizedBox(height: 20),
 
                           _buildCategoryTable(),
                         ],
@@ -400,19 +688,28 @@ backgroundColor: isError ? AppColors.error : null,
   Widget _buildTopBar() {
     return Container(
       height: 72,
-      padding: const EdgeInsets.symmetric(horizontal: 32),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 32,
+      ),
       decoration: const BoxDecoration(
         color: AppColors.surface,
-border: Border(
-  bottom: BorderSide(color: AppColors.borderLight),
-),
+        border: Border(
+          bottom: BorderSide(
+            color: AppColors.borderLight,
+          ),
+        ),
       ),
       child: Row(
         children: [
           IconButton(
             tooltip: 'Back',
-            onPressed: () => Navigator.of(context).pop(),
-icon: const Icon(Icons.arrow_back, color: AppColors.icon),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            icon: const Icon(
+              Icons.arrow_back,
+              color: AppColors.icon,
+            ),
           ),
 
           const SizedBox(width: 8),
@@ -425,154 +722,109 @@ icon: const Icon(Icons.arrow_back, color: AppColors.icon),
               color: AppColors.textPrimary,
             ),
           ),
-
-          const Spacer(),
-
-          ElevatedButton.icon(
-            onPressed: _openAddPanel,
-            icon: const Icon(Icons.add, size: 18),
-            label: const Text('Add Category'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-            foregroundColor: AppColors.textOnPrimary,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(9),
-              ),
-            ),
-          ),
         ],
       ),
     );
   }
 
   // ============================================================
-  // PAGE HEADER
+  // FILTERS + ADD CATEGORY
   // ============================================================
 
-  Widget _buildPageHeader() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildActionRow() {
+    return Row(
       children: [
-        Row(
-          children: [
-            const Text(
-              'Categories',
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.w800,
-                color: AppColors.textPrimary,
-              ),
-            ),
-
-            const SizedBox(width: 12),
-
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                '${_categories.length}',
-                style: const TextStyle(
-                  color: AppColors.primary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ],
+        _buildFilterButton(
+          label: 'All',
+          value: 'All',
         ),
 
-        const SizedBox(height: 6),
+        const SizedBox(width: 12),
 
-        const Text(
-          'Manage your product categories.',
-          style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+        _buildFilterButton(
+          label: 'Active',
+          value: 'Active',
+        ),
+
+        const SizedBox(width: 12),
+
+        _buildFilterButton(
+          label: 'Inactive',
+          value: 'Inactive',
+        ),
+
+        const Spacer(),
+
+        ElevatedButton.icon(
+          onPressed: _openAddPanel,
+          icon: const Icon(
+            Icons.add,
+            size: 18,
+          ),
+          label: const Text(
+            'Add Category',
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            foregroundColor: AppColors.textOnPrimary,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 15,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
         ),
       ],
     );
   }
 
   // ============================================================
-  // TOOLBAR
+  // FILTER BUTTON
   // ============================================================
 
-  Widget _buildToolbar() {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: AppColors.border),
+  Widget _buildFilterButton({
+    required String label,
+    required String value,
+  }) {
+    final isSelected = _statusFilter == value;
+
+    return OutlinedButton(
+      onPressed: () {
+        setState(() {
+          _statusFilter = value;
+        });
+      },
+      style: OutlinedButton.styleFrom(
+        backgroundColor: isSelected
+            ? AppColors.primary
+            : AppColors.surface,
+        foregroundColor: isSelected
+            ? AppColors.textOnPrimary
+            : AppColors.textPrimary,
+        side: BorderSide(
+          color: isSelected
+              ? AppColors.primary
+              : AppColors.border,
+          width: 1.2,
+        ),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 22,
+          vertical: 14,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        elevation: 0,
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search categories...',
-                hintStyle: const TextStyle(
-                  color: AppColors.textTertiary,
-                  fontSize: 13,
-                ),
-                prefixIcon: const Icon(
-                  Icons.search,
-                  size: 20,
-                  color: AppColors.textTertiary,
-                ),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        onPressed: () {
-                          _searchController.clear();
-                        },
-                        icon: const Icon(Icons.close, size: 18),
-                      )
-                    : null,
-                filled: true,
-                fillColor: AppColors.inputBackground,
-                contentPadding: const EdgeInsets.symmetric(vertical: 13),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(9),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-          ),
-
-          const SizedBox(width: 12),
-
-          Container(
-            height: 46,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-            color: AppColors.inputBackground,
-              borderRadius: BorderRadius.circular(9),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: _statusFilter,
-                icon: const Icon(Icons.keyboard_arrow_down, size: 18),
-                items: const [
-                  DropdownMenuItem(value: 'All', child: Text('All Status')),
-                  DropdownMenuItem(value: 'Active', child: Text('Active')),
-                  DropdownMenuItem(value: 'Inactive', child: Text('Inactive')),
-                ],
-                onChanged: (value) {
-                  if (value == null) return;
-
-                  setState(() {
-                    _statusFilter = value;
-                  });
-                },
-              ),
-            ),
-          ),
-        ],
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }
@@ -587,11 +839,15 @@ icon: const Icon(Icons.arrow_back, color: AppColors.icon),
     if (categories.isEmpty) {
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 70),
+        padding: const EdgeInsets.symmetric(
+          vertical: 70,
+        ),
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(
+            color: AppColors.border,
+          ),
         ),
         child: Column(
           children: [
@@ -615,10 +871,13 @@ icon: const Icon(Icons.arrow_back, color: AppColors.icon),
             const SizedBox(height: 5),
 
             Text(
-              _searchController.text.isNotEmpty || _statusFilter != 'All'
-                  ? 'Try changing your search or filter.'
-                  : 'Add your first category to get started.',
-              style: const TextStyle(fontSize: 12, color: AppColors.textTertiary),
+              _statusFilter == 'All'
+                  ? 'Add your first category to get started.'
+                  : 'No $_statusFilter categories found.',
+              style: const TextStyle(
+                fontSize: 13,
+                color: Color(0xFF94A3B8),
+              ),
             ),
           ],
         ),
@@ -629,7 +888,9 @@ icon: const Icon(Icons.arrow_back, color: AppColors.icon),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderLight),
+        border: Border.all(
+          color: AppColors.borderLight,
+        ),
       ),
       child: Column(
         children: [
@@ -637,29 +898,43 @@ icon: const Icon(Icons.arrow_back, color: AppColors.icon),
 
           const Divider(height: 1),
 
-          ...List.generate(categories.length, (index) {
-            final category = categories[index];
+          ...List.generate(
+            categories.length,
+            (index) {
+              final category = categories[index];
 
-            return Column(
-              children: [
-                _buildCategoryRow(category),
+              return Column(
+                children: [
+                  _buildCategoryRow(category),
 
-                if (index != categories.length - 1)
-                  const Divider(height: 1, color: AppColors.borderLight),
-              ],
-            );
-          }),
+                  if (index != categories.length - 1)
+                    const Divider(
+                      height: 1,
+                      color: AppColors.borderLight,
+                    ),
+                ],
+              );
+            },
+          ),
         ],
       ),
     );
   }
 
+  // ============================================================
+  // TABLE HEADER
+  // ============================================================
+
   Widget _buildTableHeader() {
     return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 22, vertical: 15),
+      padding: EdgeInsets.symmetric(
+        horizontal: 22,
+        vertical: 15,
+      ),
       child: Row(
         children: [
           Expanded(
+            flex: 4,
             child: Text(
               'CATEGORY',
               style: TextStyle(
@@ -671,8 +946,21 @@ icon: const Icon(Icons.arrow_back, color: AppColors.icon),
             ),
           ),
 
+          Expanded(
+            flex: 2,
+            child: Text(
+              'ALLOTMENT TIME',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: AppColors.icon,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+
           SizedBox(
-            width: 155,
+            width: 190,
             child: Text(
               'STATUS',
               style: TextStyle(
@@ -701,12 +989,23 @@ icon: const Icon(Icons.arrow_back, color: AppColors.icon),
     );
   }
 
-  Widget _buildCategoryRow(CategoryModel category) {
+  // ============================================================
+  // CATEGORY ROW
+  // ============================================================
+
+  Widget _buildCategoryRow(
+    CategoryModel category,
+  ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 15),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 22,
+        vertical: 15,
+      ),
       child: Row(
         children: [
+          // CATEGORY
           Expanded(
+            flex: 4,
             child: Text(
               category.name,
               style: const TextStyle(
@@ -717,8 +1016,31 @@ icon: const Icon(Icons.arrow_back, color: AppColors.icon),
             ),
           ),
 
+          // ALLOTMENT TIME
+          Expanded(
+            flex: 2,
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.access_time_outlined,
+                  size: 16,
+                  color: AppColors.icon,
+                ),
+                const SizedBox(width: 7),
+                Text(
+                  _formatTime(category.allotmentTime),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // STATUS
           SizedBox(
-            width: 155,
+            width: 190,
             child: Row(
               children: [
                 Container(
@@ -735,7 +1057,9 @@ icon: const Icon(Icons.arrow_back, color: AppColors.icon),
                 const SizedBox(width: 8),
 
                 Text(
-                  category.isActive ? 'Active' : 'Inactive',
+                  category.isActive
+                      ? 'Active'
+                      : 'Inactive',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
@@ -751,7 +1075,8 @@ icon: const Icon(Icons.arrow_back, color: AppColors.icon),
                   scale: 0.72,
                   child: Switch(
                     value: category.isActive,
-                    activeThumbColor: AppColors.primary,
+                    activeThumbColor:
+                        AppColors.primary,
                     onChanged: (_) {
                       _toggleStatus(category);
                     },
@@ -761,6 +1086,7 @@ icon: const Icon(Icons.arrow_back, color: AppColors.icon),
             ),
           ),
 
+          // ACTION
           SizedBox(
             width: 70,
             child: IconButton(

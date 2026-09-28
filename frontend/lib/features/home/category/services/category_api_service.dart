@@ -37,7 +37,11 @@ class CategoryApiService {
     );
   }
 
-  Future<void> createCategory(String name) async {
+  Future<CategoryModel> createCategory({
+    required String name,
+    required String allotmentTime,
+    required bool status,
+  }) async {
     final response = await http.post(
       Uri.parse('$baseUrl$endpoint'),
       headers: {
@@ -45,6 +49,8 @@ class CategoryApiService {
       },
       body: jsonEncode({
         'name': name,
+        'allotment_time': allotmentTime,
+        'status': status,
       }),
     );
 
@@ -52,7 +58,9 @@ class CategoryApiService {
     print('CREATE response: ${response.body}');
 
     if (response.statusCode == 201) {
-      return;
+      return CategoryModel.fromJson(
+        jsonDecode(response.body),
+      );
     }
 
     throw Exception(
@@ -60,10 +68,12 @@ class CategoryApiService {
     );
   }
 
-  Future<CategoryModel> updateCategory(
-    int id,
-    String name,
-  ) async {
+  Future<CategoryModel> updateCategory({
+    required int id,
+    required String name,
+    required String allotmentTime,
+    required bool status,
+  }) async {
     final response = await http.put(
       Uri.parse('$baseUrl$endpoint$id'),
       headers: {
@@ -71,8 +81,13 @@ class CategoryApiService {
       },
       body: jsonEncode({
         'name': name,
+        'allotment_time': allotmentTime,
+        'status': status,
       }),
     );
+
+    print('UPDATE category: ${response.statusCode}');
+    print('UPDATE response: ${response.body}');
 
     if (response.statusCode == 200) {
       return CategoryModel.fromJson(
@@ -95,9 +110,12 @@ class CategoryApiService {
         'Content-Type': 'application/json',
       },
       body: jsonEncode({
-        'is_active': isActive,
+        'status': isActive,
       }),
     );
+
+    print('STATUS UPDATE: ${response.statusCode}');
+    print('STATUS UPDATE RESPONSE: ${response.body}');
 
     if (response.statusCode != 200) {
       throw Exception(
