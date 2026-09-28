@@ -6,7 +6,7 @@ import '../models/category_model.dart';
 
 class CategoryApiService {
   static const String baseUrl = 'http://127.0.0.1:8000';
-  static const String endpoint = '/api/categories';
+  static const String endpoint = '/api/categories/';
 
   Future<List<CategoryModel>> getCategories({
     bool includeInactive = true,
@@ -16,6 +16,9 @@ class CategoryApiService {
         '$baseUrl$endpoint?include_inactive=$includeInactive',
       ),
     );
+
+    print('GET categories: ${response.statusCode}');
+    print('GET response: ${response.body}');
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
@@ -34,7 +37,7 @@ class CategoryApiService {
     );
   }
 
-  Future<CategoryModel> createCategory(String name) async {
+  Future<void> createCategory(String name) async {
     final response = await http.post(
       Uri.parse('$baseUrl$endpoint'),
       headers: {
@@ -45,10 +48,11 @@ class CategoryApiService {
       }),
     );
 
+    print('CREATE category: ${response.statusCode}');
+    print('CREATE response: ${response.body}');
+
     if (response.statusCode == 201) {
-      return CategoryModel.fromJson(
-        jsonDecode(response.body),
-      );
+      return;
     }
 
     throw Exception(
@@ -61,7 +65,7 @@ class CategoryApiService {
     String name,
   ) async {
     final response = await http.put(
-      Uri.parse('$baseUrl$endpoint/$id'),
+      Uri.parse('$baseUrl$endpoint$id'),
       headers: {
         'Content-Type': 'application/json',
       },
@@ -86,7 +90,7 @@ class CategoryApiService {
     bool isActive,
   ) async {
     final response = await http.patch(
-      Uri.parse('$baseUrl$endpoint/$id/status'),
+      Uri.parse('$baseUrl$endpoint$id/status'),
       headers: {
         'Content-Type': 'application/json',
       },

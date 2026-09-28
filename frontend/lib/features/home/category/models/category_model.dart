@@ -13,7 +13,7 @@ class CategoryModel {
     return CategoryModel(
       id: json['id'] as int,
       name: json['name'] as String,
-      isActive: json['is_active'] as bool,
+      isActive: json['status'] as bool,
     );
   }
 
@@ -21,7 +21,7 @@ class CategoryModel {
     return {
       'id': id,
       'name': name,
-      'is_active': isActive,
+      'status': isActive,
     };
   }
 }

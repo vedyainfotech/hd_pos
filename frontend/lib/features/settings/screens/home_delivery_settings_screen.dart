@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/theme.dart';
+import '../../home/category/screens/category_screen.dart';
+
 class HomeDeliverySettingsScreen extends StatelessWidget {
   const HomeDeliverySettingsScreen({super.key});
 
-  static const Color background = Color(0xFFF5F7FC);
-  static const Color primary = Color(0xFF2563EB);
-  static const Color primaryLight = Color(0xFFEAF1FF);
-  static const Color textPrimary = Color(0xFF172033);
-  static const Color textSecondary = Color(0xFF718096);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: background,
+      backgroundColor:AppColors.background,
       body: SafeArea(
         child: Row(
           children: [
@@ -63,13 +61,21 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                       subtitle:
                           'Manage your categories, items, pricing and menu schedule',
                       children: [
-                        _settingCard(
+                       _settingCard(
                           context,
                           title: 'Categories',
                           subtitle: 'Add and manage product categories',
                           icon: Icons.grid_view_rounded,
                           iconBackground: const Color(0xFFFFE8E5),
                           iconColor: const Color(0xFFEF4444),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const CategoryScreen(),
+                              ),
+                            );
+                          },
                         ),
                         _settingCard(
                           context,
@@ -320,12 +326,12 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
             width: 52,
             height: 52,
             decoration: BoxDecoration(
-              color: primaryLight,
+              color: AppColors.primaryLight,
               borderRadius: BorderRadius.circular(16),
             ),
             child: const Icon(
               Icons.delivery_dining_outlined,
-              color: primary,
+              color: AppColors.primary,
               size: 28,
             ),
           ),
@@ -335,7 +341,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
           const Text(
             'Home Delivery',
             style: TextStyle(
-              color: textPrimary,
+              color: AppColors.textPrimary,
               fontSize: 16,
               fontWeight: FontWeight.w800,
             ),
@@ -344,7 +350,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
           const Text(
             'Management System',
             style: TextStyle(
-              color: textSecondary,
+              color: AppColors.textSecondary,
               fontSize: 11,
             ),
           ),
@@ -380,7 +386,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
               children: [
                 Icon(
                   Icons.help_outline,
-                  color: primary,
+                  color: AppColors.primary,
                   size: 20,
                 ),
                 SizedBox(width: 10),
@@ -388,7 +394,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                   child: Text(
                     'Manage your business, customers and deliveries all in one place.',
                     style: TextStyle(
-                      color: textSecondary,
+                      color: AppColors.textSecondary,
                       fontSize: 11,
                       height: 1.4,
                     ),
@@ -414,7 +420,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: selected
-            ? primaryLight
+            ? AppColors.primarySoft
             : Colors.transparent,
         borderRadius: BorderRadius.circular(14),
       ),
@@ -428,13 +434,13 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
             Icon(
               icon,
               size: 20,
-              color: selected ? primary : textSecondary,
+              color: selected ? AppColors.primary : AppColors.textSecondary,
             ),
             const SizedBox(width: 12),
             Text(
               title,
               style: TextStyle(
-                color: selected ? primary : textSecondary,
+                color: selected ? AppColors.primary : AppColors.textSecondary,
                 fontSize: 14,
                 fontWeight:
                     selected ? FontWeight.w700 : FontWeight.w500,
@@ -444,7 +450,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
               const Spacer(),
               const Icon(
                 Icons.chevron_right,
-                color: primary,
+                color: AppColors.primary,
                 size: 19,
               ),
             ],
@@ -478,14 +484,14 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
               SizedBox(width: 13),
               Icon(
                 Icons.search,
-                color: textSecondary,
+                color: AppColors.textSecondary,
                 size: 19,
               ),
               SizedBox(width: 9),
               Text(
                 'Search...',
                 style: TextStyle(
-                  color: textSecondary,
+                  color: AppColors.textSecondary,
                   fontSize: 13,
                 ),
               ),
@@ -507,7 +513,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
           ),
           child: const Icon(
             Icons.notifications_none_outlined,
-            color: textPrimary,
+            color: AppColors.textPrimary,
             size: 21,
           ),
         ),
@@ -530,7 +536,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 15,
-                backgroundColor: primary,
+                backgroundColor: AppColors.primary,
                 child: Text(
                   'B',
                   style: TextStyle(
@@ -543,7 +549,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
               Text(
                 'Owner',
                 style: TextStyle(
-                  color: textPrimary,
+                  color: AppColors.textPrimary,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
@@ -552,7 +558,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
               Icon(
                 Icons.keyboard_arrow_down,
                 size: 17,
-                color: textSecondary,
+                color: AppColors.textSecondary,
               ),
             ],
           ),
@@ -596,12 +602,12 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: primary.withValues(alpha: 0.10),
+              color: AppColors.primary.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(17),
             ),
             child: const Icon(
               Icons.settings_outlined,
-              color: primary,
+              color: AppColors.primary,
               size: 29,
             ),
           ),
@@ -615,7 +621,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                 Text(
                   'Settings',
                   style: TextStyle(
-                    color: textPrimary,
+                    color: AppColors.textPrimary,
                     fontSize: 28,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -0.4,
@@ -625,7 +631,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                 Text(
                   'Configure your business, products, customers, deliveries and inventory',
                   style: TextStyle(
-                    color: textSecondary,
+                    color: AppColors.textSecondary,
                     fontSize: 13,
                   ),
                 ),
@@ -678,12 +684,12 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: primary.withValues(alpha: 0.09),
+                  color: AppColors.primary.withValues(alpha: 0.09),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   icon,
-                  color: primary,
+                  color: AppColors.primary,
                   size: 20,
                 ),
               ),
@@ -696,7 +702,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                   Text(
                     title,
                     style: const TextStyle(
-                      color: textPrimary,
+                      color: AppColors.textPrimary,
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
                     ),
@@ -705,7 +711,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                   Text(
                     subtitle,
                     style: const TextStyle(
-                      color: textSecondary,
+                      color: AppColors.textSecondary,
                       fontSize: 11,
                     ),
                   ),
@@ -763,36 +769,38 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
     required IconData icon,
     required Color iconBackground,
     required Color iconColor,
+    VoidCallback? onTap,
   }) {
     return Material(
       color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(17),
-        onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                '$title will be implemented here.',
-              ),
-              behavior: SnackBarBehavior.floating,
-              duration: const Duration(seconds: 2),
-            ),
-          );
-        },
+          child: InkWell(
+            borderRadius: BorderRadius.circular(17),
+              onTap: onTap ??
+                  () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                     SnackBar(
+                      content: Text(
+                    '$title will be implemented here.',
+                  ),
+                  behavior: SnackBarBehavior.floating,
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            },
         child: Container(
           constraints: const BoxConstraints(
             minHeight: 88,
           ),
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.72),
+            color: AppColors.white.withValues(alpha: 0.72),
             borderRadius: BorderRadius.circular(17),
             border: Border.all(
-              color: Colors.white,
+              color: AppColors.white,
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF64748B).withValues(alpha: 0.045),
+                color: AppColors.textSecondary.withValues(alpha: 0.045),
                 blurRadius: 15,
                 offset: const Offset(0, 5),
               ),
@@ -827,7 +835,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        color: textPrimary,
+                        color: AppColors.textPrimary,
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                       ),
@@ -838,7 +846,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        color: textSecondary,
+                        color: AppColors.textSecondary,
                         fontSize: 11,
                         height: 1.3,
                       ),
@@ -858,7 +866,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                 ),
                 child: const Icon(
                   Icons.chevron_right,
-                  color: textSecondary,
+                  color: AppColors.textSecondary,
                   size: 18,
                 ),
               ),
