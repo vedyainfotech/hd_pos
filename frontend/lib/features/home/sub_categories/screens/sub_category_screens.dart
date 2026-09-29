@@ -1118,38 +1118,7 @@ SizedBox(
   // STATUS BADGE
   // ============================================================
 
-  Widget _buildStatusBadge(
-    bool isActive,
-  ) {
-    return Container(
-      padding:
-          const EdgeInsets.symmetric(
-        horizontal: 9,
-        vertical: 5,
-      ),
-      decoration:
-          BoxDecoration(
-        color: isActive
-            ? AppColors.primarySoft
-            : AppColors.borderLight,
-        borderRadius:
-            BorderRadius.circular(20),
-      ),
-      child: Text(
-        isActive
-            ? 'Active'
-            : 'Inactive',
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight:
-              FontWeight.w600,
-          color: isActive
-              ? AppColors.primary
-              : AppColors.textTertiary,
-        ),
-      ),
-    );
-  }
+  
 
   // ============================================================
   // EMPTY STATE
