@@ -1181,6 +1181,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         ),
                       ),
                     ),
+                    _buildSwitch(payment),
                     IconButton(
                       tooltip: 'Edit',
                       padding: EdgeInsets.zero,
@@ -1200,27 +1201,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Text(
-                      payment.status
-                          ? 'Active'
-                          : 'Inactive',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight:
-                            FontWeight.w600,
-                        color: payment.status
-                            ? AppColors.active
-                            : AppColors
-                                .textSecondary,
-                      ),
-                    ),
-                    const SizedBox(width: 5),
-                    _buildSwitch(payment),
-                  ],
-                ),
+
+                  
+                
               ],
             )
           : Row(
@@ -1240,22 +1223,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 24),
-                Text(
-                  payment.status
-                      ? 'Active'
-                      : 'Inactive',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight:
-                        FontWeight.w600,
-                    color: payment.status
-                        ? AppColors.active
-                        : AppColors
-                            .textSecondary,
-                  ),
-                ),
-                const SizedBox(width: 5),
+                
                 _buildSwitch(payment),
                 IconButton(
                   tooltip: 'Edit',

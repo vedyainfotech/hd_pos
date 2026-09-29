@@ -1861,100 +1861,58 @@ class _CategoryScreenState extends State<CategoryScreen> {
     // MOBILE
     // ==========================================================
 
-    if (isMobile) {
-      return Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        if (isMobile) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Row(
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  category.name,
-                  maxLines: 2,
-                  overflow:
-                      TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize:
-                        isSmallMobile
-                            ? 15
-                            : 16,
-                    fontWeight:
-                        FontWeight.w700,
-                    color: AppColors
-                        .textPrimary,
-                  ),
-                ),
+          Expanded(
+            child: Text(
+              category.name,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: isSmallMobile ? 15 : 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
               ),
-
-              IconButton(
-                padding:
-                    EdgeInsets.zero,
-                constraints:
-                    const BoxConstraints(
-                  minWidth: 40,
-                  minHeight: 40,
-                ),
-                tooltip: 'Edit',
-                onPressed: () =>
-                    _openEditDialog(
-                  category,
-                ),
-                icon: Icon(
-                  Icons.edit_outlined,
-                  size:
-                      isSmallMobile
-                          ? 20
-                          : 21,
-                  color:
-                      AppColors.icon,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 4),
-
-          Text(
-            'Allowance Time: ${category.allotmentTime}',
-            overflow:
-                TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 13,
-              color:
-                  AppColors.textSecondary,
-              fontWeight:
-                  FontWeight.w500,
             ),
           ),
 
-          const SizedBox(height: 8),
+          _buildSwitch(category),
 
-          Row(
-            children: [
-              Text(
-                category.isActive
-                    ? 'Active'
-                    : 'Inactive',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight:
-                      FontWeight.w600,
-                  color: category.isActive
-                      ? AppColors.active
-                      : AppColors
-                          .textSecondary,
-                ),
-              ),
-
-              const SizedBox(width: 5),
-
-              _buildSwitch(category),
-            ],
+          IconButton(
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(
+              minWidth: 40,
+              minHeight: 40,
+            ),
+            tooltip: 'Edit',
+            onPressed: () => _openEditDialog(category),
+            icon: Icon(
+              Icons.edit_outlined,
+              size: isSmallMobile ? 20 : 21,
+              color: AppColors.icon,
+            ),
           ),
         ],
-      );
-    }
+      ),
+
+      const SizedBox(height: 4),
+
+      Text(
+        'Allowance Time: ${category.allotmentTime}',
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(
+          fontSize: 13,
+          color: AppColors.textSecondary,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    ],
+  );
+}
 
     // ==========================================================
     // TABLET
@@ -2002,22 +1960,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
             ),
           ),
 
-          const SizedBox(width: 12),
-
-          Text(
-            category.isActive
-                ? 'Active'
-                : 'Inactive',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight:
-                  FontWeight.w600,
-              color: category.isActive
-                  ? AppColors.active
-                  : AppColors
-                      .textSecondary,
-            ),
-          ),
+          
 
           _buildSwitch(category),
 
@@ -2089,24 +2032,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
           ),
         ),
 
-        const SizedBox(width: 24),
-
-        Text(
-          category.isActive
-              ? 'Active'
-              : 'Inactive',
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight:
-                FontWeight.w600,
-            color: category.isActive
-                ? AppColors.active
-                : AppColors
-                    .textSecondary,
-          ),
-        ),
-
-        const SizedBox(width: 5),
 
         _buildSwitch(category),
 

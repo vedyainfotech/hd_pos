@@ -627,7 +627,7 @@ class _RoleScreenState extends State<RoleScreen> {
     bool isVerySmall,
   ) {
     return Container(
-      height: isVerySmall ? 54 : 62,
+      height: isVerySmall ? 54 : 54,
       padding: EdgeInsets.symmetric(
         horizontal: horizontalPadding,
       ),
@@ -1017,17 +1017,12 @@ Widget _buildStatusFilter(
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(
-        horizontal:
-            isMobile ? 10 : 18,
-        vertical:
-            isMobile ? 5 : 10,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius:
-            BorderRadius.circular(
-          isMobile ? 9 : 11,
-        ),
+  horizontal: isMobile ? 14 : 20,
+  vertical: 15,
+),
+decoration: BoxDecoration(
+  color: AppColors.surface,
+  borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: AppColors.borderLight,
         ),
@@ -1041,66 +1036,43 @@ Widget _buildStatusFilter(
               maxLines: 1,
               overflow:
                   TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize:
-                    isMobile ? 13 : 15,
-                fontWeight:
-                    FontWeight.w600,
-                color:
-                    AppColors.textPrimary,
-              ),
+              style: const TextStyle(
+  fontSize: 16,
+  fontWeight: FontWeight.w700,
+  color: AppColors.textPrimary,
+),
             ),
           ),
 
           // DESKTOP STATUS TEXT
-          if (!isMobile) ...[
-            const SizedBox(width: 10),
-            Text(
-              role.status
-                  ? 'Active'
-                  : 'Inactive',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight:
-                    FontWeight.w600,
-                color: role.status
-                    ? AppColors.active
-                    : AppColors
-                        .textSecondary,
-              ),
-            ),
-          ],
+         
 
           // STATUS SWITCH
-          Transform.scale(
-            scale:
-                isMobile ? 0.68 : 0.80,
-            child: Switch(
-              value: role.status,
-              onChanged: (_) {
-                _toggleStatus(role);
-              },
-            ),
-          ),
+         Switch(
+  value: role.status,
+  onChanged: (_) {
+    _toggleStatus(role);
+  },
+),
+          
 
           // EDIT
-          SizedBox(
-            width: isMobile ? 30 : 36,
-            height: isMobile ? 30 : 36,
-            child: IconButton(
-              padding: EdgeInsets.zero,
-              tooltip: 'Edit',
-              onPressed: () {
-                _openEditDialog(role);
-              },
-              icon: Icon(
-                Icons.edit_outlined,
-                size:
-                    isMobile ? 17 : 20,
-                color: AppColors.icon,
-              ),
-            ),
-          ),
+         IconButton(
+  tooltip: 'Edit',
+  padding: EdgeInsets.zero,
+  constraints: const BoxConstraints(
+    minWidth: 40,
+    minHeight: 40,
+  ),
+  onPressed: () {
+    _openEditDialog(role);
+  },
+  icon: const Icon(
+    Icons.edit_outlined,
+    size: 21,
+    color: AppColors.icon,
+  ),
+),
         ],
       ),
     );

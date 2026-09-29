@@ -349,39 +349,42 @@ class _SubCategoriesScreenState
   Widget _buildContent() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isCompact =
-            constraints.maxWidth < 900;
+        final isMobile = constraints.maxWidth < 600;
+        final isTablet =
+            constraints.maxWidth >= 600 &&
+            constraints.maxWidth < 1200;
 
         return SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(
-            isCompact ? 16 : 28,
-            isCompact ? 16 : 28,
-            isCompact ? 16 : 28,
+            isMobile ? 16 : 28,
+            isMobile ? 16 : 28,
+            isMobile ? 16 : 28,
             8,
           ),
           child: ConstrainedBox(
             constraints: BoxConstraints(
               minHeight: constraints.maxHeight -
-                  (isCompact ? 24 : 48),
+                  (isMobile ? 24 : 48),
             ),
             child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
-            children: [
-              _buildPageHeader(isCompact),
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+              children: [
+                _buildPageHeader(isMobile),
 
-              const SizedBox(height: 24),
+                const SizedBox(height: 24),
 
-              _buildFilters(isCompact),
+                _buildFilters(
+                  isMobile,
+                  isTablet,
+                ),
 
-              const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-              _buildSubCategoryTable(
-                isCompact,
-              ),
-            ],
+                _buildSubCategoryTable(isMobile),
+              ],
+            ),
           ),
-        ),
         );
       },
     );
@@ -477,62 +480,78 @@ class _SubCategoriesScreenState
   // ============================================================
 
   Widget _buildFilters(
-    bool isCompact,
+    bool isMobile,
+    bool isTablet,
   ) {
     return SizedBox(
       width: double.infinity,
       child: Card(
         elevation: 0,
         color: AppColors.surface,
-        shape:
-            RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.circular(14),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
           side: const BorderSide(
             color: AppColors.border,
           ),
         ),
         child: Padding(
-          padding:
-              const EdgeInsets.all(18),
-          child: isCompact
+          padding: const EdgeInsets.all(18),
+          child: isMobile
               ? Column(
                   crossAxisAlignment:
-                      CrossAxisAlignment
-                          .stretch,
+                      CrossAxisAlignment.stretch,
                   children: [
                     Row(
-  children: [
-    Expanded(
-      child: _buildSearchField(),
+                      children: [
+                        Expanded(
+                          child: _buildSearchField(),
+                        ),
+                      const SizedBox(width: 10),
+SizedBox(
+  width: 48,
+  height: 48,
+  child: ElevatedButton(
+    onPressed: _openAddPanel,
+    style: ElevatedButton.styleFrom(
+      padding: EdgeInsets.zero,
+      backgroundColor: AppColors.primary,
+      foregroundColor: AppColors.textOnPrimary,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
     ),
-    const SizedBox(width: 10),
-    _buildAddButton(),
-  ],
+    child: const Icon(
+      Icons.add,
+      size: 20,
+    ),
+  ),
 ),
+                      ],
+                    ),
                     const SizedBox(height: 14),
                     _buildCategoryDropdown(),
                     const SizedBox(height: 14),
-                    _buildStatusFilter(),
+                    Align(
+  alignment: Alignment.centerLeft,
+  child: _buildStatusFilter(isMobile),
+),
                   ],
                 )
               : Row(
                   children: [
                     Expanded(
-                      child:
-                          _buildSearchField(),
+                      child: _buildSearchField(),
                     ),
                     const SizedBox(width: 14),
                     SizedBox(
-                      width: 250,
-                      child:
-                          _buildCategoryDropdown(),
+                      width: isTablet ? 210 : 250,
+                      child: _buildCategoryDropdown(),
                     ),
                     const SizedBox(width: 14),
                     SizedBox(
-                      width: 290,
-                      child:
-                          _buildStatusFilter(),
+                      width: isTablet ? 250 : 290,
+                      child: _buildStatusFilter(isMobile),
                     ),
                   ],
                 ),
@@ -616,7 +635,7 @@ class _SubCategoriesScreenState
   // STATUS FILTER
   // ============================================================
 
-  Widget _buildStatusFilter() {
+  Widget _buildStatusFilter(bool isMobile) {
     const options = <String>[
       'All',
       'Active',
@@ -625,6 +644,7 @@ class _SubCategoriesScreenState
 
     return Container(
       height: 48,
+      width: isMobile ? 220 : null,
       padding:
           const EdgeInsets.all(3),
       decoration: BoxDecoration(
@@ -636,15 +656,16 @@ class _SubCategoriesScreenState
         borderRadius:
             BorderRadius.circular(28),
       ),
-      child: Row(
-        children:
-            options.map((option) {
+     child: Row(
+  children:
+      options.map((option) {
           final isSelected =
               _statusFilter ==
                   option;
 
-          return Expanded(
-            child: Padding(
+         return Expanded(
+  child: Padding(
+            
               padding:
                   const EdgeInsets
                       .symmetric(
@@ -738,7 +759,7 @@ class _SubCategoriesScreenState
                   ),
                 ),
               ),
-            ),
+  )
           );
         }).toList(),
       ),
@@ -750,7 +771,7 @@ class _SubCategoriesScreenState
   // ============================================================
 
   Widget _buildSubCategoryTable(
-    bool isCompact,
+    bool isMobile,
   ) {
     final items =
         _filteredSubCategories;
@@ -774,9 +795,7 @@ class _SubCategoriesScreenState
             ? _buildEmptyState()
             : Column(
                 children: [
-                  _buildTableHeader(
-                    isCompact,
-                  ),
+                  _buildTableHeader(isMobile),
                   const Divider(
                     height: 1,
                     color:
@@ -785,9 +804,9 @@ class _SubCategoriesScreenState
                   ...items.map(
                     (item) =>
                         _buildTableRow(
-                      item,
-                      isCompact,
-                    ),
+                          item,
+                          isMobile,
+                        ),
                   ),
                 ],
               ),
@@ -800,23 +819,19 @@ class _SubCategoriesScreenState
   // ============================================================
 
   Widget _buildTableHeader(
-    bool isCompact,
+    bool isMobile,
   ) {
-    if (isCompact) {
+    if (isMobile) {
       return const Padding(
-        padding:
-            EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         child: Align(
-          alignment:
-              Alignment.centerLeft,
+          alignment: Alignment.centerLeft,
           child: Text(
             'Subcategories',
             style: TextStyle(
               fontSize: 14,
-              fontWeight:
-                  FontWeight.w700,
-              color:
-                  AppColors.textPrimary,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
             ),
           ),
         ),
@@ -824,48 +839,49 @@ class _SubCategoriesScreenState
     }
 
     return Container(
-      padding:
-          const EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         horizontal: 20,
         vertical: 15,
       ),
-      color:
-          AppColors.surfaceSoft,
+      color: AppColors.surfaceSoft,
       child: const Row(
         children: [
           Expanded(
-            flex: 3,
-            child: Text(
-              'SUBCATEGORY',
-              style: _headerStyle,
+            flex: 1,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'SUBCATEGORY',
+                style: _headerStyle,
+              ),
             ),
           ),
           Expanded(
-            flex: 2,
-            child: Text(
-              'CATEGORY',
-              style: _headerStyle,
+            flex: 1,
+            child: Center(
+              child: Text(
+                'CATEGORY',
+                style: _headerStyle,
+              ),
             ),
           ),
           Expanded(
-            flex: 2,
-            child: Text(
-              'PRICE',
-              style: _headerStyle,
+            flex: 1,
+            child: Center(
+              child: Text(
+                'PRICE',
+                style: _headerStyle,
+              ),
             ),
           ),
           Expanded(
-            flex: 2,
-            child: Text(
-              'STATUS',
-              style: _headerStyle,
-            ),
-          ),
-          SizedBox(
-            width: 90,
-            child: Text(
-              'ACTION',
-              style: _headerStyle,
+            flex: 1,
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                'ACTION',
+                style: _headerStyle,
+              ),
             ),
           ),
         ],
@@ -879,20 +895,18 @@ class _SubCategoriesScreenState
 
   Widget _buildTableRow(
     SubCategoryModel item,
-    bool isCompact,
+    bool isMobile,
   ) {
-    if (isCompact) {
+    if (isMobile) {
       return _buildCompactRow(item);
     }
 
     return Container(
-      padding:
-          const EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         horizontal: 20,
         vertical: 15,
       ),
-      decoration:
-          const BoxDecoration(
+      decoration: const BoxDecoration(
         border: Border(
           bottom: BorderSide(
             color: AppColors.divider,
@@ -902,76 +916,57 @@ class _SubCategoriesScreenState
       child: Row(
         children: [
           Expanded(
-            flex: 3,
-            child:
-                _buildNameCell(item),
+            flex: 1,
+            child: _buildNameCell(item),
           ),
-
           Expanded(
-            flex: 2,
-            child: Text(
-              _categoryName(
-                item.categoryId,
-              ),
-              style:
-                  const TextStyle(
-                fontSize: 14,
-                color:
-                    AppColors.textSecondary,
-              ),
-              overflow:
-                  TextOverflow.ellipsis,
-            ),
-          ),
-
-          Expanded(
-            flex: 2,
-            child: Text(
-              '₹${item.price.toStringAsFixed(2)}',
-              style:
-                  const TextStyle(
-                fontSize: 14,
-                fontWeight:
-                    FontWeight.w600,
-                color:
-                    AppColors.textPrimary,
+            flex: 1,
+            child: Center(
+              child: Text(
+                _categoryName(item.categoryId),
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ),
-
           Expanded(
-            flex: 2,
-            child: Row(
-              children: [
-                _buildStatusBadge(
-                  item.isActive,
+            flex: 1,
+            child: Center(
+              child: Text(
+                '₹${item.price.toStringAsFixed(2)}',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
                 ),
-                const SizedBox(
-                  width: 10,
-                ),
-                Switch(
-                  value:
-                      item.isActive,
-                  onChanged: (_) =>
-                      _toggleStatus(
-                    item,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 1,
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Switch(
+                    value: item.isActive,
+                    onChanged: (_) => _toggleStatus(item),
                   ),
-                ),
-              ],
-            ),
-          ),
-
-          SizedBox(
-            width: 90,
-            child: IconButton(
-              tooltip: 'Edit',
-              onPressed: () =>
-                  _openEditPanel(item),
-              icon: const Icon(
-                Icons.edit_outlined,
-                size: 19,
-                color:
-                    AppColors.icon,
+                  const SizedBox(width: 8),
+                  IconButton(
+                    tooltip: 'Edit',
+                    onPressed: () => _openEditPanel(item),
+                    icon: const Icon(
+                      Icons.edit_outlined,
+                      size: 19,
+                      color: AppColors.icon,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -1014,14 +1009,32 @@ class _SubCategoriesScreenState
                     item,
                   ),
                 ),
-                Switch(
-                  value:
-                      item.isActive,
-                  onChanged: (_) =>
-                      _toggleStatus(
-                    item,
-                  ),
-                ),
+                Row(
+  mainAxisSize: MainAxisSize.min,
+  children: [
+    Switch(
+      value: item.isActive,
+      onChanged: (_) =>
+          _toggleStatus(
+        item,
+      ),
+    ),
+    IconButton(
+      tooltip: 'Edit',
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(
+        minWidth: 40,
+        minHeight: 40,
+      ),
+      onPressed: () => _openEditPanel(item),
+      icon: const Icon(
+        Icons.edit_outlined,
+        size: 20,
+        color: AppColors.icon,
+      ),
+    ),
+  ],
+),
               ],
             ),
 
@@ -1064,13 +1077,7 @@ class _SubCategoriesScreenState
                   ),
                 ),
 
-                const SizedBox(
-                  width: 12,
-                ),
-
-                _buildStatusBadge(
-                  item.isActive,
-                ),
+                
               ],
             ),
           ],
@@ -1467,28 +1474,6 @@ class _SubCategoryFormSheetState
             CrossAxisAlignment.start,
         children: [
           const Text(
-            'Subcategory Name',
-            style:
-                TextStyle(
-              fontSize: 15,
-              fontWeight:
-                  FontWeight.w600,
-              color: AppColors
-                  .textPrimary,
-            ),
-          ),
-
-          const SizedBox(
-            height: 8,
-          ),
-
-          _buildNameField(),
-
-          const SizedBox(
-            height: 18,
-          ),
-
-          const Text(
             'Category',
             style:
                 TextStyle(
@@ -1505,6 +1490,28 @@ class _SubCategoryFormSheetState
           ),
 
           _buildCategoryField(),
+
+          const SizedBox(
+            height: 18,
+          ),
+
+          const Text(
+            'Subcategory Name',
+            style:
+                TextStyle(
+              fontSize: 15,
+              fontWeight:
+                  FontWeight.w600,
+              color: AppColors
+                  .textPrimary,
+            ),
+          ),
+
+          const SizedBox(
+            height: 8,
+          ),
+
+          _buildNameField(),
 
           const SizedBox(
             height: 18,

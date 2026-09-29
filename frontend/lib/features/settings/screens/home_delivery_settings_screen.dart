@@ -59,8 +59,8 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
 
                 if (isTablet)
                   _buildSidebar(
-                    width: 80,
-                    compact: true,
+                    width: 190,
+                    compact: false,
                   ),
 
                 // ======================================================
@@ -561,19 +561,22 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
           const SizedBox(height: 24),
 
           Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: AppColors.primaryLight,
-              borderRadius:
-                  BorderRadius.circular(16),
-            ),
-            child: const Icon(
-              Icons.delivery_dining_outlined,
-              color: AppColors.primary,
-              size: 28,
-            ),
-          ),
+  width: 52,
+  height: 52,
+  decoration: BoxDecoration(
+    color: Colors.transparent,
+    borderRadius: BorderRadius.circular(16),
+    border: Border.all(
+      color: AppColors.primary,
+      width: 1.5,
+    ),
+  ),
+  child: const Icon(
+    Icons.delivery_dining_outlined,
+    color: AppColors.primary,
+    size: 28,
+  ),
+),
 
           if (!compact) ...[
             const SizedBox(height: 12),
