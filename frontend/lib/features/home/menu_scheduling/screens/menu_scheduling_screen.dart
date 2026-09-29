@@ -830,33 +830,45 @@ class _AddItemsDialogState extends State<AddItemsDialog> {
 );
   }
 
-  Widget buildMobile() {
-    return Column(
-      children: [
-        DropdownButtonFormField<String>(
-          initialValue: selectedCategory,
-          decoration: const InputDecoration(labelText: 'Subcategory'),
-          items: widget.availableItems.keys
-              .map(
-                (category) =>
-                    DropdownMenuItem(value: category, child: Text(category)),
-              )
-              .toList(),
-          onChanged: (value) {
-            if (value != null) {
-              setState(() {
-                selectedCategory = value;
-              });
-            }
-          },
+ Widget buildMobile() {
+  return Column(
+    children: [
+      DropdownButtonFormField<String>(
+        initialValue: selectedCategory,
+        decoration: const InputDecoration(
+          labelText: 'Subcategory',
         ),
+        items: widget.availableItems.keys
+            .map(
+              (category) => DropdownMenuItem(
+                value: category,
+                child: Text(category),
+              ),
+            )
+            .toList(),
+        onChanged: (value) {
+          if (value != null) {
+            setState(() {
+              selectedCategory = value;
+            });
+          }
+        },
+      ),
 
-        const SizedBox(height: 10),
+      const SizedBox(height: 10),
 
-        ...filteredItems.map(buildCheckItem),
-      ],
-    );
-  }
+      SizedBox(
+        height: 300,
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: filteredItems
+              .map(buildCheckItem)
+              .toList(),
+        ),
+      ),
+    ],
+  );
+}
 
 Widget buildDesktop() {
   return SizedBox(

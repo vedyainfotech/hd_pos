@@ -5,6 +5,7 @@ import '../../home/category/screens/category_screen.dart';
 import '../../home/payment/screens/payment_screen.dart';
 import '../../home/roles/screens/role_screen.dart';
 import '../../home/sub_categories/screens/sub_category_screens.dart';
+import '../../home/menu_scheduling/screens/menu_scheduling_screen.dart';
 
 class HomeDeliverySettingsScreen extends StatelessWidget {
   const HomeDeliverySettingsScreen({super.key});
@@ -256,20 +257,27 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                             ),
 
                             _settingCard(
-                              context,
-                              title:
-                                  'Menu Scheduling',
-                              subtitle:
-                                  'Manage daily menu availability and schedules',
-                              icon:
-                                  Icons.calendar_month_outlined,
-                              iconBackground:
-                                  const Color(0xFFE3F8F1),
-                              iconColor:
-                                  const Color(0xFF059669),
-                            ),
-                          ],
-                        ),
+  context,
+  title: 'Menu Scheduling',
+  subtitle:
+      'Manage daily menu availability and schedules',
+  icon: Icons.calendar_month_outlined,
+  iconBackground:
+      const Color(0xFFE3F8F1),
+  iconColor:
+      const Color(0xFF059669),
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) =>
+            const MenuSchedulingScreen(),
+      ),
+    );
+  },
+),
+  ],
+ ),
 
                       
 
@@ -513,7 +521,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                           ],
                         ),
                       ],
-                    ),
+                    ),  
                   ),
                 ),
               ],

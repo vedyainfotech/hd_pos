@@ -92,7 +92,7 @@ class _SubCategoriesScreenState
       });
 
       _showSnackBar(
-        'Failed to load subcategories: $error',
+        'Failed to load subcategories',
         isError: true,
       );
     }
@@ -644,7 +644,7 @@ SizedBox(
 
     return Container(
       height: 48,
-      width: isMobile ? 220 : null,
+      width: isMobile ? 190 : null,
       padding:
           const EdgeInsets.all(3),
       decoration: BoxDecoration(
@@ -714,25 +714,12 @@ SizedBox(
                         22,
                       ),
                     ),
-                    child: Row(
-                      mainAxisAlignment:
-                          MainAxisAlignment
-                              .center,
-                      children: [
-                        if (isSelected) ...[
-                          const Icon(
-                            Icons
-                                .check_rounded,
-                            size: 15,
-                            color: AppColors
-                                .primary,
-                          ),
-                          const SizedBox(
-                            width: 5,
-                          ),
-                        ],
-                        Text(
-                          option,
+                   child: Row(
+  mainAxisAlignment:
+      MainAxisAlignment.center,
+  children: [
+    Text(
+      option,
                           maxLines: 1,
                           softWrap: false,
                           textAlign:
@@ -1038,48 +1025,33 @@ SizedBox(
               ],
             ),
 
-            const SizedBox(
-              height: 10,
-            ),
+   const SizedBox(
+  height: 6,
+),
 
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    _categoryName(
-                      item.categoryId,
-                    ),
-                    style:
-                        const TextStyle(
-                      fontSize: 13,
-                      color: AppColors
-                          .textSecondary,
-                    ),
-                    overflow:
-                        TextOverflow
-                            .ellipsis,
-                  ),
-                ),
+Text(
+  '₹${item.price.toStringAsFixed(2)}',
+  style: const TextStyle(
+    fontSize: 13,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textPrimary,
+  ),
+),
 
-                const SizedBox(
-                  width: 12,
-                ),
+const SizedBox(
+  height: 4,
+),
 
-                Text(
-                  '₹${item.price.toStringAsFixed(2)}',
-                  style:
-                      const TextStyle(
-                    fontSize: 13,
-                    fontWeight:
-                        FontWeight.w600,
-                    color: AppColors
-                        .textPrimary,
-                  ),
-                ),
-
-                
-              ],
-            ),
+Text(
+  _categoryName(
+    item.categoryId,
+  ),
+  style: const TextStyle(
+    fontSize: 13,
+    color: AppColors.textSecondary,
+  ),
+  overflow: TextOverflow.ellipsis,
+),
           ],
         ),
       ),
