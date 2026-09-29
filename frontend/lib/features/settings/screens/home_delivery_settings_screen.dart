@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/theme.dart';
 import '../../home/category/screens/category_screen.dart';
 import '../../home/sub_categories/screens/sub_category_screens.dart';
+import '../../home/items/screens/items_screens.dart';
 
 class HomeDeliverySettingsScreen extends StatelessWidget {
   const HomeDeliverySettingsScreen({super.key});
@@ -114,6 +115,14 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                           icon: Icons.fastfood_outlined,
                           iconBackground: const Color(0xFFFFF0DA),
                           iconColor: const Color(0xFFD97706),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const ItemsScreen(),
+                              ),
+                            );
+                          },
                         ),
 
                         // ------------------------------------------------

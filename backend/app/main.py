@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers.category import router as category_router
 from app.routers.sub_category import router as sub_category_router
+from app.routers.item import router as item_router
 
 
 app = FastAPI(
@@ -17,6 +18,7 @@ app = FastAPI(
 
 app.include_router(category_router)
 app.include_router(sub_category_router)
+app.include_router(item_router)
 
 
 # ============================================================
