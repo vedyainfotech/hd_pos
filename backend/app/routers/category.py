@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -17,6 +18,10 @@ router = APIRouter(
 )
 
 
+# ============================================================
+# GET ALL
+# ============================================================
+
 @router.get(
     "/",
     response_model=list[CategoryResponse],
@@ -25,11 +30,16 @@ def get_categories(
     include_inactive: bool = Query(False),
     db: Session = Depends(get_db),
 ):
+
     return CategoryService.get_categories(
         db,
         include_inactive,
     )
 
+
+# ============================================================
+# GET ONE
+# ============================================================
 
 @router.get(
     "/{category_id}",
@@ -39,6 +49,7 @@ def get_category(
     category_id: int,
     db: Session = Depends(get_db),
 ):
+
     category = CategoryService.get_category(
         db,
         category_id,
@@ -53,6 +64,10 @@ def get_category(
     return category
 
 
+# ============================================================
+# CREATE
+# ============================================================
+
 @router.post(
     "/",
     response_model=CategoryResponse,
@@ -62,13 +77,36 @@ def create_category(
     data: CategoryCreate,
     db: Session = Depends(get_db),
 ):
-    category = CategoryService.create_category(
-        db,
-        data,
-    )
 
-    return category
+    try:
 
+        category = CategoryService.create_category(
+            db,
+            data,
+        )
+
+        return category
+
+    except ValueError as exc:
+
+        raise HTTPException(
+            status_code=409,
+            detail=str(exc),
+        )
+
+    except IntegrityError:
+
+        db.rollback()
+
+        raise HTTPException(
+            status_code=409,
+            detail="Category already exists",
+        )
+
+
+# ============================================================
+# UPDATE
+# ============================================================
 
 @router.put(
     "/{category_id}",
@@ -79,20 +117,43 @@ def update_category(
     data: CategoryUpdate,
     db: Session = Depends(get_db),
 ):
-    category = CategoryService.update_category(
-        db,
-        category_id,
-        data,
-    )
 
-    if category is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Category not found",
+    try:
+
+        category = CategoryService.update_category(
+            db,
+            category_id,
+            data,
         )
 
-    return category
+        if category is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Category not found",
+            )
 
+        return category
+
+    except ValueError as exc:
+
+        raise HTTPException(
+            status_code=409,
+            detail=str(exc),
+        )
+
+    except IntegrityError:
+
+        db.rollback()
+
+        raise HTTPException(
+            status_code=409,
+            detail="Category already exists",
+        )
+
+
+# ============================================================
+# UPDATE STATUS
+# ============================================================
 
 @router.patch(
     "/{category_id}/status",
@@ -103,6 +164,7 @@ def update_category_status(
     data: CategoryStatusUpdate,
     db: Session = Depends(get_db),
 ):
+
     category = CategoryService.update_status(
         db,
         category_id,

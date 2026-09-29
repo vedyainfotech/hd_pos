@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/theme.dart';
 import '../../home/category/screens/category_screen.dart';
+import '../../home/sub_categories/screens/sub_category_screens.dart';
 
 class HomeDeliverySettingsScreen extends StatelessWidget {
   const HomeDeliverySettingsScreen({super.key});
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:AppColors.background,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Row(
           children: [
@@ -24,7 +24,6 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                     _buildTopBar(),
                     const SizedBox(height: 24),
                     _buildPageHeader(),
-
                     const SizedBox(height: 24),
 
                     // --------------------------------------------------
@@ -61,7 +60,11 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                       subtitle:
                           'Manage your categories, items, pricing and menu schedule',
                       children: [
-                       _settingCard(
+                        // ------------------------------------------------
+                        // CATEGORIES
+                        // ------------------------------------------------
+
+                        _settingCard(
                           context,
                           title: 'Categories',
                           subtitle: 'Add and manage product categories',
@@ -77,6 +80,11 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                             );
                           },
                         ),
+
+                        // ------------------------------------------------
+                        // SUB CATEGORIES
+                        // ------------------------------------------------
+
                         _settingCard(
                           context,
                           title: 'Sub Categories',
@@ -84,7 +92,21 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                           icon: Icons.layers_outlined,
                           iconBackground: const Color(0xFFE6F0FF),
                           iconColor: const Color(0xFF3B82F6),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    const SubCategoriesScreen(),
+                              ),
+                            );
+                          },
                         ),
+
+                        // ------------------------------------------------
+                        // ITEMS
+                        // ------------------------------------------------
+
                         _settingCard(
                           context,
                           title: 'Items',
@@ -93,6 +115,11 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                           iconBackground: const Color(0xFFFFF0DA),
                           iconColor: const Color(0xFFD97706),
                         ),
+
+                        // ------------------------------------------------
+                        // PRICES
+                        // ------------------------------------------------
+
                         _settingCard(
                           context,
                           title: 'Prices',
@@ -101,6 +128,11 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                           iconBackground: const Color(0xFFF0E9FF),
                           iconColor: const Color(0xFF7C3AED),
                         ),
+
+                        // ------------------------------------------------
+                        // MENU SCHEDULING
+                        // ------------------------------------------------
+
                         _settingCard(
                           context,
                           title: 'Menu Scheduling',
@@ -279,7 +311,8 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                         _settingCard(
                           context,
                           title: 'System Settings',
-                          subtitle: 'Manage general application settings',
+                          subtitle:
+                              'Manage general application settings',
                           icon: Icons.settings_outlined,
                           iconBackground: const Color(0xFFFFE8EE),
                           iconColor: const Color(0xFFE11D48),
@@ -434,13 +467,17 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
             Icon(
               icon,
               size: 20,
-              color: selected ? AppColors.primary : AppColors.textSecondary,
+              color: selected
+                  ? AppColors.primary
+                  : AppColors.textSecondary,
             ),
             const SizedBox(width: 12),
             Text(
               title,
               style: TextStyle(
-                color: selected ? AppColors.primary : AppColors.textSecondary,
+                color: selected
+                    ? AppColors.primary
+                    : AppColors.textSecondary,
                 fontSize: 14,
                 fontWeight:
                     selected ? FontWeight.w700 : FontWeight.w500,
@@ -773,13 +810,13 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
   }) {
     return Material(
       color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(17),
-              onTap: onTap ??
-                  () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                     SnackBar(
-                      content: Text(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(17),
+        onTap: onTap ??
+            () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
                     '$title will be implemented here.',
                   ),
                   behavior: SnackBarBehavior.floating,
@@ -827,8 +864,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
