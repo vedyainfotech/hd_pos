@@ -6,6 +6,7 @@ import '../../home/payment/screens/payment_screen.dart';
 import '../../home/roles/screens/role_screen.dart';
 import '../../home/sub_categories/screens/sub_category_screens.dart';
 import '../../home/menu_scheduling/screens/menu_scheduling_screen.dart';
+import '../../auth/screens/login_screen.dart';
 
 class HomeDeliverySettingsScreen extends StatelessWidget {
   const HomeDeliverySettingsScreen({super.key});
@@ -32,6 +33,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                   elevation: 0,
                   child: SafeArea(
                     child: _buildSidebar(
+                      context,
                       width: 280,
                       compact: false,
                       isDrawer: true,
@@ -47,12 +49,12 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                 // DESKTOP SIDEBAR
                 // ======================================================
 
-                if (isDesktop) _buildSidebar(width: 225, compact: false),
+                if (isDesktop) _buildSidebar(context, width: 225, compact: false),
 
                 // ======================================================
                 // TABLET SIDEBAR
                 // ======================================================
-                if (isTablet) _buildSidebar(width: 80, compact: true),
+                if (isTablet) _buildSidebar(context, width: 80, compact: true),
 
                 // ======================================================
                 // MAIN CONTENT
@@ -419,7 +421,8 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
   // SIDEBAR
   // ============================================================
 
-  Widget _buildSidebar({
+  Widget _buildSidebar(
+     BuildContext context, {
     required double width,
     bool compact = false,
     bool isDrawer = false,
@@ -498,31 +501,130 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
 
           const Spacer(),
 
-          if (!compact)
-            Container(
-              margin: const EdgeInsets.all(14),
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF4F7FF),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.help_outline, color: AppColors.primary, size: 20),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Manage your business, customers and deliveries all in one place.',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 11,
-                        height: 1.4,
-                      ),
+         if (!compact)
+  Container(
+    margin: const EdgeInsets.all(14),
+    decoration: BoxDecoration(
+      color: const Color(0xFFF4F7FF),
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(
+        color: Colors.white,
+      ),
+    ),
+    child: Column(
+      children: [
+        // PROFILE
+        InkWell(
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(16),
+          ),
+          onTap: () {
+            // TODO: Open profile page
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                const CircleAvatar(
+                  radius: 20,
+                  backgroundColor: AppColors.primary,
+                  child: Text(
+                    'B',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
                     ),
                   ),
-                ],
-              ),
+                ),
+
+                const SizedBox(width: 10),
+
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Bhanu Prakash',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'Administrator',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const Icon(
+                  Icons.chevron_right,
+                  size: 18,
+                  color: AppColors.textSecondary,
+                ),
+              ],
             ),
+          ),
+        ),
+
+        // DIVIDER
+        const Divider(
+          height: 1,
+          indent: 12,
+          endIndent: 12,
+          color: Colors.white,
+        ),
+// LOGOUT
+InkWell(
+  borderRadius: const BorderRadius.vertical(
+    bottom: Radius.circular(16),
+  ),
+  onTap: () {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const LoginScreen(),
+      ),
+      (route) => false,
+    );
+  },
+  child: const Padding(
+    padding: EdgeInsets.symmetric(
+      horizontal: 12,
+      vertical: 11,
+    ),
+    child: Row(
+      children: [
+        Icon(
+          Icons.logout_outlined,
+          color: Color(0xFFB45309),
+          size: 19,
+        ),
+        SizedBox(width: 10),
+        Text(
+          'Logout',
+          style: TextStyle(
+            color: Color(0xFFB45309),
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    ),
+  ),
+),
+      ],
+    ),
+  ),
         ],
       ),
     );
@@ -589,146 +691,104 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
     );
   }
 
-  // ============================================================
-  // TOP BAR
-  // ============================================================
+// ============================================================
+// TOP BAR
+// ============================================================
 
-  Widget _buildTopBar(
-    BuildContext context, {
-    required bool isMobile,
-    required bool isTablet,
-  }) {
-    return Row(
-      children: [
-        // ==========================================================
-        // MOBILE MENU
-        // ==========================================================
+Widget _buildTopBar(
+  BuildContext context, {
+  required bool isMobile,
+  required bool isTablet,
+}) {
+  return Row(
+    children: [
+      // ==========================================================
+      // MOBILE MENU
+      // ==========================================================
 
-        if (isMobile)
-          Builder(
-            builder: (drawerContext) {
-              return Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.75),
-                  borderRadius: BorderRadius.circular(13),
-                  border: Border.all(color: Colors.white),
+      if (isMobile)
+        Builder(
+          builder: (drawerContext) {
+            return Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.75),
+                borderRadius: BorderRadius.circular(13),
+                border: Border.all(color: Colors.white),
+              ),
+              child: IconButton(
+                padding: EdgeInsets.zero,
+                onPressed: () {
+                  Scaffold.of(drawerContext).openDrawer();
+                },
+                icon: const Icon(
+                  Icons.menu_rounded,
+                  color: AppColors.textPrimary,
+                  size: 22,
                 ),
-                child: IconButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: () {
-                    Scaffold.of(drawerContext).openDrawer();
-                  },
-                  icon: const Icon(
-                    Icons.menu_rounded,
-                    color: AppColors.textPrimary,
-                    size: 22,
-                  ),
-                ),
-              );
-            },
-          ),
+              ),
+            );
+          },
+        ),
 
-        if (isMobile) const Spacer(),
+      if (isMobile) const Spacer(),
 
-        // ==========================================================
-        // SEARCH
-        // ==========================================================
-        if (!isMobile && !isTablet)
-          Container(
-            width: 220,
-            height: 42,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.75),
-              borderRadius: BorderRadius.circular(13),
-              border: Border.all(color: Colors.white),
-            ),
-            child: const Row(
-              children: [
-                SizedBox(width: 13),
-                Icon(Icons.search, color: AppColors.textSecondary, size: 19),
-                SizedBox(width: 9),
-                Text(
-                  'Search...',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-        if (!isMobile && !isTablet) const SizedBox(width: 14),
-
-        // ==========================================================
-        // NOTIFICATION
-        // ==========================================================
+      // ==========================================================
+      // SEARCH
+      // ==========================================================
+      if (!isMobile && !isTablet)
         Container(
-          width: 42,
+          width: 220,
           height: 42,
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.75),
             borderRadius: BorderRadius.circular(13),
             border: Border.all(color: Colors.white),
           ),
-          child: const Icon(
-            Icons.notifications_none_outlined,
-            color: AppColors.textPrimary,
-            size: 21,
+          child: const Row(
+            children: [
+              SizedBox(width: 13),
+              Icon(
+                Icons.search,
+                color: AppColors.textSecondary,
+                size: 19,
+              ),
+              SizedBox(width: 9),
+              Text(
+                'Search...',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                ),
+              ),
+            ],
           ),
         ),
 
-        // ==========================================================
-        // PROFILE
-        // ==========================================================
-        if (!isMobile) ...[
-          const SizedBox(width: 12),
+      if (!isMobile && !isTablet)
+        const SizedBox(width: 14),
 
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.75),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.white),
-            ),
-            child: const Row(
-              children: [
-                CircleAvatar(
-                  radius: 15,
-                  backgroundColor: AppColors.primary,
-                  child: Text(
-                    'B',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                SizedBox(width: 8),
-                Text(
-                  'Owner',
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                SizedBox(width: 3),
-                Icon(
-                  Icons.keyboard_arrow_down,
-                  size: 17,
-                  color: AppColors.textSecondary,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
+      // ==========================================================
+      // NOTIFICATION
+      // ==========================================================
+      Container(
+        width: 42,
+        height: 42,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.75),
+          borderRadius: BorderRadius.circular(13),
+          border: Border.all(color: Colors.white),
+        ),
+        child: const Icon(
+          Icons.notifications_none_outlined,
+          color: AppColors.textPrimary,
+          size: 21,
+        ),
+      ),
+    ],
+  );
+}
   // ============================================================
   // PAGE HEADER
   // ============================================================
