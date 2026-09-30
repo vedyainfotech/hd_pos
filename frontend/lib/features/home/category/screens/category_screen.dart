@@ -111,6 +111,8 @@ class _CategoryScreenState extends State<CategoryScreen> {
     final controller = TextEditingController();
 
     String selectedAllotmentTime = '';
+    String? nameError;
+    String? allotmentTimeError;
 
     await showDialog<void>(
       context: context,
@@ -199,8 +201,25 @@ class _CategoryScreenState extends State<CategoryScreen> {
                         autofocus: true,
                         textCapitalization:
                             TextCapitalization.words,
+                        maxLength: 50,
+                        buildCounter: (
+                          context, {
+                          required currentLength,
+                          required isFocused,
+                          maxLength,
+                        }) {
+                          return null;
+                        },
+                        onChanged: (value) {
+                          setDialogState(() {
+                            nameError = value.length >=50
+                                ? 'Please enter up to 50 characters'
+                                : null;
+                          });
+                        },
                         decoration: _inputDecoration(
                           hintText: 'Enter category name',
+                          errorText: nameError,
                         ),
                       ),
 
@@ -230,11 +249,13 @@ class _CategoryScreenState extends State<CategoryScreen> {
                             setDialogState(() {
                               selectedAllotmentTime =
                                   picked;
+                              allotmentTimeError = null;
                             });
                           }
                         },
                         child: _timeField(
                           selectedAllotmentTime,
+                          errorText: allotmentTimeError,
                         ),
                       ),
                     ],
@@ -273,22 +294,35 @@ class _CategoryScreenState extends State<CategoryScreen> {
                     final name =
                         controller.text.trim();
 
-                    if (name.isEmpty) {
-                      _showMessage(
-                        'Please enter category name',
-                        isError: true,
-                      );
+                    setDialogState(() {
+                      nameError = name.isEmpty
+                          ? 'Please enter category name'
+                          : name.length >= 50
+                              ? 'Please enter up to 50 characters'
+                              : null;
+
+                      allotmentTimeError =
+                          selectedAllotmentTime.isEmpty
+                              ? 'Please select allowance time'
+                              : null;
+                    });
+
+                    if (nameError != null ||
+                        allotmentTimeError != null) {
                       return;
                     }
 
-                    if (selectedAllotmentTime
-                        .isEmpty) {
-                      _showMessage(
-                        'Please select allowance time',
-                        isError: true,
-                      );
-                      return;
-                    }
+                    if (_categories.any(
+  (category) =>
+      category.name.trim().toLowerCase() ==
+      name.toLowerCase(),
+)) {
+  _showMessage(
+    'Category already exists',
+    isWarning: true,
+  );
+  return;
+}
 
                     Navigator.pop(dialogContext);
 
@@ -375,6 +409,8 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
     String selectedAllotmentTime =
         category.allotmentTime;
+    String? nameError;
+    String? allotmentTimeError;
 
     bool isActive = category.isActive;
 
@@ -465,8 +501,25 @@ class _CategoryScreenState extends State<CategoryScreen> {
                         autofocus: true,
                         textCapitalization:
                             TextCapitalization.words,
+                        maxLength: 50,
+                        buildCounter: (
+                          context, {
+                          required currentLength,
+                          required isFocused,
+                          maxLength,
+                        }) {
+                          return null;
+                        },
+                        onChanged: (value) {
+                          setDialogState(() {
+                            nameError = value.length >= 50
+                                ? 'Please enter up to 50 characters'
+                                : null;
+                          });
+                        },
                         decoration: _inputDecoration(
                           hintText: 'Enter category name',
+                          errorText: nameError,
                         ),
                       ),
 
@@ -496,11 +549,13 @@ class _CategoryScreenState extends State<CategoryScreen> {
                             setDialogState(() {
                               selectedAllotmentTime =
                                   picked;
+                              allotmentTimeError = null;
                             });
                           }
                         },
                         child: _timeField(
                           selectedAllotmentTime,
+                          errorText: allotmentTimeError,
                         ),
                       ),
 
@@ -636,22 +691,36 @@ class _CategoryScreenState extends State<CategoryScreen> {
                     final name =
                         controller.text.trim();
 
-                    if (name.isEmpty) {
-                      _showMessage(
-                        'Please enter category name',
-                        isError: true,
-                      );
+                    setDialogState(() {
+                      nameError = name.isEmpty
+                          ? 'Please enter category name'
+                          : name.length >= 50
+                              ? 'Please enter up to 50 characters'
+                              : null;
+
+                      allotmentTimeError =
+                          selectedAllotmentTime.isEmpty
+                              ? 'Please select allowance time'
+                              : null;
+                    });
+
+                    if (nameError != null ||
+                        allotmentTimeError != null) {
                       return;
                     }
 
-                    if (selectedAllotmentTime
-                        .isEmpty) {
-                      _showMessage(
-                        'Please select allowance time',
-                        isError: true,
-                      );
-                      return;
-                    }
+                    if (_categories.any(
+  (item) =>
+      item.id != category.id &&
+      item.name.trim().toLowerCase() ==
+          name.toLowerCase(),
+)) {
+  _showMessage(
+    'Category already exists',
+    isWarning: true,
+  );
+  return;
+}
 
                     Navigator.pop(dialogContext);
 
@@ -1158,12 +1227,18 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
   InputDecoration _inputDecoration({
     required String hintText,
+    String? errorText,
   }) {
     return InputDecoration(
       hintText: hintText,
       hintStyle: const TextStyle(
         fontSize: 14,
         color: AppColors.textTertiary,
+      ),
+      errorText: errorText,
+      errorStyle: const TextStyle(
+        fontSize: 12,
+        color: AppColors.error,
       ),
       filled: true,
       fillColor: AppColors.inputBackground,
@@ -1201,50 +1276,68 @@ class _CategoryScreenState extends State<CategoryScreen> {
   // TIME FIELD
   // ============================================================
 
-  Widget _timeField(String value) {
+  Widget _timeField(
+    String value, {
+    String? errorText,
+  }) {
     final hasValue = value.isNotEmpty;
 
-    return Container(
-      width: double.infinity,
-      height: 52,
-      padding:
-          const EdgeInsets.symmetric(
-        horizontal: 15,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.inputBackground,
-        borderRadius:
-            BorderRadius.circular(10),
-        border: Border.all(
-          color: AppColors.border,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: double.infinity,
+          height: 52,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 15,
+          ),
+          decoration: BoxDecoration(
+            color: AppColors.inputBackground,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: errorText != null
+                  ? AppColors.error
+                  : AppColors.border,
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  hasValue ? value : '--:-- --',
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: hasValue
+                        ? AppColors.textPrimary
+                        : AppColors.textTertiary,
+                  ),
+                ),
+              ),
+              const Icon(
+                Icons.access_time_rounded,
+                size: 21,
+                color: AppColors.textSecondary,
+              ),
+            ],
+          ),
         ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
+        if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(
+              left: 12,
+              top: 4,
+            ),
             child: Text(
-              hasValue
-                  ? value
-                  : '--:-- --',
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight:
-                    FontWeight.w500,
-                color: hasValue
-                    ? AppColors.textPrimary
-                    : AppColors.textTertiary,
+              errorText,
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.error,
               ),
             ),
           ),
-
-          const Icon(
-            Icons.access_time_rounded,
-            size: 21,
-            color: AppColors.textSecondary,
-          ),
-        ],
-      ),
+      ],
     );
   }
 
@@ -1273,28 +1366,97 @@ class _CategoryScreenState extends State<CategoryScreen> {
   // MESSAGE
   // ============================================================
 
-  void _showMessage(
-    String message, {
-    bool isError = false,
-  }) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(
-      SnackBar(
-        content: Text(
-          message,
-          style: const TextStyle(
-            fontSize: 14,
+ void _showMessage(
+  String message, {
+  bool isError = false,
+  bool isWarning = false,
+}) {
+  final overlay = Overlay.of(context);
+
+  final backgroundColor = isError
+      ? const Color(0xFFFFE5E5)
+      : isWarning
+          ? const Color(0xFFFFF3CD)
+          : const Color(0xFFE5F7E9);
+
+  final iconColor = isError
+      ? const Color(0xFFD32F2F)
+      : isWarning
+          ? const Color(0xFFE59A00)
+          : const Color(0xFF1E9E45);
+
+  final icon = isError
+      ? Icons.close_rounded
+      : isWarning
+          ? Icons.warning_amber_rounded
+          : Icons.check_rounded;
+
+  late OverlayEntry entry;
+
+  entry = OverlayEntry(
+    builder: (context) {
+      return Positioned(
+        top: MediaQuery.of(context).padding.top + 12,
+        right: 16,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            constraints: const BoxConstraints(
+              maxWidth: 320,
+            ),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 12,
+            ),
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.12),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  size: 22,
+                  color: iconColor,
+                ),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: Text(
+                    message,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: iconColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        behavior:
-            SnackBarBehavior.floating,
-        backgroundColor:
-            isError
-                ? AppColors.error
-                : null,
-      ),
-    );
-  }
+      );
+    },
+  );
+
+  overlay.insert(entry);
+
+  Future.delayed(
+    const Duration(seconds: 3),
+    () {
+      if (entry.mounted) {
+        entry.remove();
+      }
+    },
+  );
+}
 
   // ============================================================
   // BUILD

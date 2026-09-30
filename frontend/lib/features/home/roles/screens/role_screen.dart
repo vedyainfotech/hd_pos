@@ -26,6 +26,11 @@ class _RoleScreenState extends State<RoleScreen> {
   @override
   void initState() {
     super.initState();
+
+    _searchController.addListener(() {
+      setState(() {});
+    });
+
     _loadRoles();
   }
 
@@ -98,86 +103,183 @@ class _RoleScreenState extends State<RoleScreen> {
   Future<void> _openAddDialog() async {
     final controller = TextEditingController();
 
+    String? nameError;
+
     await showDialog<void>(
       context: context,
       builder: (dialogContext) {
-        return AlertDialog(
-          backgroundColor: AppColors.surface,
-          surfaceTintColor: Colors.transparent,
-          insetPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 24,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  'Add Role',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final screenWidth =
+                MediaQuery.of(context).size.width;
+
+            return AlertDialog(
+              backgroundColor: AppColors.surface,
+              surfaceTintColor: Colors.transparent,
+              insetPadding: EdgeInsets.symmetric(
+                horizontal: screenWidth < 400 ? 12 : 24,
+                vertical: 24,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              titlePadding: const EdgeInsets.fromLTRB(
+                20,
+                18,
+                12,
+                8,
+              ),
+              contentPadding: const EdgeInsets.fromLTRB(
+                20,
+                8,
+                20,
+                10,
+              ),
+              actionsPadding: const EdgeInsets.fromLTRB(
+                20,
+                8,
+                20,
+                18,
+              ),
+              title: Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Add Role',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      Navigator.pop(dialogContext);
+                    },
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      size: 21,
+                      color: AppColors.icon,
+                    ),
+                  ),
+                ],
+              ),
+              content: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: 420,
+                ),
+                child: SizedBox(
+                  width: _dialogWidth(context),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Role Name',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: controller,
+                        autofocus: true,
+                        textCapitalization:
+                            TextCapitalization.words,
+                        maxLength: 50,
+                        buildCounter: (
+                          context, {
+                          required currentLength,
+                          required isFocused,
+                          maxLength,
+                        }) {
+                          return null;
+                        },
+                        onChanged: (value) {
+                          setDialogState(() {
+                            nameError = value.length >= 50
+                                ? 'Please enter up to 50 characters'
+                                : null;
+                          });
+                        },
+                        decoration: _inputDecoration(
+                          hintText: 'Enter role name',
+                          errorText: nameError,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-              IconButton(
-                onPressed: () {
-                  Navigator.pop(dialogContext);
-                },
-                icon: const Icon(
-                  Icons.close_rounded,
-                  color: AppColors.icon,
+              actions: [
+                OutlinedButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                  },
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(100, 44),
+                    side: const BorderSide(
+                      color: AppColors.border,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(9),
+                    ),
+                  ),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.icon,
+                    ),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          content: SizedBox(
-            width: _dialogWidth(context),
-            child: TextField(
-              controller: controller,
-              autofocus: true,
-              textCapitalization:
-                  TextCapitalization.words,
-              decoration: _inputDecoration(
-                hintText: 'Enter role name',
-              ),
-            ),
-          ),
-          actions: [
-            OutlinedButton(
-              onPressed: () {
-                Navigator.pop(dialogContext);
-              },
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final name = controller.text.trim();
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () async {
+                    final name =
+                        controller.text.trim();
 
-                if (name.isEmpty) {
-                  _showMessage(
-                    'Please enter role name',
-                    isError: true,
-                  );
-                  return;
-                }
+                    setDialogState(() {
+                      nameError = name.isEmpty
+                          ? 'Please enter role name'
+                          : name.length >= 50
+                              ? 'Please enter up to 50 characters'
+                              : null;
+                    });
 
-                Navigator.pop(dialogContext);
+                    if (nameError != null) {
+                      return;
+                    }
 
-                await _createRole(name);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor:
-                    AppColors.textOnPrimary,
-                elevation: 0,
-              ),
-              child: const Text('Add Role'),
-            ),
-          ],
+                    Navigator.pop(dialogContext);
+
+                    await _createRole(name);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor:
+                        AppColors.textOnPrimary,
+                    minimumSize: const Size(100, 44),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(9),
+                    ),
+                  ),
+                  child: const Text(
+                    'Add',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -204,12 +306,15 @@ class _RoleScreenState extends State<RoleScreen> {
     } catch (e) {
       if (!mounted) return;
 
+      final message = _getErrorMessage(
+        e,
+        'Failed to add role',
+      );
+
       _showMessage(
-        _getErrorMessage(
-          e,
-          'Failed to add role',
-        ),
-        isError: true,
+        message,
+        isError: message != 'Role already exists',
+        isWarning: message == 'Role already exists',
       );
     }
   }
@@ -225,26 +330,43 @@ class _RoleScreenState extends State<RoleScreen> {
         TextEditingController(text: role.name);
 
     bool isActive = role.status;
+    String? nameError;
 
     await showDialog<void>(
       context: context,
       builder: (dialogContext) {
         return StatefulBuilder(
-          builder: (
-            context,
-            setDialogState,
-          ) {
+          builder: (context, setDialogState) {
+            final screenWidth =
+                MediaQuery.of(context).size.width;
+
             return AlertDialog(
               backgroundColor: AppColors.surface,
               surfaceTintColor: Colors.transparent,
-              insetPadding:
-                  const EdgeInsets.symmetric(
-                horizontal: 20,
+              insetPadding: EdgeInsets.symmetric(
+                horizontal: screenWidth < 400 ? 12 : 24,
                 vertical: 24,
               ),
               shape: RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              titlePadding: const EdgeInsets.fromLTRB(
+                20,
+                18,
+                12,
+                8,
+              ),
+              contentPadding: const EdgeInsets.fromLTRB(
+                20,
+                8,
+                20,
+                10,
+              ),
+              actionsPadding: const EdgeInsets.fromLTRB(
+                20,
+                8,
+                20,
+                18,
               ),
               title: Row(
                 children: [
@@ -254,133 +376,203 @@ class _RoleScreenState extends State<RoleScreen> {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
-                        color:
-                            AppColors.textPrimary,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                   ),
                   IconButton(
                     onPressed: () {
-                      Navigator.pop(
-                        dialogContext,
-                      );
+                      Navigator.pop(dialogContext);
                     },
                     icon: const Icon(
                       Icons.close_rounded,
+                      size: 21,
                       color: AppColors.icon,
                     ),
                   ),
                 ],
               ),
-              content: SizedBox(
-                width: _dialogWidth(context),
-                child: Column(
-                  mainAxisSize:
-                      MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: controller,
-                      autofocus: true,
-                      textCapitalization:
-                          TextCapitalization.words,
-                      decoration:
-                          _inputDecoration(
-                        hintText:
-                            'Enter role name',
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    Container(
-                      padding:
-                          const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration:
-                          BoxDecoration(
-                        color:
-                            AppColors.inputBackground,
-                        borderRadius:
-                            BorderRadius.circular(10),
-                        border: Border.all(
-                          color:
-                              AppColors.border,
+              content: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: 420,
+                ),
+                child: SizedBox(
+                  width: _dialogWidth(context),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Role Name',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
                         ),
                       ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment
-                                      .start,
-                              children: [
-                                const Text(
-                                  'Status',
-                                  style:
-                                      TextStyle(
-                                    fontSize: 13,
-                                    fontWeight:
-                                        FontWeight.w600,
-                                    color:
-                                        AppColors.textPrimary,
-                                  ),
-                                ),
-                                Text(
-                                  isActive
-                                      ? 'Active'
-                                      : 'Inactive',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: isActive
-                                        ? AppColors
-                                            .active
-                                        : AppColors
-                                            .textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Switch(
-                            value: isActive,
-                            onChanged: (value) {
-                              setDialogState(() {
-                                isActive = value;
-                              });
-                            },
-                          ),
-                        ],
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: controller,
+                        autofocus: true,
+                        textCapitalization:
+                            TextCapitalization.words,
+                        maxLength: 50,
+                        buildCounter: (
+                          context, {
+                          required currentLength,
+                          required isFocused,
+                          maxLength,
+                        }) {
+                          return null;
+                        },
+                        onChanged: (value) {
+                          setDialogState(() {
+                            nameError = value.length >= 50
+                                ? 'Please enter up to 50 characters'
+                                : null;
+                          });
+                        },
+                        decoration: _inputDecoration(
+                          hintText: 'Enter role name',
+                          errorText: nameError,
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 20),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 11,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.inputBackground,
+                          borderRadius:
+                              BorderRadius.circular(10),
+                          border: Border.all(
+                            color: AppColors.border,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Status',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight:
+                                          FontWeight.w600,
+                                      color:
+                                          AppColors.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    isActive
+                                        ? 'Active'
+                                        : 'Inactive',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: isActive
+                                          ? AppColors.active
+                                          : AppColors
+                                              .textSecondary,
+                                      fontWeight:
+                                          FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SwitchTheme(
+                              data: SwitchThemeData(
+                                thumbColor:
+                                    WidgetStateProperty
+                                        .resolveWith(
+                                  (_) => Colors.white,
+                                ),
+                                trackColor:
+                                    WidgetStateProperty
+                                        .resolveWith(
+                                  (states) {
+                                    if (states.contains(
+                                      WidgetState.selected,
+                                    )) {
+                                      return AppColors.primary;
+                                    }
+
+                                    return Colors.grey
+                                        .withValues(
+                                      alpha: 0.35,
+                                    );
+                                  },
+                                ),
+                                trackOutlineColor:
+                                    WidgetStateProperty.all(
+                                  Colors.transparent,
+                                ),
+                              ),
+                              child: Switch(
+                                value: isActive,
+                                onChanged: (value) {
+                                  setDialogState(() {
+                                    isActive = value;
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               actions: [
                 OutlinedButton(
                   onPressed: () {
-                    Navigator.pop(
-                      dialogContext,
-                    );
+                    Navigator.pop(dialogContext);
                   },
-                  child: const Text('Cancel'),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(100, 44),
+                    side: const BorderSide(
+                      color: AppColors.border,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(9),
+                    ),
+                  ),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.icon,
+                    ),
+                  ),
                 ),
+                const SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: () async {
                     final name =
                         controller.text.trim();
 
-                    if (name.isEmpty) {
-                      _showMessage(
-                        'Please enter role name',
-                        isError: true,
-                      );
+                    setDialogState(() {
+                      nameError = name.isEmpty
+                          ? 'Please enter role name'
+                          : name.length >= 50
+                              ? 'Please enter up to 50 characters'
+                              : null;
+                    });
+
+                    if (nameError != null) {
                       return;
                     }
 
-                    Navigator.pop(
-                      dialogContext,
-                    );
+                    Navigator.pop(dialogContext);
 
                     await _updateRole(
                       role.id,
@@ -389,14 +581,22 @@ class _RoleScreenState extends State<RoleScreen> {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        AppColors.primary,
+                    backgroundColor: AppColors.primary,
                     foregroundColor:
                         AppColors.textOnPrimary,
+                    minimumSize: const Size(130, 44),
                     elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(9),
+                    ),
                   ),
-                  child:
-                      const Text('Update Role'),
+                  child: const Text(
+                    'Update Role',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ],
             );
@@ -439,12 +639,15 @@ class _RoleScreenState extends State<RoleScreen> {
     } catch (e) {
       if (!mounted) return;
 
+      final message = _getErrorMessage(
+        e,
+        'Failed to update role',
+      );
+
       _showMessage(
-        _getErrorMessage(
-          e,
-          'Failed to update role',
-        ),
-        isError: true,
+        message,
+        isError: message != 'Role already exists',
+        isWarning: message == 'Role already exists',
       );
     }
   }
@@ -1148,9 +1351,11 @@ decoration: BoxDecoration(
 
   InputDecoration _inputDecoration({
     required String hintText,
+      String? errorText,
   }) {
     return InputDecoration(
       hintText: hintText,
+      errorText: errorText,
       hintStyle: const TextStyle(
         fontSize: 14,
         color: AppColors.textTertiary,
@@ -1278,22 +1483,92 @@ double _getHorizontalPadding(
   void _showMessage(
     String message, {
     bool isError = false,
+    bool isWarning = false,
   }) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(
-      SnackBar(
-        content: Text(
-          message,
-          style: const TextStyle(
-            fontSize: 13,
+    final overlay = Overlay.of(context);
+
+    final backgroundColor = isError
+        ? const Color(0xFFFFE5E5)
+        : isWarning
+            ? const Color(0xFFFFF3CD)
+            : const Color(0xFFE5F7E9);
+
+    final iconColor = isError
+        ? const Color(0xFFD32F2F)
+        : isWarning
+            ? const Color(0xFFE59A00)
+            : const Color(0xFF1E9E45);
+
+    final icon = isError
+        ? Icons.close_rounded
+        : isWarning
+            ? Icons.warning_amber_rounded
+            : Icons.check_rounded;
+
+    late OverlayEntry entry;
+
+    entry = OverlayEntry(
+      builder: (context) {
+        return Positioned(
+          top: MediaQuery.of(context).padding.top + 12,
+          right: 16,
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              constraints: const BoxConstraints(
+                maxWidth: 320,
+              ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 12,
+              ),
+              decoration: BoxDecoration(
+                color: backgroundColor,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    icon,
+                    size: 22,
+                    color: iconColor,
+                  ),
+                  const SizedBox(width: 10),
+                  Flexible(
+                    child: Text(
+                      message,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: iconColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
-        behavior:
-            SnackBarBehavior.floating,
-        backgroundColor: isError
-            ? AppColors.error
-            : null,
-      ),
+        );
+      },
+    );
+
+    overlay.insert(entry);
+
+    Future.delayed(
+      const Duration(seconds: 3),
+      () {
+        if (entry.mounted) {
+          entry.remove();
+        }
+      },
     );
   }
 }

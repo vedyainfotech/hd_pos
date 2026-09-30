@@ -306,19 +306,94 @@ class _SubCategoriesScreenState
   }) {
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor:
-              isError
-                  ? AppColors.error
-                  : AppColors.success,
-          behavior:
-              SnackBarBehavior.floating,
-        ),
-      );
+    final overlay = Overlay.of(context);
+
+    final backgroundColor = isError
+        ? const Color(0xFFFFE5E5)
+        : const Color(0xFFE5F7E9);
+
+    final iconColor = isError
+        ? const Color(0xFFD32F2F)
+        : const Color(0xFF1E9E45);
+
+    final icon = isError
+        ? Icons.close_rounded
+        : Icons.check_rounded;
+
+    late OverlayEntry entry;
+
+    entry = OverlayEntry(
+      builder: (context) {
+        return Positioned(
+          top:
+              MediaQuery.of(context).padding.top + 12,
+          right: 16,
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              constraints:
+                  const BoxConstraints(
+                maxWidth: 320,
+              ),
+              padding:
+                  const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 12,
+              ),
+              decoration: BoxDecoration(
+                color: backgroundColor,
+                borderRadius:
+                    BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(
+                      alpha: 0.12,
+                    ),
+                    blurRadius: 12,
+                    offset:
+                        const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize:
+                    MainAxisSize.min,
+                children: [
+                  Icon(
+                    icon,
+                    size: 22,
+                    color: iconColor,
+                  ),
+                  const SizedBox(width: 10),
+                  Flexible(
+                    child: Text(
+                      message,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight:
+                            FontWeight.w600,
+                        color: iconColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    overlay.insert(entry);
+
+    Future.delayed(
+      const Duration(seconds: 3),
+      () {
+        if (entry.mounted) {
+          entry.remove();
+        }
+      },
+    );
   }
 
   // ============================================================
@@ -1488,8 +1563,19 @@ class _SubCategoryFormSheetState
     return TextFormField(
       controller:
           _nameController,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
       textCapitalization:
           TextCapitalization.words,
+      maxLength: 50,
+      buildCounter: (
+        context, {
+        required currentLength,
+        required isFocused,
+        maxLength,
+      }) {
+        return null;
+      },
+       
       decoration:
           const InputDecoration(
         hintText:
@@ -1506,6 +1592,10 @@ class _SubCategoryFormSheetState
 
         if (name.length < 2) {
           return 'Name must contain at least 2 characters';
+        }
+
+        if (name.length >= 50) {
+          return 'Please enter up to 50 characters';
         }
 
         return null;
