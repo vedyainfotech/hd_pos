@@ -297,16 +297,6 @@ class _ItemsScreenState extends State<ItemsScreen> {
     });
   }
 
-  void _clearFilters() {
-    _searchController.clear();
-
-    setState(() {
-      _selectedCategoryFilter = null;
-      _selectedSubCategoryFilter = null;
-      _statusFilter = 'All';
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -402,55 +392,39 @@ class _ItemsScreenState extends State<ItemsScreen> {
 
   Widget _buildPageHeader({bool mobile = false}) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Container(
-          width: mobile ? 46 : 54,
-          height: mobile ? 46 : 54,
-          decoration: BoxDecoration(
-            color: AppColors.primarySoft,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Icon(
-            Icons.inventory_2_outlined,
-            color: AppColors.primary,
-            size: mobile ? 24 : 28,
-          ),
-        ),
-        const SizedBox(width: 14),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Manage Items',
-                style: TextStyle(
-                  fontSize: mobile ? 24 : 30,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ],
+          child: Text(
+            'Manage your items',
+            style: TextStyle(
+              fontSize: mobile ? 18 : 20,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
           ),
         ),
         if (!mobile)
-          FilledButton.icon(
+          FilledButton(
             onPressed: _isSaving ? null : () => _openItemForm(),
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(
-                horizontal: 22,
-                vertical: 16,
+                horizontal: 28,
+                vertical: 17,
               ),
+              minimumSize: const Size(132, 50),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            icon: const Icon(Icons.add_rounded, size: 21),
-            label: const Text(
+            child: const Text(
               'Add Item',
-              style: TextStyle(fontWeight: FontWeight.w700),
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
       ],
@@ -469,12 +443,6 @@ class _ItemsScreenState extends State<ItemsScreen> {
           children: [
             Row(
               children: [
-                const Icon(
-                  Icons.filter_alt_outlined,
-                  color: AppColors.primary,
-                  size: 21,
-                ),
-                const SizedBox(width: 9),
                 const Text(
                   'Filters',
                   style: TextStyle(
@@ -484,17 +452,6 @@ class _ItemsScreenState extends State<ItemsScreen> {
                   ),
                 ),
                 const Spacer(),
-                TextButton(
-                  onPressed: _clearFilters,
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                  ),
-                  child: const Text(
-                    'Clear',
-                    style: TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                ),
               ],
             ),
             const SizedBox(height: 14),
@@ -558,7 +515,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
       label: 'Category',
       hint: 'All Categories',
       value: _selectedCategoryFilter ?? 0,
-      icon: Icons.category_outlined,
+      icon: null,
       items: [
         const DropdownMenuItem<int>(
           value: 0,
@@ -587,7 +544,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
       label: 'Sub Category',
       hint: 'All Sub Categories',
       value: _selectedSubCategoryFilter ?? 0,
-      icon: Icons.layers_outlined,
+      icon: null,
       items: [
         const DropdownMenuItem<int>(
           value: 0,
@@ -691,66 +648,24 @@ class _ItemsScreenState extends State<ItemsScreen> {
   }
 
   Widget _buildDesktopListHeader({bool compact = false}) {
-    return Row(
-      children: [
-        const Icon(
-          Icons.list_alt_rounded,
-          color: AppColors.primary,
-          size: 22,
-        ),
-        const SizedBox(width: 9),
-        const Text(
-          'Item List',
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w800,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          '${_filteredItems.length} items',
-          style: const TextStyle(
-            fontSize: 12,
-            color: AppColors.textSecondary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
+    return const Text(
+      'Item List',
+      style: TextStyle(
+        fontSize: 19,
+        fontWeight: FontWeight.w800,
+        color: AppColors.textPrimary,
+      ),
     );
   }
 
   Widget _buildMobileListHeader() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            const Icon(
-              Icons.list_alt_rounded,
-              color: AppColors.primary,
-              size: 21,
-            ),
-            const SizedBox(width: 8),
-            const Text(
-              'Item List',
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w800,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const Spacer(),
-            Text(
-              '${_filteredItems.length}',
-              style: const TextStyle(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ],
+    return const Text(
+      'Item List',
+      style: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w800,
+        color: AppColors.textPrimary,
+      ),
     );
   }
 
@@ -829,13 +744,11 @@ class _ItemsScreenState extends State<ItemsScreen> {
             width: constraints.maxWidth,
             child: Table(
               columnWidths: const {
-                0: FlexColumnWidth(0.42),
-                1: FlexColumnWidth(1.55),
-                2: FlexColumnWidth(1.05),
-                3: FlexColumnWidth(1.25),
-                4: FlexColumnWidth(0.80),
-                5: FlexColumnWidth(1.00),
-                6: FlexColumnWidth(0.72),
+                0: FlexColumnWidth(1.45),
+                1: FlexColumnWidth(1.05),
+                2: FlexColumnWidth(1.25),
+                3: FlexColumnWidth(0.80),
+                4: FlexColumnWidth(1.05),
               },
               border: TableBorder.all(
                 color: AppColors.borderLight,
@@ -843,50 +756,30 @@ class _ItemsScreenState extends State<ItemsScreen> {
               ),
               children: [
                 TableRow(
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: AppColors.primarySoft,
                   ),
                   children: [
-                    _tableHeader('#'),
                     _tableHeader('Item Name'),
                     _tableHeader('Category'),
                     _tableHeader('Sub Category'),
                     _tableHeader('Price (₹)'),
-                    _tableHeader('Status'),
                     _tableHeader('Actions'),
                   ],
                 ),
-                ...List.generate(
-                  items.length,
-                  (index) {
-                    final item = items[index];
-
-                    return TableRow(
-                      decoration: BoxDecoration(
-                        color: index.isEven
-                            ? AppColors.surface
-                            : AppColors.surfaceSoft,
-                      ),
-                      children: [
-                        _tableCell(
-                          '${index + 1}',
-                          center: true,
-                        ),
-                        _tableCell(item.name),
-                        _tableCell(
-                          _categoryName(item.categoryId),
-                        ),
-                        _tableCell(
-                          _subCategoryName(item.subCategoryId),
-                        ),
-                        _tableCell(
-                          '₹ ${item.price.toStringAsFixed(2)}',
-                        ),
-                        _tableStatusCell(item),
-                        _tableActionsCell(item),
-                      ],
-                    );
-                  },
+                ...items.map(
+                  (item) => TableRow(
+                    decoration: const BoxDecoration(
+                      color: AppColors.surface,
+                    ),
+                    children: [
+                      _tableCell(item.name),
+                      _tableCell(_categoryName(item.categoryId)),
+                      _tableCell(_subCategoryName(item.subCategoryId)),
+                      _tableCell('₹ ${item.price.toStringAsFixed(2)}'),
+                      _tableActionsCell(item),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -899,8 +792,8 @@ class _ItemsScreenState extends State<ItemsScreen> {
   Widget _tableHeader(String text) {
     return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: 8,
-        vertical: 12,
+        horizontal: 12,
+        vertical: 13,
       ),
       child: Text(
         text,
@@ -908,7 +801,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(
-          fontSize: 12,
+          fontSize: 13,
           fontWeight: FontWeight.w800,
           color: AppColors.textPrimary,
         ),
@@ -916,41 +809,21 @@ class _ItemsScreenState extends State<ItemsScreen> {
     );
   }
 
-  Widget _tableCell(
-    String text, {
-    bool center = false,
-    bool bold = true,
-  }) {
+  Widget _tableCell(String text, {bool bold = true}) {
     return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: 8,
-        vertical: 13,
+        horizontal: 12,
+        vertical: 14,
       ),
       child: Text(
         text,
-        textAlign: center ? TextAlign.center : TextAlign.left,
+        textAlign: TextAlign.center,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
-          fontSize: 13,
+          fontSize: 14,
           color: AppColors.textPrimary,
           fontWeight: bold ? FontWeight.w600 : FontWeight.w500,
-        ),
-      ),
-    );
-  }
-
-  Widget _tableStatusCell(ItemModel item) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 6,
-        vertical: 7,
-      ),
-      child: Center(
-        child: _StatusSwitch(
-          isActive: item.isActive,
-          enabled: !_isSaving,
-          onChanged: (_) => _toggleStatus(item),
         ),
       ),
     );
@@ -959,55 +832,58 @@ class _ItemsScreenState extends State<ItemsScreen> {
   Widget _tableActionsCell(ItemModel item) {
     return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: 5,
-        vertical: 8,
+        horizontal: 10,
+        vertical: 7,
       ),
-      child: Center(
-        child: IconButton(
-          tooltip: 'Edit item',
-          onPressed: _isSaving
-              ? null
-              : () => _openItemForm(item: item),
-          icon: const Icon(
-            Icons.edit_outlined,
-            size: 19,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _StatusSwitch(
+            isActive: item.isActive,
+            enabled: !_isSaving,
+            onChanged: (_) => _toggleStatus(item),
           ),
-          color: AppColors.primary,
-          style: IconButton.styleFrom(
-            backgroundColor: AppColors.primarySoft,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(9),
+          const SizedBox(width: 12),
+          IconButton(
+            tooltip: 'Edit item',
+            onPressed: _isSaving
+                ? null
+                : () => _openItemForm(item: item),
+            icon: const Icon(
+              Icons.edit_outlined,
+              size: 19,
+            ),
+            color: AppColors.primary,
+            style: IconButton.styleFrom(
+              backgroundColor: AppColors.primarySoft,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(9),
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
 
   Widget _buildMobileItems(List<ItemModel> items) {
     return Column(
-      children: List.generate(
-        items.length,
-        (index) {
-          final item = items[index];
-
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: _MobileItemCard(
-              index: index + 1,
-              item: item,
-              categoryName: _categoryName(item.categoryId),
-              subCategoryName: _subCategoryName(item.subCategoryId),
-              onEdit: _isSaving
-                  ? null
-                  : () => _openItemForm(item: item),
-              onToggle: _isSaving
-                  ? null
-                  : () => _toggleStatus(item),
-            ),
-          );
-        },
-      ),
+      children: items.map((item) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: _MobileItemCard(
+            item: item,
+            categoryName: _categoryName(item.categoryId),
+            subCategoryName: _subCategoryName(item.subCategoryId),
+            onEdit: _isSaving
+                ? null
+                : () => _openItemForm(item: item),
+            onToggle: _isSaving
+                ? null
+                : () => _toggleStatus(item),
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -1024,20 +900,6 @@ class _ItemsScreenState extends State<ItemsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 66,
-            height: 66,
-            decoration: BoxDecoration(
-              color: AppColors.primarySoft,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.inventory_2_outlined,
-              color: AppColors.primary,
-              size: 30,
-            ),
-          ),
-          const SizedBox(height: 16),
           const Text(
             'No items found',
             style: TextStyle(
@@ -1329,19 +1191,6 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
                 children: [
                   Row(
                     children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: AppColors.primarySoft,
-                          borderRadius: BorderRadius.circular(13),
-                        ),
-                        child: const Icon(
-                          Icons.inventory_2_outlined,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1381,7 +1230,6 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
                     initialValue: _selectedCategoryId,
                     decoration: _inputDecoration(
                       hint: 'Select Category',
-                      icon: Icons.category_outlined,
                     ),
                     items: widget.categories
                         .map(
@@ -1413,7 +1261,6 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
                           : _loadingSubCategories
                               ? 'Loading...'
                               : 'Select Sub Category',
-                      icon: Icons.layers_outlined,
                     ),
                     items: _subCategories
                         .map(
@@ -1451,7 +1298,6 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
                       hint: _sameAsCategory
                           ? 'Using selected sub category price'
                           : 'Enable Same As Category to use this price',
-                      icon: Icons.payments_outlined,
                     ),
                   ),
                   const SizedBox(height: 18),
@@ -1462,7 +1308,6 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
                     textCapitalization: TextCapitalization.sentences,
                     decoration: _inputDecoration(
                       hint: 'Enter Item Name',
-                      icon: Icons.restaurant_menu_outlined,
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
@@ -1482,7 +1327,6 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
                     readOnly: _sameAsCategory,
                     decoration: _inputDecoration(
                       hint: 'Enter Price',
-                      icon: Icons.currency_rupee_rounded,
                     ).copyWith(
                       fillColor: _sameAsCategory
                           ? AppColors.surfaceSoft
@@ -1571,7 +1415,7 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: FilledButton.icon(
+                        child: FilledButton(
                           onPressed: _submit,
                           style: FilledButton.styleFrom(
                             backgroundColor: AppColors.primary,
@@ -1583,13 +1427,7 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          icon: Icon(
-                            isEditing
-                                ? Icons.save_outlined
-                                : Icons.add_rounded,
-                            size: 19,
-                          ),
-                          label: Text(
+                          child: Text(
                             isEditing ? 'Update Item' : 'Save Item',
                             style: const TextStyle(
                               fontWeight: FontWeight.w700,
@@ -1636,15 +1474,9 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
 
   InputDecoration _inputDecoration({
     required String hint,
-    required IconData icon,
   }) {
     return InputDecoration(
       hintText: hint,
-      prefixIcon: Icon(
-        icon,
-        size: 19,
-        color: AppColors.icon,
-      ),
       filled: true,
       fillColor: AppColors.inputBackground,
       contentPadding: const EdgeInsets.symmetric(
@@ -1737,7 +1569,7 @@ class _FilterDropdown<T> extends StatelessWidget {
   final String label;
   final T value;
   final String hint;
-  final IconData icon;
+  final IconData? icon;
   final List<DropdownMenuItem<T>> items;
   final ValueChanged<T?> onChanged;
 
@@ -1757,11 +1589,13 @@ class _FilterDropdown<T> extends StatelessWidget {
       isExpanded: true,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(
-          icon,
-          size: 19,
-          color: AppColors.icon,
-        ),
+        prefixIcon: icon == null
+            ? null
+            : Icon(
+                icon,
+                size: 19,
+                color: AppColors.icon,
+              ),
         filled: true,
         fillColor: AppColors.inputBackground,
         contentPadding: const EdgeInsets.symmetric(
@@ -1808,36 +1642,42 @@ class _StatusSwitch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Switch.adaptive(
-          value: isActive,
-          onChanged: enabled ? onChanged : null,
-          activeTrackColor: AppColors.success,
-          activeThumbColor: Colors.white,
-          inactiveTrackColor: AppColors.border,
-          inactiveThumbColor: Colors.white,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-        const SizedBox(width: 4),
-        Text(
-          isActive ? 'Active' : 'Inactive',
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: isActive
-                ? AppColors.success
-                : AppColors.textTertiary,
+    return Semantics(
+      button: true,
+      toggled: isActive,
+      label: isActive ? 'Active' : 'Inactive',
+      child: GestureDetector(
+        onTap: enabled ? () => onChanged(!isActive) : null,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          width: 48,
+          height: 26,
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            color: isActive ? AppColors.primary : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: AnimatedAlign(
+            duration: const Duration(milliseconds: 160),
+            alignment: isActive
+                ? Alignment.centerRight
+                : Alignment.centerLeft,
+            child: Container(
+              width: 20,
+              height: 20,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+            ),
           ),
         ),
-      ],
+      ),
     );
   }
 }
 
 class _MobileItemCard extends StatelessWidget {
-  final int index;
   final ItemModel item;
   final String categoryName;
   final String subCategoryName;
@@ -1845,7 +1685,6 @@ class _MobileItemCard extends StatelessWidget {
   final VoidCallback? onToggle;
 
   const _MobileItemCard({
-    required this.index,
     required this.item,
     required this.categoryName,
     required this.subCategoryName,
@@ -1857,7 +1696,7 @@ class _MobileItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
@@ -1868,115 +1707,77 @@ class _MobileItemCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(
+            item.name,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Category: $categoryName',
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Sub Category: $subCategoryName',
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Price: ₹${item.price.toStringAsFixed(2)}',
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 34,
-                height: 34,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: AppColors.primarySoft,
-                  borderRadius: BorderRadius.circular(9),
-                ),
-                child: Text(
-                  '$index',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.primary,
-                  ),
+              const Text(
+                'Actions',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary,
                 ),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '$categoryName • $subCategoryName',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               _StatusSwitch(
                 isActive: item.isActive,
                 enabled: onToggle != null,
-                onChanged: (_) {
-                  onToggle?.call();
-                },
+                onChanged: (_) => onToggle?.call(),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                tooltip: 'Edit item',
+                onPressed: onEdit,
+                icon: const Icon(
+                  Icons.edit_outlined,
+                  size: 19,
+                ),
+                color: AppColors.primary,
+                style: IconButton.styleFrom(
+                  backgroundColor: AppColors.primarySoft,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(9),
+                  ),
+                ),
               ),
             ],
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 10,
-            ),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceSoft,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              children: [
-                const Text(
-                  'Price',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  '₹${item.price.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: onEdit,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.primary,
-                side: const BorderSide(
-                  color: AppColors.primaryLight,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              icon: const Icon(
-                Icons.edit_outlined,
-                size: 16,
-              ),
-              label: const Text('Edit'),
-            ),
           ),
         ],
       ),
