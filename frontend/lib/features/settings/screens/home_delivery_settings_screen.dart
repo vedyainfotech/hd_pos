@@ -7,6 +7,7 @@ import '../../home/roles/screens/role_screen.dart';
 import '../../home/sub_categories/screens/sub_category_screens.dart';
 import '../../home/menu_scheduling/screens/menu_scheduling_screen.dart';
 import '../../auth/screens/login_screen.dart';
+import '../../home/customers/screens/customers_screen.dart';
 
 class HomeDeliverySettingsScreen extends StatelessWidget {
   const HomeDeliverySettingsScreen({super.key});
@@ -238,14 +239,22 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                           subtitle:
                               'Manage customers and their delivery information',
                           children: [
-                            _settingCard(
-                              context,
-                              title: 'Customers',
-                              subtitle: 'Add and manage customer information',
-                              icon: Icons.people_outline,
-                              iconBackground: const Color(0xFFE6F0FF),
-                              iconColor: const Color(0xFF2563EB),
-                            ),
+                           _settingCard(
+                                  context,
+                                  title: 'Customers',
+                                  subtitle: 'Add and manage customer information',
+                                  icon: Icons.people_outline,
+                                  iconBackground: const Color(0xFFE6F0FF),
+                                  iconColor: const Color(0xFF2563EB),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const CustomersScreen(),
+                                      ),
+                                    );
+                                  },
+                                ),
 
                             _settingCard(
                               context,
