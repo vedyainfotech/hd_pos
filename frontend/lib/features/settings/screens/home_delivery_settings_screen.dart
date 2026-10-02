@@ -6,6 +6,7 @@ import '../../home/payment/screens/payment_screen.dart';
 import '../../home/roles/screens/role_screen.dart';
 import '../../home/sub_categories/screens/sub_category_screens.dart';
 import '../../home/menu_scheduling/screens/menu_scheduling_screen.dart';
+import '../../home/items/screens/items_screens.dart';
 
 class HomeDeliverySettingsScreen extends StatelessWidget {
   const HomeDeliverySettingsScreen({super.key});
@@ -187,18 +188,22 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                               );
                              },
                            ),
-                            _settingCard(
-                              context,
-                              title: 'Items',
-                              subtitle:
-                                  'Add and manage your products',
-                              icon:
-                                  Icons.fastfood_outlined,
-                              iconBackground:
-                                  const Color(0xFFFFF0DA),
-                              iconColor:
-                                  const Color(0xFFD97706),
-                            ),
+                         _settingCard(
+  context,
+  title: 'Items',
+  subtitle: 'Add and manage your products',
+  icon: Icons.fastfood_outlined,
+  iconBackground: const Color(0xFFFFF0DA),
+  iconColor: const Color(0xFFD97706),
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const ItemsScreen(),
+      ),
+    );
+  },
+),
 
                             _settingCard(
                               context,

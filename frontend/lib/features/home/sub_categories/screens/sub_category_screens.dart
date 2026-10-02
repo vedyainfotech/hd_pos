@@ -186,11 +186,7 @@ class _SubCategoriesScreenState
         }
       });
 
-      _showSnackBar(
-        newStatus
-            ? 'Subcategory activated'
-            : 'Subcategory deactivated',
-      );
+    
     } catch (error) {
       _showSnackBar(
         'Failed to update status: $error',
@@ -445,7 +441,10 @@ class _SubCategoriesScreenState
               crossAxisAlignment:
                   CrossAxisAlignment.start,
               children: [
-                _buildPageHeader(isMobile),
+                _buildPageHeader(
+  isMobile,
+  constraints.maxWidth >= 1200,
+),
 
                 const SizedBox(height: 24),
 
@@ -469,9 +468,10 @@ class _SubCategoriesScreenState
   // PAGE HEADER
   // ============================================================
 
-  Widget _buildPageHeader(
-    bool isCompact,
-  ) {
+ Widget _buildPageHeader(
+  bool isCompact,
+  bool isDesktop,
+) {
     if (isCompact) {
       return Column(
         crossAxisAlignment:
@@ -512,7 +512,7 @@ class _SubCategoriesScreenState
             ],
           ),
         ),
-        _buildAddButton(),
+        _buildAddButton(isDesktop),
       ],
     );
   }
@@ -521,7 +521,7 @@ class _SubCategoriesScreenState
   // ADD BUTTON
   // ============================================================
 
-  Widget _buildAddButton() {
+  Widget _buildAddButton(bool isDesktop) {
     return ElevatedButton.icon(
       onPressed: _openAddPanel,
       icon: const Icon(
@@ -531,11 +531,10 @@ class _SubCategoriesScreenState
       label:
           const Text('Add'),
       style: ElevatedButton.styleFrom(
-        padding:
-            const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 14,
-        ),
+        padding: EdgeInsets.symmetric(
+  horizontal: isDesktop ? 28 : 12,
+  vertical: isDesktop ? 20 : 14,
+),
         backgroundColor:
             AppColors.primary,
         foregroundColor:
