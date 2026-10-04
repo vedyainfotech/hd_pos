@@ -1272,10 +1272,12 @@ class _SubCategoryFormSheetState
   late final TextEditingController
       _priceController;
 
-  int? _selectedCategoryId;
+ int? _selectedCategoryId;
 
-  bool get _isEditing =>
-      widget.subCategory != null;
+late bool _isActive;
+
+bool get _isEditing =>
+    widget.subCategory != null;
 
   @override
   void initState() {
@@ -1297,7 +1299,10 @@ class _SubCategoryFormSheetState
     );
 
     _selectedCategoryId =
-        widget.subCategory?.categoryId;
+    widget.subCategory?.categoryId;
+
+_isActive =
+    widget.subCategory?.isActive ?? true;
   }
 
   @override
@@ -1346,7 +1351,7 @@ class _SubCategoryFormSheetState
           _nameController.text.trim(),
       price: price,
       isActive:
-          existing?.isActive ?? true,
+            _isActive,
     );
 
     Navigator.of(context)
@@ -1548,9 +1553,94 @@ class _SubCategoryFormSheetState
             height: 8,
           ),
 
-          _buildPriceField(),
-        ],
+      _buildPriceField(),
+
+if (_isEditing) ...[
+  const SizedBox(height: 18),
+
+  Container(
+    width: double.infinity,
+    padding: const EdgeInsets.symmetric(
+      horizontal: 14,
+      vertical: 11,
+    ),
+    decoration: BoxDecoration(
+      color: AppColors.inputBackground,
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(
+        color: AppColors.border,
       ),
+    ),
+    child: Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Status',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                _isActive ? 'Active' : 'Inactive',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: _isActive
+                      ? AppColors.active
+                      : AppColors.textSecondary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        SwitchTheme(
+          data: SwitchThemeData(
+            thumbColor:
+                WidgetStateProperty.resolveWith(
+              (_) => Colors.white,
+            ),
+            trackColor:
+                WidgetStateProperty.resolveWith(
+              (states) {
+                if (states.contains(
+                  WidgetState.selected,
+                )) {
+                  return AppColors.primary;
+                }
+
+                return Colors.grey.withValues(
+                  alpha: 0.35,
+                );
+              },
+            ),
+            trackOutlineColor:
+                WidgetStateProperty.all(
+              Colors.transparent,
+            ),
+          ),
+          child: Switch(
+            value: _isActive,
+            onChanged: (value) {
+              setState(() {
+                _isActive = value;
+              });
+            },
+          ),
+        ),
+      ],
+    ),
+  ),
+],
+],
+      )
     );
   }
 

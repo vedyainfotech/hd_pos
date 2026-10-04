@@ -27,6 +27,14 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
   bool _isLoading = true;
 
+  // Top-right message state. Kept inside this screen instead of using
+  // OverlayEntry/GeneralDialog so the message does not create a separate
+  // route or overlay lifecycle.
+  String? _message;
+  bool _messageIsError = false;
+  bool _messageIsWarning = false;
+  int _messageVersion = 0;
+
   @override
   void initState() {
     super.initState();
@@ -359,7 +367,9 @@ class _CategoryScreenState extends State<CategoryScreen> {
       },
     );
 
-    controller.dispose();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.dispose();
+    });
   }
 
   // ============================================================
@@ -759,7 +769,9 @@ class _CategoryScreenState extends State<CategoryScreen> {
       },
     );
 
-    controller.dispose();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.dispose();
+    });
   }
 
   // ============================================================
@@ -1366,97 +1378,109 @@ class _CategoryScreenState extends State<CategoryScreen> {
   // MESSAGE
   // ============================================================
 
- void _showMessage(
-  String message, {
-  bool isError = false,
-  bool isWarning = false,
-}) {
-  final overlay = Overlay.of(context);
+  void _showMessage(
+    String message, {
+    bool isError = false,
+    bool isWarning = false,
+  }) {
+    if (!mounted) return;
 
-  final backgroundColor = isError
-      ? const Color(0xFFFFE5E5)
-      : isWarning
-          ? const Color(0xFFFFF3CD)
-          : const Color(0xFFE5F7E9);
+    final version = ++_messageVersion;
 
-  final iconColor = isError
-      ? const Color(0xFFD32F2F)
-      : isWarning
-          ? const Color(0xFFE59A00)
-          : const Color(0xFF1E9E45);
+    setState(() {
+      _message = message;
+      _messageIsError = isError;
+      _messageIsWarning = isWarning;
+    });
 
-  final icon = isError
-      ? Icons.close_rounded
-      : isWarning
-          ? Icons.warning_amber_rounded
-          : Icons.check_rounded;
+    Future.delayed(const Duration(seconds: 3), () {
+      if (!mounted || version != _messageVersion) return;
 
-  late OverlayEntry entry;
+      setState(() {
+        _message = null;
+      });
+    });
+  }
 
-  entry = OverlayEntry(
-    builder: (context) {
-      return Positioned(
-        top: MediaQuery.of(context).padding.top + 12,
-        right: 16,
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            constraints: const BoxConstraints(
-              maxWidth: 320,
-            ),
-            padding: const EdgeInsets.symmetric(
-              horizontal: 14,
-              vertical: 12,
-            ),
-            decoration: BoxDecoration(
-              color: backgroundColor,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.12),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  icon,
-                  size: 22,
-                  color: iconColor,
-                ),
-                const SizedBox(width: 10),
-                Flexible(
-                  child: Text(
-                    message,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: iconColor,
+  Widget _buildTopRightMessage() {
+    final message = _message;
+    if (message == null) {
+      return const SizedBox.shrink();
+    }
+
+    final backgroundColor = _messageIsError
+        ? const Color(0xFFFFE5E5)
+        : _messageIsWarning
+            ? const Color(0xFFFFF3CD)
+            : const Color(0xFFE5F7E9);
+
+    final iconColor = _messageIsError
+        ? const Color(0xFFD32F2F)
+        : _messageIsWarning
+            ? const Color(0xFFE59A00)
+            : const Color(0xFF1E9E45);
+
+    final icon = _messageIsError
+        ? Icons.close_rounded
+        : _messageIsWarning
+            ? Icons.warning_amber_rounded
+            : Icons.check_rounded;
+
+    return Positioned(
+      top: 12,
+      right: 16,
+      left: 16,
+      child: IgnorePointer(
+        child: Align(
+          alignment: Alignment.topRight,
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              constraints: const BoxConstraints(
+                maxWidth: 320,
+              ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 12,
+              ),
+              decoration: BoxDecoration(
+                color: backgroundColor,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    icon,
+                    size: 22,
+                    color: iconColor,
+                  ),
+                  const SizedBox(width: 10),
+                  Flexible(
+                    child: Text(
+                      message,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: iconColor,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
-      );
-    },
-  );
-
-  overlay.insert(entry);
-
-  Future.delayed(
-    const Duration(seconds: 3),
-    () {
-      if (entry.mounted) {
-        entry.remove();
-      }
-    },
-  );
-}
+      ),
+    );
+  }
 
   // ============================================================
   // BUILD
@@ -1504,8 +1528,10 @@ class _CategoryScreenState extends State<CategoryScreen> {
         return Scaffold(
           backgroundColor:
               AppColors.background,
-          body: SafeArea(
-            child: Column(
+          body: Stack(
+            children: [
+              SafeArea(
+                child: Column(
               children: [
                 // ======================================================
                 // TOP BAR
@@ -1743,6 +1769,9 @@ class _CategoryScreenState extends State<CategoryScreen> {
                 ),
               ],
             ),
+          ),
+              if (_message != null) _buildTopRightMessage(),
+            ],
           ),
         );
       },

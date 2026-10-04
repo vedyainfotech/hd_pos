@@ -284,7 +284,9 @@ class _RoleScreenState extends State<RoleScreen> {
       },
     );
 
-    controller.dispose();
+   WidgetsBinding.instance.addPostFrameCallback((_) {
+  controller.dispose();
+});
   }
 
   Future<void> _createRole(String name) async {
@@ -605,7 +607,9 @@ class _RoleScreenState extends State<RoleScreen> {
       },
     );
 
-    controller.dispose();
+WidgetsBinding.instance.addPostFrameCallback((_) {
+  controller.dispose();
+});
   }
 
   Future<void> _updateRole(

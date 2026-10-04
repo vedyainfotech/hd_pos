@@ -7,9 +7,16 @@ import '../../home/roles/screens/role_screen.dart';
 import '../../home/sub_categories/screens/sub_category_screens.dart';
 import '../../home/menu_scheduling/screens/menu_scheduling_screen.dart';
 import '../../home/items/screens/items_screens.dart';
+import '../../home/customers/screens/customers_screen.dart';
+import '../../auth/screens/login_Screen.dart';
 
 class HomeDeliverySettingsScreen extends StatelessWidget {
-  const HomeDeliverySettingsScreen({super.key});
+  final String userName;
+
+  const HomeDeliverySettingsScreen({
+    super.key,
+    required this.userName,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +41,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                   elevation: 0,
                   child: SafeArea(
                     child: _buildSidebar(
+                      context,
                       width: 280,
                       compact: false,
                       isDrawer: true,
@@ -51,6 +59,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
 
                 if (isDesktop)
                   _buildSidebar(
+                    context,
                     width: 225,
                     compact: false,
                   ),
@@ -61,6 +70,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
 
                 if (isTablet)
                   _buildSidebar(
+                   context,
                     width: 190,
                     compact: false,
                   ),
@@ -299,19 +309,26 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                           subtitle:
                               'Manage customers and their delivery information',
                           children: [
-                            _settingCard(
-                              context,
-                              title: 'Customers',
-                              subtitle:
-                                  'Add and manage customer information',
-                              icon:
-                                  Icons.people_outline,
-                              iconBackground:
-                                  const Color(0xFFE6F0FF),
-                              iconColor:
-                                  const Color(0xFF2563EB),
-                            ),
-
+                           _settingCard(
+  context,
+  title: 'Customers',
+  subtitle:
+      'Add and manage customer information',
+  icon:
+      Icons.people_outline,
+  iconBackground:
+      const Color(0xFFE6F0FF),
+  iconColor:
+      const Color(0xFF2563EB),
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const CustomersScreen(),
+      ),
+    );
+  },
+),
                             _settingCard(
                               context,
                               title:
@@ -541,7 +558,8 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
   // SIDEBAR
   // ============================================================
 
-  Widget _buildSidebar({
+  Widget _buildSidebar(
+    BuildContext context, {
     required double width,
     bool compact = false,
     bool isDrawer = false,
@@ -642,43 +660,95 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
 
           const Spacer(),
 
-          if (!compact)
-            Container(
-              margin:
-                  const EdgeInsets.all(14),
-              padding:
-                  const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color:
-                    const Color(0xFFF4F7FF),
-                borderRadius:
-                    BorderRadius.circular(
-                  16,
+          
+  Container(
+    margin: const EdgeInsets.all(10),
+    padding: const EdgeInsets.all(10),
+    decoration: BoxDecoration(
+      color: const Color(0xFFF4F7FF),
+      borderRadius: BorderRadius.circular(16),
+    ),
+    child: Column(
+      children: [
+        Row(
+          children: [
+            const CircleAvatar(
+              radius: 17,
+              backgroundColor: AppColors.primary,
+              child: Text(
+                'B',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
-              child: const Row(
-                children: [
-                  Icon(
-                    Icons.help_outline,
-                    color:
-                        AppColors.primary,
-                    size: 20,
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Manage your business, customers and deliveries all in one place.',
-                      style: TextStyle(
-                        color: AppColors
-                            .textSecondary,
-                        fontSize: 11,
-                        height: 1.4,
-                      ),
-                    ),
-                  ),
-                ],
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                userName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        const Align(
+          alignment: Alignment.centerLeft,
+          child: Padding(
+            padding: EdgeInsets.only(left: 44),
+            child: Text(
+              'Administrator',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 10,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: () {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const LoginScreen(),
+              ),
+              (route) => false,
+            );
+          },
+          child: const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.logout_outlined,
+                  color: AppColors.primary,
+                  size: 18,
+                ),
+                SizedBox(width: 10),
+                Text(
+                  'Logout',
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    ),
+  ),
         ],
       ),
     );

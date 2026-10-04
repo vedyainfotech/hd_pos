@@ -344,7 +344,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
           name: result.name,
           price: result.price,
           sameAsCategory: result.sameAsCategory,
-          status: item.isActive,
+          status: result.isActive,
         );
 
         _showSuccess('Item updated successfully');
@@ -1101,7 +1101,7 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
   int? _selectedCategoryId;
   int? _selectedSubCategoryId;
   double? _categoryPrice;
-
+  late bool _isActive;
   bool _sameAsCategory = false;
   bool _loadingSubCategories = false;
 
@@ -1117,6 +1117,7 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
       _selectedCategoryId = existing.categoryId;
       _selectedSubCategoryId = existing.subCategoryId;
       _sameAsCategory = existing.sameAsCategory;
+      _isActive = existing.isActive;
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _loadSubCategories(
@@ -1287,6 +1288,7 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
         name: _nameController.text.trim(),
         price: price,
         sameAsCategory: _sameAsCategory,
+        isActive: _isActive,
       ),
     );
   }
@@ -1504,6 +1506,7 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
                   const SizedBox(height: 7),
                   TextFormField(
                     controller: _nameController,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
                     textCapitalization: TextCapitalization.sentences,
                     maxLength: 50,
                     buildCounter: (
@@ -1603,9 +1606,94 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
+                  if (isEditing) ...[
+  const SizedBox(height: 18),
+
+  Container(
+    width: double.infinity,
+    padding: const EdgeInsets.symmetric(
+      horizontal: 14,
+      vertical: 11,
+    ),
+    decoration: BoxDecoration(
+      color: AppColors.inputBackground,
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(
+        color: AppColors.border,
+      ),
+    ),
+    child: Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Status',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                _isActive ? 'Active' : 'Inactive',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: _isActive
+                      ? AppColors.active
+                      : AppColors.textSecondary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        SwitchTheme(
+          data: SwitchThemeData(
+            thumbColor:
+                WidgetStateProperty.resolveWith(
+              (_) => Colors.white,
+            ),
+            trackColor:
+                WidgetStateProperty.resolveWith(
+              (states) {
+                if (states.contains(
+                  WidgetState.selected,
+                )) {
+                  return AppColors.primary;
+                }
+
+                return Colors.grey.withValues(
+                  alpha: 0.35,
+                );
+              },
+            ),
+            trackOutlineColor:
+                WidgetStateProperty.all(
+              Colors.transparent,
+            ),
+          ),
+          child: Switch(
+            value: _isActive,
+            onChanged: (value) {
+              setState(() {
+                _isActive = value;
+              });
+            },
+          ),
+        ),
+      ],
+    ),
+  ),
+],
+
+const SizedBox(height: 24),
+
+Row(
+  children: [
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () => Navigator.pop(context),
@@ -1736,6 +1824,7 @@ class _ItemFormResult {
   final String name;
   final double price;
   final bool sameAsCategory;
+  final bool isActive;
 
   const _ItemFormResult({
     required this.categoryId,
@@ -1743,6 +1832,7 @@ class _ItemFormResult {
     required this.name,
     required this.price,
     required this.sameAsCategory,
+    required this.isActive,
   });
 }
 
