@@ -8,6 +8,9 @@ import '../../home/sub_categories/screens/sub_category_screens.dart';
 import '../../home/menu_scheduling/screens/menu_scheduling_screen.dart';
 import '../../home/items/screens/items_screens.dart';
 import '../../home/customers/screens/customers_screen.dart';
+import '../../inventory/units/screens/units_screen.dart';
+import '../../inventory/inventory_category/screens/inventory_category_screen.dart';
+import '../../inventory/inventory_sub_category/screens/inv_subcategory_screen.dart';
 import '../../auth/screens/login_Screen.dart';
 
 class HomeDeliverySettingsScreen extends StatelessWidget {
@@ -416,46 +419,62 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                           subtitle:
                               'Manage stock items, units, inventory categories and suppliers',
                           children: [
-                            _settingCard(
-                              context,
-                              title: 'Units',
-                              subtitle:
-                                  'Manage measurement units such as kg, litre and piece',
-                              icon:
-                                  Icons.straighten_outlined,
-                              iconBackground:
-                                  const Color(0xFFE6F0FF),
-                              iconColor:
-                                  const Color(0xFF2563EB),
-                            ),
+                           _settingCard(
+  context,
+  title: 'Units',
+  subtitle:
+      'Manage measurement units such as kg, litre and piece',
+  icon: Icons.straighten_outlined,
+  iconBackground:
+      const Color(0xFFE6F0FF),
+  iconColor:
+      const Color(0xFF2563EB),
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const UnitsScreen(),
+      ),
+    );
+  },
+),
 
                             _settingCard(
-                              context,
-                              title:
-                                  'Inventory Categories',
-                              subtitle:
-                                  'Create and manage inventory categories',
-                              icon:
-                                  Icons.category_outlined,
-                              iconBackground:
-                                  const Color(0xFFFFE8E5),
-                              iconColor:
-                                  const Color(0xFFEF4444),
-                            ),
+  context,
+  title: 'Inventory Categories',
+  subtitle: 'Create and manage inventory categories',
+  icon: Icons.category_outlined,
+  iconBackground: const Color(0xFFFFE8E5),
+  iconColor: const Color(0xFFEF4444),
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const InventoryCategoryScreen(),
+      ),
+    );
+  },
+),
 
                             _settingCard(
-                              context,
-                              title:
-                                  'Inventory Sub Categories',
-                              subtitle:
-                                  'Organize inventory items into sub categories',
-                              icon:
-                                  Icons.account_tree_outlined,
-                              iconBackground:
-                                  const Color(0xFFF0E9FF),
-                              iconColor:
-                                  const Color(0xFF7C3AED),
-                            ),
+  context,
+  title: 'Inventory Sub Categories',
+  subtitle:
+      'Organize inventory items into sub categories',
+  icon: Icons.account_tree_outlined,
+  iconBackground:
+      const Color(0xFFF0E9FF),
+  iconColor:
+      const Color(0xFF7C3AED),
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const InvSubCategoryScreen(),
+      ),
+    );
+  },
+),
 
                             _settingCard(
                               context,
