@@ -114,7 +114,7 @@ class _CustomerDetailsScreenState
 
                       const SizedBox(height: 18),
 
-                      _buildSpecialRequirements(),
+    
 
                       const SizedBox(height: 18),
 
@@ -252,38 +252,7 @@ class _CustomerDetailsScreenState
     );
   }
 
-  Widget _buildSpecialRequirements() {
-    final hasFoodType =
-        _customer.foodType != null &&
-        _customer.foodType!.trim().isNotEmpty;
-
-    final hasInstruction =
-        _customer.instruction.trim().isNotEmpty;
-
-    return _sectionCard(
-      title: 'Special Requirements',
-      icon: Icons.restaurant_menu_outlined,
-      child: Column(
-        children: [
-          _detailRow(
-            icon: Icons.restaurant_outlined,
-            label: 'Food Type',
-            value: hasFoodType
-                ? _customer.foodType!
-                : 'Not provided',
-          ),
-
-          _detailRow(
-            icon: Icons.notes_outlined,
-            label: 'Instruction',
-            value: hasInstruction
-                ? _customer.instruction
-                : 'Not provided',
-          ),
-        ],
-      ),
-    );
-  }
+ 
 
   Widget _buildAddresses({
     required bool isMobile,
@@ -348,28 +317,6 @@ class _CustomerDetailsScreenState
                 ),
               ),
 
-           Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 9,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: address.status
-                      ? AppColors.primarySoft
-                      : AppColors.borderLight,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  address.status ? 'Active' : 'Inactive',
-                  style: TextStyle(
-                    color: address.status
-                        ? AppColors.primary
-                        : AppColors.textSecondary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
             ],
           ),
 
@@ -445,13 +392,6 @@ class _CustomerDetailsScreenState
             value: address.monthlyFoodOrder
                 ? 'Yes'
                 : 'No',
-          ),
-          _detailRow(
-            icon: Icons.toggle_on_outlined,
-            label: 'Status',
-            value: address.status
-                ? 'Active'
-                : 'Inactive',
           ),
         ],
       ),
