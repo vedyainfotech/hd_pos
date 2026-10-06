@@ -1,20 +1,14 @@
 import 'package:flutter/material.dart';
 
-
-
 import '../../../../core/theme/theme.dart';
 
 import '../models/payment_model.dart';
 
 import '../services/payment_service.dart';
 
-
-
 class PaymentScreen extends StatefulWidget {
 
   const PaymentScreen({super.key});
-
-
 
   @override
 
@@ -22,31 +16,19 @@ class PaymentScreen extends StatefulWidget {
 
 }
 
-
-
 class _PaymentScreenState extends State<PaymentScreen> {
 
   final TextEditingController _searchController =
 
       TextEditingController();
 
-
-
   final PaymentService _paymentService = PaymentService();
-
-
 
   List<PaymentModel> _payments = [];
 
-
-
   String _statusFilter = 'All';
 
-
-
   bool _isLoading = true;
-
-
 
   @override
 
@@ -54,21 +36,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     super.initState();
 
-
-
     _searchController.addListener(() {
 
       setState(() {});
 
     });
 
-
-
     _loadPayments();
 
   }
-
-
 
   @override
 
@@ -80,15 +56,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   }
 
-
-
   // ============================================================
 
   // LOAD PAYMENTS
 
   // ============================================================
-
-
 
   Future<void> _loadPayments() async {
 
@@ -100,19 +72,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
       });
 
-
-
       final payments = await _paymentService.getPayments(
 
         includeInactive: true,
 
       );
 
-
-
       if (!mounted) return;
-
-
 
       setState(() {
 
@@ -126,15 +92,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
       if (!mounted) return;
 
-
-
       setState(() {
 
         _isLoading = false;
 
       });
-
-
 
       _showMessage(
 
@@ -148,23 +110,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   }
 
-
-
   // ============================================================
 
   // FILTER
 
   // ============================================================
 
-
-
   List<PaymentModel> get _filteredPayments {
 
     final search =
 
         _searchController.text.trim().toLowerCase();
-
-
 
     return _payments.where((payment) {
 
@@ -174,8 +130,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
           payment.name.toLowerCase().contains(search);
 
-
-
       final matchesStatus =
 
           _statusFilter == 'All' ||
@@ -184,15 +138,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
           (_statusFilter == 'Inactive' && !payment.status);
 
-
-
       return matchesSearch && matchesStatus;
 
     }).toList();
 
   }
-
-
 
   // ============================================================
 
@@ -200,17 +150,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   // ============================================================
 
-
-
   Future<void> _openAddDialog() async {
 
     final controller = TextEditingController();
 
-
-
     String? nameError;
-
-
 
     await showDialog<void>(
 
@@ -225,8 +169,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
             final screenWidth =
 
                 MediaQuery.of(context).size.width;
-
-
 
             return AlertDialog(
 
@@ -372,7 +314,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
                       const SizedBox(height: 8),
 
-                      TextField(
+                      SizedBox(
+
+                        height: 72,
+
+                        child: TextField(
 
                         controller: controller,
 
@@ -421,6 +367,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           errorText: nameError,
 
                         ),
+
+                      ),
 
                       ),
 
@@ -484,8 +432,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
                     final name = controller.text.trim();
 
-
-
                     setDialogState(() {
 
                       nameError = name.isEmpty
@@ -500,15 +446,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
                     });
 
-
-
                     if (nameError != null) {
 
                       return;
 
                     }
-
-
 
                     if (_payments.any(
 
@@ -532,11 +474,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
                     }
 
-
-
                     Navigator.pop(dialogContext);
-
-
 
                     await _createPayment(name);
 
@@ -590,23 +528,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     );
 
-
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
+
       controller.dispose();
+
     });
 
   }
-
-
 
   // ============================================================
 
   // CREATE PAYMENT
 
   // ============================================================
-
-
 
   Future<void> _createPayment(String name) async {
 
@@ -622,19 +556,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
       );
 
-
-
       if (!mounted) return;
-
-
 
       setState(() {
 
         _payments.add(payment);
 
       });
-
-
 
       _showMessage(
 
@@ -645,8 +573,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
     } catch (_) {
 
       if (!mounted) return;
-
-
 
       _showMessage(
 
@@ -660,15 +586,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   }
 
-
-
   // ============================================================
 
   // EDIT PAYMENT
 
   // ============================================================
-
-
 
   Future<void> _openEditDialog(
 
@@ -682,13 +604,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     );
 
-
-
     String? nameError;
 
     bool status = payment.status;
-
-
 
     await showDialog<void>(
 
@@ -703,8 +621,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
             final screenWidth =
 
                 MediaQuery.of(context).size.width;
-
-
 
             return AlertDialog(
 
@@ -850,7 +766,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
                       const SizedBox(height: 8),
 
-                      TextField(
+                      SizedBox(
+
+                        height: 72,
+
+                        child: TextField(
 
                         controller: controller,
 
@@ -902,9 +822,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
                       ),
 
+                      ),
+
                       const SizedBox(height: 20),
-
-
 
                       Container(
 
@@ -1036,8 +956,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
                                     }
 
-
-
                                     return Colors.grey
 
                                         .withValues(
@@ -1148,8 +1066,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
                         controller.text.trim();
 
-
-
                     setDialogState(() {
 
                       nameError = name.isEmpty
@@ -1164,15 +1080,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
                     });
 
-
-
                     if (nameError != null) {
 
                       return;
 
                     }
-
-
 
                     if (_payments.any(
 
@@ -1198,11 +1110,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
                     }
 
-
-
                     Navigator.pop(dialogContext);
-
-
 
                     await _updatePayment(
 
@@ -1270,23 +1178,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     );
 
-
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
+
       controller.dispose();
+
     });
 
   }
-
-
 
   // ============================================================
 
   // UPDATE PAYMENT
 
   // ============================================================
-
-
 
   Future<void> _updatePayment(
 
@@ -1312,11 +1216,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
       );
 
-
-
       if (!mounted) return;
-
-
 
       setState(() {
 
@@ -1328,8 +1228,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
         );
 
-
-
         if (index != -1) {
 
           _payments[index] = updated;
@@ -1337,8 +1235,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
         }
 
       });
-
-
 
       _showMessage(
 
@@ -1349,8 +1245,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
     } catch (_) {
 
       if (!mounted) return;
-
-
 
       _showMessage(
 
@@ -1364,15 +1258,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   }
 
-
-
   // ============================================================
 
   // UPDATE STATUS
 
   // ============================================================
-
-
 
   Future<void> _toggleStatus(
 
@@ -1382,65 +1272,193 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     final newStatus = !payment.status;
 
+    final confirmed = await showDialog<bool>(
 
+      context: context,
 
-    try {
+      barrierDismissible: false,
 
-      final updated =
+      barrierColor: Colors.black.withValues(alpha: 0.45),
 
-          await _paymentService.updatePaymentStatus(
+      builder: (dialogContext) {
 
-        id: payment.id,
+        final isActivating = newStatus;
 
-        status: newStatus,
+        return AlertDialog(
 
-      );
+          backgroundColor: AppColors.surface,
 
+          surfaceTintColor: Colors.transparent,
 
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
 
-      if (!mounted) return;
+          contentPadding: const EdgeInsets.fromLTRB(28, 24, 28, 12),
 
+          actionsPadding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
 
+          content: SizedBox(
 
-      setState(() {
+            width: 380,
 
-        final index =
+            child: Column(
 
-            _payments.indexWhere(
+              mainAxisSize: MainAxisSize.min,
 
-          (item) => item.id == payment.id,
+              children: [
+
+                Container(
+
+                  width: 64, height: 64,
+
+                  decoration: BoxDecoration(
+
+                    color: isActivating ? const Color(0xFFEAF7E8) : const Color(0xFFFFE9E3),
+
+                    shape: BoxShape.circle,
+
+                  ),
+
+                  child: Icon(
+
+                    isActivating ? Icons.check_rounded : Icons.priority_high_rounded,
+
+                    size: 34,
+
+                    color: isActivating ? const Color(0xFF2E7D32) : AppColors.primary,
+
+                  ),
+
+                ),
+
+                const SizedBox(height: 18),
+
+                Text(
+
+                  isActivating ? 'Activate Payment Mode?' : 'Deactivate Payment Mode?',
+
+                  textAlign: TextAlign.center,
+
+                  style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+
+                ),
+
+                const SizedBox(height: 12),
+
+                Text(
+
+                  isActivating
+
+                      ? 'Are you sure you want to activate this payment mode?'
+
+                      : 'Are you sure you want to deactivate this payment mode?',
+
+                  textAlign: TextAlign.center,
+
+                  style: const TextStyle(fontSize: 15, height: 1.5, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+
+                ),
+
+              ],
+
+            ),
+
+          ),
+
+          actions: [
+
+            Row(
+
+              children: [
+
+                Expanded(
+
+                  child: OutlinedButton(
+
+                    onPressed: () => Navigator.pop(dialogContext, false),
+
+                    style: OutlinedButton.styleFrom(
+
+                      minimumSize: const Size(double.infinity, 52),
+
+                      side: const BorderSide(color: AppColors.border),
+
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+
+                    ),
+
+                    child: const Text('Cancel', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+
+                  ),
+
+                ),
+
+                const SizedBox(width: 12),
+
+                Expanded(
+
+                  child: ElevatedButton(
+
+                    onPressed: () => Navigator.pop(dialogContext, true),
+
+                    style: ElevatedButton.styleFrom(
+
+                      backgroundColor: AppColors.primary,
+
+                      foregroundColor: Colors.white,
+
+                      minimumSize: const Size(double.infinity, 52),
+
+                      elevation: 0,
+
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+
+                    ),
+
+                    child: Text(isActivating ? 'Activate' : 'Deactivate', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+
+                  ),
+
+                ),
+
+              ],
+
+            ),
+
+          ],
 
         );
 
+      },
 
+    );
 
-        if (index != -1) {
+    if (confirmed != true) return;
 
-          _payments[index] = updated;
+    try {
 
-        }
+      final updated = await _paymentService.updatePaymentStatus(id: payment.id, status: newStatus);
+
+      if (!mounted) return;
+
+      setState(() {
+
+        final index = _payments.indexWhere((item) => item.id == payment.id);
+
+        if (index != -1) _payments[index] = updated;
 
       });
+
+      _showMessage(newStatus ? 'Payment mode activated successfully' : 'Payment mode deactivated successfully');
 
     } catch (_) {
 
       if (!mounted) return;
 
-
-
-      _showMessage(
-
-        'Failed to update status',
-
-        isError: true,
-
-      );
+      _showMessage('Failed to update status', isError: true);
 
     }
 
   }
-
-
 
   InputDecoration _inputDecoration({
 
@@ -1534,15 +1552,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   }
 
-
-
   // ============================================================
 
   // DIALOG WIDTH
 
   // ============================================================
-
-
 
   double _dialogWidth(
 
@@ -1554,15 +1568,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
         MediaQuery.of(context).size.width;
 
-
-
     if (width < 360) {
 
       return width * 0.78;
 
     }
-
-
 
     if (width < 500) {
 
@@ -1570,13 +1580,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     }
 
-
-
     return 380;
 
   }
-
-
 
  void _showMessage(
 
@@ -1590,8 +1596,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   final overlay = Overlay.of(context);
 
-
-
   final backgroundColor = isError
 
       ? const Color(0xFFFFE5E5)
@@ -1601,8 +1605,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ? const Color(0xFFFFF3CD)
 
           : const Color(0xFFE5F7E9);
-
-
 
   final iconColor = isError
 
@@ -1614,8 +1616,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
           : const Color(0xFF1E9E45);
 
-
-
   final icon = isError
 
       ? Icons.close_rounded
@@ -1626,11 +1626,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
           : Icons.check_rounded;
 
-
-
   late OverlayEntry entry;
-
-
 
   entry = OverlayEntry(
 
@@ -1736,11 +1732,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   );
 
-
-
   overlay.insert(entry);
-
-
 
   Future.delayed(
 
@@ -1760,8 +1752,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
 }
 
-
-
   @override
 
   Widget build(BuildContext context) {
@@ -1770,27 +1760,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
         _filteredPayments;
 
-
-
     return LayoutBuilder(
 
       builder: (context, constraints) {
 
         final width = constraints.maxWidth;
 
-
-
         final isSmallMobile =
 
             width < 400;
 
-
-
         final isMobile =
 
             width < 600;
-
-
 
         final isTablet =
 
@@ -1798,19 +1780,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
             width < 1000;
 
-
-
         final isDesktop =
 
             width >= 1000;
 
-
-
         final horizontalPadding =
 
             _horizontalPadding(context);
-
-
 
         final topBarHeight =
 
@@ -1824,8 +1800,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
                     : 72.0;
 
-
-
         final contentTopSpacing =
 
             isSmallMobile
@@ -1837,8 +1811,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     ? 22.0
 
                     : 28.0;
-
-
 
         return Scaffold(
 
@@ -1857,8 +1829,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 // TOP BAR
 
                 // ======================================================
-
-
 
                 Container(
 
@@ -1946,8 +1916,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
                       ),
 
-
-
                       SizedBox(
 
                         width:
@@ -1960,8 +1928,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
                       ),
 
-
-
                       Flexible(
 
                         child: Text(
@@ -1970,9 +1936,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
                           overflow:
 
-                              TextOverflow
-
-                                  .ellipsis,
+                              TextOverflow.ellipsis,
 
                           style: TextStyle(
 
@@ -2008,15 +1972,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
                 ),
 
-
-
                 // ======================================================
 
                 // CONTENT
 
                 // ======================================================
-
-
 
                 Expanded(
 
@@ -2050,183 +2010,235 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
                       children: [
 
-                        Text(
+                        if (isDesktop || isTablet) ...[
 
-                          'Manage payment methods for your home delivery orders.',
+                          Row(
 
-                          style: TextStyle(
+                            children: [
 
-                            fontSize:
+                              Expanded(
 
-                                isSmallMobile
+                                child: Text(
 
-                                    ? 13
+                                  'Manage payment methods for your home delivery orders.',
 
-                                    : 15,
+                                  style: const TextStyle(fontSize: 15, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
 
-                            color: AppColors
+                                ),
 
-                                .textSecondary,
+                              ),
 
-                            fontWeight:
+                              const SizedBox(width: 16),
 
-                                FontWeight.w500,
+                              SizedBox(
+
+                                width: 126, height: 42,
+
+                                child: ElevatedButton.icon(
+
+                                  onPressed: _openAddDialog,
+
+                                  icon: const Icon(Icons.add_rounded, size: 18),
+
+                                  label: const Text('Add', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+
+                                  style: ElevatedButton.styleFrom(
+
+                                    backgroundColor: AppColors.primary,
+
+                                    foregroundColor: AppColors.textOnPrimary,
+
+                                    elevation: 0,
+
+                                    padding: const EdgeInsets.symmetric(horizontal: 14),
+
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+
+                                  ),
+
+                                ),
+
+                              ),
+
+                            ],
 
                           ),
 
-                        ),
+                          const SizedBox(height: 22),
 
+                          Container(
 
+                            padding: const EdgeInsets.all(12),
 
-                        SizedBox(
+                            decoration: BoxDecoration(
 
-                          height:
+                              color: AppColors.surface,
 
-                              isSmallMobile
+                              borderRadius: BorderRadius.circular(12),
 
-                                  ? 16
+                              border: Border.all(color: AppColors.border),
 
-                                  : 22,
+                            ),
 
-                        ),
+                            child: Row(
 
+                              children: [
 
+                                Expanded(
 
-                        // ==================================================
+                                  child: SizedBox(
 
-                        // SEARCH + ADD
+                                    height: 46,
 
-                        // ==================================================
+                                    child: TextField(
 
+                                      controller: _searchController,
 
+                                      textInputAction: TextInputAction.search,
 
-                        _buildSearchAndAdd(
+                                      decoration: InputDecoration(
 
-                          isMobile:
+                                        hintText: 'Search payment modes...',
 
-                              isMobile,
+                                        hintStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 14),
 
-                          isSmallMobile:
+                                        prefixIcon: const Icon(Icons.search_rounded, size: 22, color: AppColors.textTertiary),
 
-                              isSmallMobile,
+                                        suffixIcon: _searchController.text.isNotEmpty
 
-                          isTablet:
+                                            ? IconButton(
 
-                              isTablet,
+                                                padding: EdgeInsets.zero,
 
-                          isDesktop:
+                                                onPressed: () { _searchController.clear(); setState(() {}); },
 
-                              isDesktop,
+                                                icon: const Icon(Icons.close_rounded, size: 19),
 
-                        ),
+                                              )
 
+                                            : null,
 
+                                        filled: true,
 
-                        SizedBox(
+                                        fillColor: AppColors.surface,
 
-                          height:
+                                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
 
-                              isSmallMobile
+                                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.border)),
 
-                                  ? 10
+                                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.border)),
 
-                                  : 14,
+                                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
 
-                        ),
+                                      ),
 
+                                    ),
 
+                                  ),
 
-                        // ==================================================
+                                ),
 
-                        // STATUS FILTER
+                                const SizedBox(width: 16),
 
-                        // ==================================================
+                                Container(
 
-                           Container(
+                                  padding: const EdgeInsets.all(4),
 
-  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
 
-  decoration: BoxDecoration(
+                                    color: AppColors.surface,
 
-    color: AppColors.surface,
+                                    borderRadius: BorderRadius.circular(28),
 
-    borderRadius: BorderRadius.circular(28),
+                                    border: Border.all(color: AppColors.border),
 
-    border: Border.all(
+                                  ),
 
-      color: AppColors.border,
+                                  child: Row(
 
-    ),
+                                    mainAxisSize: MainAxisSize.min,
 
-  ),
+                                    children: [
 
-  child: SingleChildScrollView(
+                                      _buildStatusFilter('All', compact: false),
 
-    scrollDirection: Axis.horizontal,
+                                      _buildStatusFilter('Active', compact: false),
 
-    child: Row(
+                                      _buildStatusFilter('Inactive', compact: false),
 
-       mainAxisSize: MainAxisSize.min,
+                                    ],
 
-      children: [
+                                  ),
 
-        _buildStatusFilter(
+                                ),
 
-          'All',
+                              ],
 
-          compact: isMobile,
+                            ),
 
-        ),
+                          ),
 
-        _buildStatusFilter(
+                        ] else ...[
 
-          'Active',
+                          Text(
 
-          compact: isMobile,
+                            'Manage payment methods for your home delivery orders.',
 
-        ),
+                            style: TextStyle(fontSize: isSmallMobile ? 13 : 15, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
 
-        _buildStatusFilter(
+                          ),
 
-          'Inactive',
+                          SizedBox(height: isSmallMobile ? 16 : 22),
 
-          compact: isMobile,
+                          _buildSearchAndAdd(isMobile: isMobile, isSmallMobile: isSmallMobile, isTablet: isTablet, isDesktop: isDesktop),
 
-        ),
+                          SizedBox(height: isSmallMobile ? 10 : 14),
 
-      ],
+                          Container(
 
-    ),
+                            padding: const EdgeInsets.all(4),
 
-  ),
+                            decoration: BoxDecoration(
 
-),
+                              color: AppColors.surface,
 
+                              borderRadius: BorderRadius.circular(28),
 
+                              border: Border.all(color: AppColors.border),
 
+                            ),
 
+                            child: SingleChildScrollView(
 
-                        SizedBox(
+                              scrollDirection: Axis.horizontal,
 
-                          height:
+                              child: Row(
 
-                              isSmallMobile
+                                mainAxisSize: MainAxisSize.min,
 
-                                  ? 12
+                                children: [
 
-                                  : 16,
+                                  _buildStatusFilter('All', compact: isMobile),
 
-                        ),
+                                  _buildStatusFilter('Active', compact: isMobile),
 
+                                  _buildStatusFilter('Inactive', compact: isMobile),
 
+                                ],
 
-                        // ==================================================
+                              ),
+
+                            ),
+
+                          ),
+
+                        ],
+
+                        SizedBox(height: isSmallMobile ? 12 : 16),
 
                         // CATEGORY LIST
 
                         // ==================================================
-
-
 
                         Expanded(
 
@@ -2331,8 +2343,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
 
   }
-
-
 
   Widget _buildSearchAndAdd({
 
@@ -2460,47 +2470,36 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     );
 
-
-
     final addButton = SizedBox(
 
-      width: isMobile ? 40 : isTablet ? 140 : 180,
+      width: isMobile ? 82 : isTablet ? 140 : 180,
 
       height: isMobile ? 40 : 46,
 
       child: isMobile
-
-          ? ElevatedButton(
-
-              onPressed: _openAddDialog,
-
-              style: ElevatedButton.styleFrom(
-
-                padding: EdgeInsets.zero,
-
-                backgroundColor: AppColors.primary,
-
-                foregroundColor: AppColors.textOnPrimary,
-
-                elevation: 0,
-
-                shape: RoundedRectangleBorder(
-
-                  borderRadius: BorderRadius.circular(9),
-
-                ),
-
-              ),
-
-              child: const Icon(
-
-                Icons.add_rounded,
-
-                size: 20,
-
-              ),
-
-            )
+    ? ElevatedButton.icon(
+        onPressed: _openAddDialog,
+        icon: const Icon(
+          Icons.add_rounded,
+          size: 18,
+        ),
+        label: const Text(
+          'Add',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.textOnPrimary,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(9),
+          ),
+        ),
+      )
 
           : ElevatedButton.icon(
 
@@ -2548,8 +2547,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     );
 
-
-
     return Row(
 
       children: [
@@ -2570,15 +2567,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   }
 
-
-
   // ============================================================
 
   // RESPONSIVE PADDING
 
   // ============================================================
-
-
 
   double _horizontalPadding(
 
@@ -2590,15 +2583,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
         MediaQuery.of(context).size.width;
 
-
-
     if (width < 400) {
 
       return 12;
 
     }
-
-
 
     if (width < 600) {
 
@@ -2606,21 +2595,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     }
 
-
-
     if (width < 1000) {
 
       return 24;
 
     }
 
-
-
     return 32;
 
   }
-
-
 
  Widget _buildStatusFilter(
 
@@ -2631,8 +2614,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 }) {
 
   final isSelected = _statusFilter == status;
-
-
 
   return GestureDetector(
 
@@ -2702,8 +2683,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   // ============================================================
 
-
-
   Widget _buildPaymentCard(
 
     PaymentModel payment,
@@ -2716,15 +2695,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
         final width = constraints.maxWidth;
 
-
-
         final isSmallMobile = width < 380;
 
         final isMobile = width < 600;
 
         final isTablet = width >= 600 && width < 850;
-
-
 
         final horizontalPadding = isSmallMobile
 
@@ -2740,13 +2715,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
                     : 20.0;
 
-
-
         final verticalPadding =
 
             isSmallMobile ? 12.0 : 15.0;
-
-
 
         return Container(
 
@@ -2799,8 +2770,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
 
   }
-
-
 
   Widget _buildResponsivePaymentCardContent(
 
@@ -2880,8 +2849,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     }
 
-
-
     if (isTablet) {
 
       return Row(
@@ -2948,8 +2915,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     }
 
-
-
     return Row(
 
       children: [
@@ -3004,8 +2969,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   }
 
-
-
   Widget _buildSwitch(
 
     PaymentModel payment,
@@ -3044,8 +3007,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
             }
 
-
-
             return Colors.grey.withValues(
 
               alpha: 0.35,
@@ -3081,8 +3042,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
 
   }
-
-
 
   Widget _buildEmptyState() {
 
@@ -3146,11 +3105,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
               ),
 
-
-
               const SizedBox(height: 14),
-
-
 
               const Text(
 
@@ -3176,11 +3131,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
               ),
 
-
-
               const SizedBox(height: 6),
-
-
 
               const Text(
 
@@ -3213,7 +3164,5 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
 
   }
-
-
 
 }

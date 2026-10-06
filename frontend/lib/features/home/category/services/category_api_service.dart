@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import '../models/category_model.dart';
 
 class CategoryApiService {
-  static const String baseUrl = 'http://192.168.0.4:8000';
+  static const String baseUrl = 'http://192.168.0.12:8000';
   static const String endpoint = '/api/categories/';
 
   // Converts 12-hour AM/PM time to backend 24-hour time.

@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import '../models/role_model.dart';
 
 class RoleApiService {
-  static const String baseUrl = 'http://192.168.0.4:8000';
+  static const String baseUrl = 'http://192.168.0.12:8000';
   static const String endpoint = '/api/roles/';
 
   // GET ALL ROLES

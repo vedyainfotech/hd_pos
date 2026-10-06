@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import '../models/inventory_category_model.dart';
 
 class InventoryCategoryApiService {
-  static const String baseUrl = 'http://192.168.0.4:8000';
+  static const String baseUrl = 'http://192.168.0.12:8000';
   static const String endpoint = '/api/inventory-categories/';
 
   // ============================================================

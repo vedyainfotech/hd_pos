@@ -12,29 +12,17 @@ class UnitsScreen extends StatefulWidget {
 }
 
 class _UnitsScreenState extends State<UnitsScreen> {
-  final TextEditingController _searchController =
-      TextEditingController();
-
+  final TextEditingController _searchController = TextEditingController();
   final UnitApiService _unitApiService = UnitApiService();
 
   List<UnitModel> _units = [];
-
   String _statusFilter = 'All';
-
   bool _isLoading = true;
-
-  // ============================================================
-  // TOP-RIGHT MESSAGE
-  // ============================================================
 
   String? _message;
   bool _messageIsError = false;
   bool _messageIsWarning = false;
   int _messageVersion = 0;
-
-  // ============================================================
-  // INIT
-  // ============================================================
 
   @override
   void initState() {
@@ -96,8 +84,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
   // ============================================================
 
   List<UnitModel> get _filteredUnits {
-    final search =
-        _searchController.text.trim().toLowerCase();
+    final search = _searchController.text.trim().toLowerCase();
 
     return _units.where((unit) {
       final matchesSearch =
@@ -187,8 +174,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color:
-                        Colors.black.withValues(alpha: 0.12),
+                    color: Colors.black.withValues(alpha: 0.12),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -228,7 +214,6 @@ class _UnitsScreenState extends State<UnitsScreen> {
 
   Future<void> _openAddDialog() async {
     final controller = TextEditingController();
-
     String? nameError;
 
     await showDialog<void>(
@@ -236,8 +221,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            final screenWidth =
-                MediaQuery.of(context).size.width;
+            final screenWidth = MediaQuery.of(context).size.width;
 
             return AlertDialog(
               backgroundColor: AppColors.surface,
@@ -299,8 +283,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
                   width: _dialogWidth(context),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
                         'Unit Name',
@@ -310,33 +293,37 @@ class _UnitsScreenState extends State<UnitsScreen> {
                           color: AppColors.textPrimary,
                         ),
                       ),
-
                       const SizedBox(height: 8),
 
-                      TextField(
-                        controller: controller,
-                        autofocus: true,
-                        textCapitalization:
-                            TextCapitalization.words,
-                        maxLength: 50,
-                        buildCounter: (
-                          context, {
-                          required currentLength,
-                          required isFocused,
-                          maxLength,
-                        }) {
-                          return null;
-                        },
-                        onChanged: (value) {
-                          setDialogState(() {
-                            nameError = value.length >= 50
-                                ? 'Please enter up to 50 characters'
-                                : null;
-                          });
-                        },
-                        decoration: _inputDecoration(
-                          hintText: 'Enter unit name',
-                          errorText: nameError,
+                      // Fixed height keeps the dialog stable
+                      // when the validation message appears.
+                      SizedBox(
+                        height: 72,
+                        child: TextField(
+                          controller: controller,
+                          autofocus: true,
+                          textCapitalization:
+                              TextCapitalization.words,
+                          maxLength: 50,
+                          buildCounter: (
+                            context, {
+                            required currentLength,
+                            required isFocused,
+                            maxLength,
+                          }) {
+                            return null;
+                          },
+                          onChanged: (value) {
+                            setDialogState(() {
+                              nameError = value.length >= 50
+                                  ? 'Please enter up to 50 characters'
+                                  : null;
+                            });
+                          },
+                          decoration: _inputDecoration(
+                            hintText: 'Enter unit name',
+                            errorText: nameError,
+                          ),
                         ),
                       ),
                     ],
@@ -354,8 +341,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
                       color: AppColors.border,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(9),
+                      borderRadius: BorderRadius.circular(9),
                     ),
                   ),
                   child: const Text(
@@ -366,13 +352,10 @@ class _UnitsScreenState extends State<UnitsScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(width: 8),
-
                 ElevatedButton(
                   onPressed: () async {
-                    final name =
-                        controller.text.trim();
+                    final name = controller.text.trim();
 
                     setDialogState(() {
                       nameError = name.isEmpty
@@ -401,18 +384,15 @@ class _UnitsScreenState extends State<UnitsScreen> {
                     }
 
                     Navigator.pop(dialogContext);
-
                     await _createUnit(name);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    foregroundColor:
-                        AppColors.textOnPrimary,
+                    foregroundColor: AppColors.textOnPrimary,
                     minimumSize: const Size(100, 44),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(9),
+                      borderRadius: BorderRadius.circular(9),
                     ),
                   ),
                   child: const Text(
@@ -430,7 +410,6 @@ class _UnitsScreenState extends State<UnitsScreen> {
       },
     );
 
-    // Safe disposal after dialog finishes deactivation.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.dispose();
     });
@@ -442,8 +421,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
 
   Future<void> _createUnit(String name) async {
     try {
-      final unit =
-          await _unitApiService.createUnit(
+      final unit = await _unitApiService.createUnit(
         name: name,
       );
 
@@ -453,9 +431,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
         _units.add(unit);
       });
 
-      _showMessage(
-        'Unit added successfully',
-      );
+      _showMessage('Unit added successfully');
     } catch (e) {
       if (!mounted) return;
 
@@ -475,7 +451,6 @@ class _UnitsScreenState extends State<UnitsScreen> {
         TextEditingController(text: unit.name);
 
     String? nameError;
-
     bool status = unit.status;
 
     await showDialog<void>(
@@ -483,8 +458,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            final screenWidth =
-                MediaQuery.of(context).size.width;
+            final screenWidth = MediaQuery.of(context).size.width;
 
             return AlertDialog(
               backgroundColor: AppColors.surface,
@@ -546,8 +520,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
                   width: _dialogWidth(context),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
                         'Unit Name',
@@ -557,50 +530,51 @@ class _UnitsScreenState extends State<UnitsScreen> {
                           color: AppColors.textPrimary,
                         ),
                       ),
-
                       const SizedBox(height: 8),
 
-                      TextField(
-                        controller: controller,
-                        autofocus: true,
-                        textCapitalization:
-                            TextCapitalization.words,
-                        maxLength: 50,
-                        buildCounter: (
-                          context, {
-                          required currentLength,
-                          required isFocused,
-                          maxLength,
-                        }) {
-                          return null;
-                        },
-                        onChanged: (value) {
-                          setDialogState(() {
-                            nameError = value.length >= 50
-                                ? 'Please enter up to 50 characters'
-                                : null;
-                          });
-                        },
-                        decoration: _inputDecoration(
-                          hintText: 'Enter unit name',
-                          errorText: nameError,
+                      // Fixed height keeps the dialog stable
+                      // when the validation message appears.
+                      SizedBox(
+                        height: 72,
+                        child: TextField(
+                          controller: controller,
+                          autofocus: true,
+                          textCapitalization:
+                              TextCapitalization.words,
+                          maxLength: 50,
+                          buildCounter: (
+                            context, {
+                            required currentLength,
+                            required isFocused,
+                            maxLength,
+                          }) {
+                            return null;
+                          },
+                          onChanged: (value) {
+                            setDialogState(() {
+                              nameError = value.length >= 50
+                                  ? 'Please enter up to 50 characters'
+                                  : null;
+                            });
+                          },
+                          decoration: _inputDecoration(
+                            hintText: 'Enter unit name',
+                            errorText: nameError,
+                          ),
                         ),
                       ),
 
                       const SizedBox(height: 20),
 
-                      // STATUS
                       Container(
                         width: double.infinity,
-                        padding:
-                            const EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: 14,
                           vertical: 11,
                         ),
                         decoration: BoxDecoration(
                           color: AppColors.inputBackground,
-                          borderRadius:
-                              BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(10),
                           border: Border.all(
                             color: AppColors.border,
                           ),
@@ -616,41 +590,33 @@ class _UnitsScreenState extends State<UnitsScreen> {
                                     'Status',
                                     style: TextStyle(
                                       fontSize: 14,
-                                      fontWeight:
-                                          FontWeight.w600,
-                                      color: AppColors
-                                          .textPrimary,
+                                      fontWeight: FontWeight.w600,
+                                      color:
+                                          AppColors.textPrimary,
                                     ),
                                   ),
                                   const SizedBox(height: 3),
                                   Text(
-                                    status
-                                        ? 'Active'
-                                        : 'Inactive',
+                                    status ? 'Active' : 'Inactive',
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: status
                                           ? AppColors.active
-                                          : AppColors
-                                              .textSecondary,
-                                      fontWeight:
-                                          FontWeight.w600,
+                                          : AppColors.textSecondary,
+                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-
                             SwitchTheme(
                               data: SwitchThemeData(
                                 thumbColor:
-                                    WidgetStateProperty
-                                        .resolveWith(
+                                    WidgetStateProperty.resolveWith(
                                   (_) => Colors.white,
                                 ),
                                 trackColor:
-                                    WidgetStateProperty
-                                        .resolveWith(
+                                    WidgetStateProperty.resolveWith(
                                   (states) {
                                     if (states.contains(
                                       WidgetState.selected,
@@ -658,8 +624,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
                                       return AppColors.primary;
                                     }
 
-                                    return Colors.grey
-                                        .withValues(
+                                    return Colors.grey.withValues(
                                       alpha: 0.35,
                                     );
                                   },
@@ -696,8 +661,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
                       color: AppColors.border,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(9),
+                      borderRadius: BorderRadius.circular(9),
                     ),
                   ),
                   child: const Text(
@@ -708,13 +672,10 @@ class _UnitsScreenState extends State<UnitsScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(width: 8),
-
                 ElevatedButton(
                   onPressed: () async {
-                    final name =
-                        controller.text.trim();
+                    final name = controller.text.trim();
 
                     setDialogState(() {
                       nameError = name.isEmpty
@@ -753,13 +714,11 @@ class _UnitsScreenState extends State<UnitsScreen> {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    foregroundColor:
-                        AppColors.textOnPrimary,
+                    foregroundColor: AppColors.textOnPrimary,
                     minimumSize: const Size(130, 44),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(9),
+                      borderRadius: BorderRadius.circular(9),
                     ),
                   ),
                   child: const Text(
@@ -777,7 +736,6 @@ class _UnitsScreenState extends State<UnitsScreen> {
       },
     );
 
-    // Safe disposal after dialog finishes deactivation.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.dispose();
     });
@@ -793,8 +751,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
     bool status,
   ) async {
     try {
-      final updated =
-          await _unitApiService.updateUnit(
+      final updated = await _unitApiService.updateUnit(
         id: id,
         name: name,
         status: status,
@@ -803,18 +760,15 @@ class _UnitsScreenState extends State<UnitsScreen> {
       if (!mounted) return;
 
       setState(() {
-        final index = _units.indexWhere(
-          (unit) => unit.id == id,
-        );
+        final index =
+            _units.indexWhere((unit) => unit.id == id);
 
         if (index != -1) {
           _units[index] = updated;
         }
       });
 
-      _showMessage(
-        'Unit updated successfully',
-      );
+      _showMessage('Unit updated successfully');
     } catch (e) {
       if (!mounted) return;
 
@@ -832,6 +786,151 @@ class _UnitsScreenState extends State<UnitsScreen> {
   Future<void> _toggleStatus(UnitModel unit) async {
     final newStatus = !unit.status;
 
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withValues(alpha: 0.45),
+      builder: (dialogContext) {
+        final isActivating = newStatus;
+
+        return AlertDialog(
+          backgroundColor: AppColors.surface,
+          surfaceTintColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          contentPadding: const EdgeInsets.fromLTRB(
+            28,
+            24,
+            28,
+            12,
+          ),
+          actionsPadding: const EdgeInsets.fromLTRB(
+            24,
+            8,
+            24,
+            24,
+          ),
+          content: SizedBox(
+            width: 380,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: isActivating
+                        ? const Color(0xFFEAF7E8)
+                        : const Color(0xFFFFE9E3),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isActivating
+                        ? Icons.check_rounded
+                        : Icons.priority_high_rounded,
+                    size: 34,
+                    color: isActivating
+                        ? const Color(0xFF2E7D32)
+                        : AppColors.primary,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  isActivating
+                      ? 'Activate Unit?'
+                      : 'Deactivate Unit?',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 21,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  isActivating
+                      ? 'Are you sure you want to activate this unit?'
+                      : 'Are you sure you want to deactivate this unit?',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    height: 1.5,
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      Navigator.pop(dialogContext, false);
+                    },
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(
+                        double.infinity,
+                        52,
+                      ),
+                      side: const BorderSide(
+                        color: AppColors.border,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text(
+                      'Cancel',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(dialogContext, true);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(
+                        double.infinity,
+                        52,
+                      ),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(
+                      isActivating ? 'Activate' : 'Deactivate',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true) {
+      return;
+    }
+
     try {
       await _unitApiService.updateUnitStatus(
         unit.id,
@@ -841,9 +940,8 @@ class _UnitsScreenState extends State<UnitsScreen> {
       if (!mounted) return;
 
       setState(() {
-        final index = _units.indexWhere(
-          (item) => item.id == unit.id,
-        );
+        final index =
+            _units.indexWhere((item) => item.id == unit.id);
 
         if (index != -1) {
           _units[index] = UnitModel(
@@ -853,6 +951,12 @@ class _UnitsScreenState extends State<UnitsScreen> {
           );
         }
       });
+
+      _showMessage(
+        newStatus
+            ? 'Unit activated successfully'
+            : 'Unit deactivated successfully',
+      );
     } catch (e) {
       if (!mounted) return;
 
@@ -864,14 +968,516 @@ class _UnitsScreenState extends State<UnitsScreen> {
   }
 
   // ============================================================
-  // SEARCH + ADD
+  // INPUT DECORATION
+  // ============================================================
+
+  InputDecoration _inputDecoration({
+    required String hintText,
+    String? errorText,
+  }) {
+    return InputDecoration(
+      hintText: hintText,
+      hintStyle: const TextStyle(
+        fontSize: 14,
+        color: AppColors.textTertiary,
+      ),
+      errorText: errorText,
+      errorStyle: const TextStyle(
+        fontSize: 12,
+        color: AppColors.error,
+      ),
+      filled: true,
+      fillColor: AppColors.inputBackground,
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 15,
+        vertical: 14,
+      ),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(
+          color: AppColors.border,
+        ),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(
+          color: AppColors.border,
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(
+          color: AppColors.primary,
+          width: 1.5,
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // DIALOG WIDTH
+  // ============================================================
+
+  double _dialogWidth(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+
+    if (width < 360) {
+      return width * 0.78;
+    }
+
+    if (width < 500) {
+      return width * 0.82;
+    }
+
+    return 380;
+  }
+
+  // ============================================================
+  // BUILD
+  // ============================================================
+
+  @override
+  Widget build(BuildContext context) {
+    final units = _filteredUnits;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+
+        final isSmallMobile = width < 400;
+        final isMobile = width < 600;
+        final isTablet = width >= 600 && width < 1000;
+        final isDesktop = width >= 1000;
+
+        final horizontalPadding =
+            _horizontalPadding(context);
+
+        final topBarHeight = isSmallMobile
+            ? 60.0
+            : isMobile
+                ? 64.0
+                : 72.0;
+
+        final contentTopSpacing = isSmallMobile
+            ? 18.0
+            : isMobile
+                ? 22.0
+                : 28.0;
+
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          body: Stack(
+            children: [
+              SafeArea(
+                child: Column(
+                  children: [
+                    // ======================================================
+                    // TOP BAR
+                    // ======================================================
+
+                    Container(
+                      height: topBarHeight,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: horizontalPadding,
+                      ),
+                      decoration: const BoxDecoration(
+                        color: AppColors.surface,
+                        border: Border(
+                          bottom: BorderSide(
+                            color: AppColors.borderLight,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                              minWidth: 40,
+                              minHeight: 40,
+                            ),
+                            tooltip: 'Back',
+                            onPressed: () =>
+                                Navigator.of(context).pop(),
+                            icon: Icon(
+                              Icons.arrow_back_rounded,
+                              size: isSmallMobile ? 21 : 23,
+                              color: AppColors.icon,
+                            ),
+                          ),
+                          SizedBox(
+                            width: isSmallMobile ? 4 : 8,
+                          ),
+                          Flexible(
+                            child: Text(
+                              'Units',
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: isSmallMobile
+                                    ? 17
+                                    : isMobile
+                                        ? 18
+                                        : 19,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // ======================================================
+                    // CONTENT
+                    // ======================================================
+
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          horizontalPadding,
+                          contentTopSpacing,
+                          horizontalPadding,
+                          isSmallMobile ? 16 : 24,
+                        ),
+                        child: Column(
+                          crossAxisAlignment:
+                              CrossAxisAlignment.start,
+                          children: [
+                            if (isDesktop || isTablet) ...[
+                              // ==================================================
+                              // WEB + TABLET: DESCRIPTION + ADD
+                              // ==================================================
+
+                              Row(
+                                children: [
+                                  const Expanded(
+                                    child: Text(
+                                      'Manage your inventory units.',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color:
+                                            AppColors.textSecondary,
+                                        fontWeight:
+                                            FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  SizedBox(
+                                    width: 126,
+                                    height: 42,
+                                    child: ElevatedButton.icon(
+                                      onPressed: _openAddDialog,
+                                      icon: const Icon(
+                                        Icons.add_rounded,
+                                        size: 18,
+                                      ),
+                                      label: const Text(
+                                        'Add',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight:
+                                              FontWeight.w600,
+                                        ),
+                                      ),
+                                      style:
+                                          ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            AppColors.primary,
+                                        foregroundColor:
+                                            AppColors.textOnPrimary,
+                                        elevation: 0,
+                                        padding:
+                                            const EdgeInsets
+                                                .symmetric(
+                                          horizontal: 14,
+                                        ),
+                                        shape:
+                                            RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(
+                                                  9),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 22),
+
+                              // ==================================================
+                              // WEB + TABLET: SEARCH + STATUS
+                              // ==================================================
+
+                              Container(
+                                padding:
+                                    const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: AppColors.surface,
+                                  borderRadius:
+                                      BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: AppColors.border,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: SizedBox(
+                                        height: 46,
+                                        child: TextField(
+                                          controller:
+                                              _searchController,
+                                          textInputAction:
+                                              TextInputAction.search,
+                                          decoration:
+                                              InputDecoration(
+                                            hintText:
+                                                'Search units...',
+                                            hintStyle:
+                                                const TextStyle(
+                                              color: AppColors
+                                                  .textTertiary,
+                                              fontSize: 14,
+                                            ),
+                                            prefixIcon:
+                                                const Icon(
+                                              Icons.search_rounded,
+                                              size: 22,
+                                              color: AppColors
+                                                  .textTertiary,
+                                            ),
+                                            suffixIcon:
+                                                _searchController
+                                                        .text
+                                                        .isNotEmpty
+                                                    ? IconButton(
+                                                        padding:
+                                                            EdgeInsets
+                                                                .zero,
+                                                        onPressed:
+                                                            () {
+                                                          _searchController
+                                                              .clear();
+                                                        },
+                                                        icon:
+                                                            const Icon(
+                                                          Icons
+                                                              .close_rounded,
+                                                          size: 19,
+                                                        ),
+                                                      )
+                                                    : null,
+                                            filled: true,
+                                            fillColor:
+                                                AppColors.surface,
+                                            contentPadding:
+                                                const EdgeInsets
+                                                    .symmetric(
+                                              horizontal: 10,
+                                              vertical: 8,
+                                            ),
+                                            border:
+                                                OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius
+                                                      .circular(10),
+                                              borderSide:
+                                                  const BorderSide(
+                                                color:
+                                                    AppColors.border,
+                                              ),
+                                            ),
+                                            enabledBorder:
+                                                OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius
+                                                      .circular(10),
+                                              borderSide:
+                                                  const BorderSide(
+                                                color:
+                                                    AppColors.border,
+                                              ),
+                                            ),
+                                            focusedBorder:
+                                                OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius
+                                                      .circular(10),
+                                              borderSide:
+                                                  const BorderSide(
+                                                color:
+                                                    AppColors.primary,
+                                                width: 1.5,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Container(
+                                      padding:
+                                          const EdgeInsets.all(4),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.surface,
+                                        borderRadius:
+                                            BorderRadius.circular(28),
+                                        border: Border.all(
+                                          color: AppColors.border,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize:
+                                            MainAxisSize.min,
+                                        children: [
+                                          _buildStatusFilter(
+                                            'All',
+                                            compact: false,
+                                          ),
+                                          _buildStatusFilter(
+                                            'Active',
+                                            compact: false,
+                                          ),
+                                          _buildStatusFilter(
+                                            'Inactive',
+                                            compact: false,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ] else ...[
+                              // ==================================================
+                              // MOBILE: DESCRIPTION + SEARCH + ADD
+                              // ==================================================
+
+                              Text(
+                                'Manage your inventory units.',
+                                style: TextStyle(
+                                  fontSize:
+                                      isSmallMobile ? 13 : 15,
+                                  color:
+                                      AppColors.textSecondary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              SizedBox(
+                                height:
+                                    isSmallMobile ? 16 : 22,
+                              ),
+                              _buildSearchAndAdd(
+                                isMobile: isMobile,
+                                isSmallMobile:
+                                    isSmallMobile,
+                              ),
+                              SizedBox(
+                                height:
+                                    isSmallMobile ? 10 : 14,
+                              ),
+                              Container(
+                                padding:
+                                    const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: AppColors.surface,
+                                  borderRadius:
+                                      BorderRadius.circular(28),
+                                  border: Border.all(
+                                    color: AppColors.border,
+                                  ),
+                                ),
+                                child:
+                                    SingleChildScrollView(
+                                  scrollDirection:
+                                      Axis.horizontal,
+                                  child: Row(
+                                    mainAxisSize:
+                                        MainAxisSize.min,
+                                    children: [
+                                      _buildStatusFilter(
+                                        'All',
+                                        compact: isMobile,
+                                      ),
+                                      _buildStatusFilter(
+                                        'Active',
+                                        compact: isMobile,
+                                      ),
+                                      _buildStatusFilter(
+                                        'Inactive',
+                                        compact: isMobile,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+
+                            SizedBox(
+                              height:
+                                  isSmallMobile ? 12 : 16,
+                            ),
+
+                            // ==================================================
+                            // UNIT LIST
+                            // ==================================================
+
+                            Expanded(
+                              child: _isLoading
+                                  ? const Center(
+                                      child:
+                                          CircularProgressIndicator(
+                                        color:
+                                            AppColors.primary,
+                                      ),
+                                    )
+                                  : units.isEmpty
+                                      ? _buildEmptyState()
+                                      : ListView.separated(
+                                          padding:
+                                              EdgeInsets.zero,
+                                          itemCount: units.length,
+                                          separatorBuilder:
+                                              (_, __) =>
+                                                  SizedBox(
+                                            height:
+                                                isSmallMobile
+                                                    ? 8
+                                                    : 10,
+                                          ),
+                                          itemBuilder:
+                                              (context, index) {
+                                            return _buildUnitCard(
+                                              units[index],
+                                            );
+                                          },
+                                        ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (_message != null)
+                _buildTopRightMessage(),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // ============================================================
+  // RESPONSIVE SEARCH + ADD
   // ============================================================
 
   Widget _buildSearchAndAdd({
     required bool isMobile,
     required bool isSmallMobile,
-    required bool isTablet,
-    required bool isDesktop,
   }) {
     final searchField = SizedBox(
       height: isMobile ? 40 : 46,
@@ -933,67 +1539,38 @@ class _UnitsScreenState extends State<UnitsScreen> {
     );
 
     final addButton = SizedBox(
-      width: isMobile
-          ? 40
-          : isTablet
-              ? 140
-              : 180,
+      width: isMobile ? 70 : 140,
       height: isMobile ? 40 : 46,
-      child: isMobile
-          ? ElevatedButton(
-              onPressed: _openAddDialog,
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.zero,
-                backgroundColor:
-                    AppColors.primary,
-                foregroundColor:
-                    AppColors.textOnPrimary,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius:
-                      BorderRadius.circular(9),
-                ),
-              ),
-              child: const Icon(
-                Icons.add_rounded,
-                size: 20,
-              ),
-            )
-          : ElevatedButton.icon(
-              onPressed: _openAddDialog,
-              icon: const Icon(
-                Icons.add_rounded,
-                size: 19,
-              ),
-              label: const Text(
-                'Add Unit',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    AppColors.primary,
-                foregroundColor:
-                    AppColors.textOnPrimary,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius:
-                      BorderRadius.circular(10),
-                ),
-              ),
-            ),
+      child: ElevatedButton.icon(
+        onPressed: _openAddDialog,
+        style: ElevatedButton.styleFrom(
+          padding:
+              const EdgeInsets.symmetric(horizontal: 10),
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.textOnPrimary,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(9),
+          ),
+        ),
+        icon: const Icon(
+          Icons.add_rounded,
+          size: 18,
+        ),
+        label: Text(
+          'Add',
+          style: TextStyle(
+            fontSize: isMobile ? 13 : 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
     );
 
     return Row(
       children: [
-        Expanded(
-          child: searchField,
-        ),
-        SizedBox(
-          width: isMobile ? 7 : 12,
-        ),
+        Expanded(child: searchField),
+        SizedBox(width: isMobile ? 7 : 12),
         addButton,
       ],
     );
@@ -1003,11 +1580,8 @@ class _UnitsScreenState extends State<UnitsScreen> {
   // RESPONSIVE PADDING
   // ============================================================
 
-  double _horizontalPadding(
-    BuildContext context,
-  ) {
-    final width =
-        MediaQuery.of(context).size.width;
+  double _horizontalPadding(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
 
     if (width < 400) {
       return 12;
@@ -1032,8 +1606,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
     String status, {
     bool compact = false,
   }) {
-    final isSelected =
-        _statusFilter == status;
+    final isSelected = _statusFilter == status;
 
     return GestureDetector(
       onTap: () {
@@ -1051,8 +1624,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
           color: isSelected
               ? AppColors.primarySoft
               : Colors.transparent,
-          borderRadius:
-              BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(24),
         ),
         child: Text(
           status,
@@ -1069,37 +1641,29 @@ class _UnitsScreenState extends State<UnitsScreen> {
   }
 
   // ============================================================
-  // UNIT CARD
+  // RESPONSIVE UNIT CARD
   // ============================================================
 
-  Widget _buildUnitCard(
-    UnitModel unit,
-  ) {
+  Widget _buildUnitCard(UnitModel unit) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final width =
-            constraints.maxWidth;
+        final width = constraints.maxWidth;
 
-        final isSmallMobile =
-            width < 380;
-
-        final isMobile =
-            width < 600;
-
+        final isSmallMobile = width < 380;
+        final isMobile = width < 600;
         final isTablet =
-            width >= 600 &&
-            width < 850;
+            width >= 600 && width < 850;
 
-        final horizontalPadding =
-            isSmallMobile
-                ? 12.0
-                : isMobile
-                    ? 16.0
-                    : isTablet
-                        ? 18.0
-                        : 20.0;
+        final horizontalPadding = isSmallMobile
+            ? 12.0
+            : isMobile
+                ? 16.0
+                : isTablet
+                    ? 18.0
+                    : 20.0;
 
-        const verticalPadding = 15.0;
+        final verticalPadding =
+            isSmallMobile ? 12.0 : 15.0;
 
         return Container(
           width: double.infinity,
@@ -1112,13 +1676,12 @@ class _UnitsScreenState extends State<UnitsScreen> {
           ),
           decoration: BoxDecoration(
             color: AppColors.surface,
-            borderRadius:
-                BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: AppColors.borderLight,
             ),
           ),
-          child: _buildResponsiveUnitContent(
+          child: _buildResponsiveCardContent(
             unit,
             isSmallMobile: isSmallMobile,
             isMobile: isMobile,
@@ -1129,51 +1692,92 @@ class _UnitsScreenState extends State<UnitsScreen> {
     );
   }
 
-  Widget _buildResponsiveUnitContent(
-  UnitModel unit, {
-  required bool isSmallMobile,
-  required bool isMobile,
-  required bool isTablet,
-}) {
-  // MOBILE
-  if (isMobile) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            unit.name,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: isSmallMobile ? 15 : 16,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+  Widget _buildResponsiveCardContent(
+    UnitModel unit, {
+    required bool isSmallMobile,
+    required bool isMobile,
+    required bool isTablet,
+  }) {
+    // ==========================================================
+    // MOBILE
+    // ==========================================================
+
+    if (isMobile) {
+      return Row(
+        children: [
+          Expanded(
+            child: Text(
+              unit.name,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: isSmallMobile ? 15 : 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
             ),
           ),
-        ),
-
-        _buildSwitch(unit),
-
-        IconButton(
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(
-            minWidth: 40,
-            minHeight: 40,
+          _buildSwitch(unit),
+          IconButton(
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(
+              minWidth: 40,
+              minHeight: 40,
+            ),
+            tooltip: 'Edit',
+            onPressed: () => _openEditDialog(unit),
+            icon: Icon(
+              Icons.edit_outlined,
+              size: isSmallMobile ? 20 : 21,
+              color: AppColors.icon,
+            ),
           ),
-          tooltip: 'Edit',
-          onPressed: () => _openEditDialog(unit),
-          icon: Icon(
-            Icons.edit_outlined,
-            size: isSmallMobile ? 20 : 21,
-            color: AppColors.icon,
-          ),
-        ),
-      ],
-    );
-  }
+        ],
+      );
+    }
 
-  // TABLET
-  if (isTablet) {
+    // ==========================================================
+    // TABLET
+    // ==========================================================
+
+    if (isTablet) {
+      return Row(
+        children: [
+          Expanded(
+            child: Text(
+              unit.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ),
+          _buildSwitch(unit),
+          IconButton(
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(
+              minWidth: 40,
+              minHeight: 40,
+            ),
+            tooltip: 'Edit',
+            onPressed: () => _openEditDialog(unit),
+            icon: const Icon(
+              Icons.edit_outlined,
+              size: 21,
+              color: AppColors.icon,
+            ),
+          ),
+        ],
+      );
+    }
+
+    // ==========================================================
+    // DESKTOP / WEB / WINDOWS
+    // ==========================================================
+
     return Row(
       children: [
         Expanded(
@@ -1188,20 +1792,13 @@ class _UnitsScreenState extends State<UnitsScreen> {
             ),
           ),
         ),
-
         _buildSwitch(unit),
-
         IconButton(
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(
-            minWidth: 40,
-            minHeight: 40,
-          ),
           tooltip: 'Edit',
           onPressed: () => _openEditDialog(unit),
           icon: const Icon(
             Icons.edit_outlined,
-            size: 21,
+            size: 22,
             color: AppColors.icon,
           ),
         ),
@@ -1209,41 +1806,6 @@ class _UnitsScreenState extends State<UnitsScreen> {
     );
   }
 
-  // DESKTOP
-  return Row(
-    children: [
-      Expanded(
-        child: Text(
-          unit.name,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
-        ),
-      ),
-
-      _buildSwitch(unit),
-
-      IconButton(
-        padding: EdgeInsets.zero,
-        constraints: const BoxConstraints(
-          minWidth: 40,
-          minHeight: 40,
-        ),
-        tooltip: 'Edit',
-        onPressed: () => _openEditDialog(unit),
-        icon: const Icon(
-          Icons.edit_outlined,
-          size: 22,
-          color: AppColors.icon,
-        ),
-      ),
-    ],
-  );
-}
   // ============================================================
   // SWITCH
   // ============================================================
@@ -1251,12 +1813,10 @@ class _UnitsScreenState extends State<UnitsScreen> {
   Widget _buildSwitch(UnitModel unit) {
     return SwitchTheme(
       data: SwitchThemeData(
-        thumbColor:
-            WidgetStateProperty.resolveWith(
+        thumbColor: WidgetStateProperty.resolveWith(
           (_) => Colors.white,
         ),
-        trackColor:
-            WidgetStateProperty.resolveWith(
+        trackColor: WidgetStateProperty.resolveWith(
           (states) {
             if (states.contains(
               WidgetState.selected,
@@ -1264,9 +1824,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
               return AppColors.primary;
             }
 
-            return Colors.grey.withValues(
-              alpha: 0.35,
-            );
+            return Colors.grey.withValues(alpha: 0.35);
           },
         ),
         trackOutlineColor:
@@ -1290,58 +1848,45 @@ class _UnitsScreenState extends State<UnitsScreen> {
   Widget _buildEmptyState() {
     return Container(
       width: double.infinity,
-      constraints:
-          const BoxConstraints(
+      height: double.infinity,
+      constraints: const BoxConstraints(
         minHeight: 220,
       ),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius:
-            BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: AppColors.borderLight,
         ),
       ),
       child: Center(
         child: Padding(
-          padding:
-              const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(20),
           child: Column(
-            mainAxisSize:
-                MainAxisSize.min,
+            mainAxisSize: MainAxisSize.min,
             children: [
               const Icon(
                 Icons.straighten_outlined,
                 size: 50,
-                color:
-                    AppColors.textTertiary,
+                color: AppColors.textTertiary,
               ),
-
               const SizedBox(height: 14),
-
               const Text(
                 'No units found',
-                textAlign:
-                    TextAlign.center,
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
-                  fontWeight:
-                      FontWeight.w600,
-                  color:
-                      AppColors.textSecondary,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
                 ),
               ),
-
               const SizedBox(height: 6),
-
               const Text(
                 'Add your first unit to get started.',
-                textAlign:
-                    TextAlign.center,
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 13,
-                  color:
-                      AppColors.textTertiary,
+                  color: AppColors.textTertiary,
                 ),
               ),
             ],
@@ -1349,410 +1894,5 @@ class _UnitsScreenState extends State<UnitsScreen> {
         ),
       ),
     );
-  }
-
-  // ============================================================
-  // BUILD
-  // ============================================================
-
-  @override
-  Widget build(BuildContext context) {
-    final units = _filteredUnits;
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width =
-            constraints.maxWidth;
-
-        final isSmallMobile =
-            width < 400;
-
-        final isMobile =
-            width < 600;
-
-        final isTablet =
-            width >= 600 &&
-            width < 1000;
-
-        final isDesktop =
-            width >= 1000;
-
-        final horizontalPadding =
-            _horizontalPadding(context);
-
-        final topBarHeight =
-            isSmallMobile
-                ? 60.0
-                : isMobile
-                    ? 64.0
-                    : 72.0;
-
-        final contentTopSpacing =
-            isSmallMobile
-                ? 18.0
-                : isMobile
-                    ? 22.0
-                    : 28.0;
-
-        return Scaffold(
-          backgroundColor:
-              AppColors.background,
-          body: Stack(
-            children: [
-              SafeArea(
-                child: Column(
-                  children: [
-                    // ==================================================
-                    // TOP BAR
-                    // ==================================================
-
-                    Container(
-                      height: topBarHeight,
-                      padding:
-                          EdgeInsets.symmetric(
-                        horizontal:
-                            horizontalPadding,
-                      ),
-                      decoration:
-                          const BoxDecoration(
-                        color:
-                            AppColors.surface,
-                        border: Border(
-                          bottom:
-                              BorderSide(
-                            color: AppColors
-                                .borderLight,
-                          ),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          IconButton(
-                            padding:
-                                EdgeInsets.zero,
-                            constraints:
-                                const BoxConstraints(
-                              minWidth: 40,
-                              minHeight: 40,
-                            ),
-                            tooltip: 'Back',
-                            onPressed: () =>
-                                Navigator.of(
-                              context,
-                            ).pop(),
-                            icon: Icon(
-                              Icons
-                                  .arrow_back_rounded,
-                              size:
-                                  isSmallMobile
-                                      ? 21
-                                      : 23,
-                              color:
-                                  AppColors.icon,
-                            ),
-                          ),
-
-                          SizedBox(
-                            width:
-                                isSmallMobile
-                                    ? 4
-                                    : 8,
-                          ),
-
-                          Flexible(
-                            child: Text(
-                              'Units',
-                              overflow:
-                                  TextOverflow
-                                      .ellipsis,
-                              style: TextStyle(
-                                fontSize:
-                                    isSmallMobile
-                                        ? 17
-                                        : isMobile
-                                            ? 18
-                                            : 19,
-                                fontWeight:
-                                    FontWeight.w700,
-                                color: AppColors
-                                    .textPrimary,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // ==================================================
-                    // CONTENT
-                    // ==================================================
-
-                    Expanded(
-                      child: Padding(
-                        padding:
-                            EdgeInsets.fromLTRB(
-                          horizontalPadding,
-                          contentTopSpacing,
-                          horizontalPadding,
-                          isSmallMobile
-                              ? 16
-                              : 24,
-                        ),
-                        child: Column(
-                          crossAxisAlignment:
-                              CrossAxisAlignment
-                                  .start,
-                          children: [
-                            Text(
-                              'Manage your inventory units.',
-                              style: TextStyle(
-                                fontSize:
-                                    isSmallMobile
-                                        ? 13
-                                        : 15,
-                                color: AppColors
-                                    .textSecondary,
-                                fontWeight:
-                                    FontWeight.w500,
-                              ),
-                            ),
-
-                            SizedBox(
-                              height:
-                                  isSmallMobile
-                                      ? 16
-                                      : 22,
-                            ),
-
-                            // ==========================================
-                            // SEARCH + ADD
-                            // ==========================================
-
-                            _buildSearchAndAdd(
-                              isMobile:
-                                  isMobile,
-                              isSmallMobile:
-                                  isSmallMobile,
-                              isTablet:
-                                  isTablet,
-                              isDesktop:
-                                  isDesktop,
-                            ),
-
-                            SizedBox(
-                              height:
-                                  isSmallMobile
-                                      ? 10
-                                      : 14,
-                            ),
-
-                            // ==========================================
-                            // STATUS FILTER
-                            // ==========================================
-
-                            Container(
-                              padding:
-                                  const EdgeInsets
-                                      .all(4),
-                              decoration:
-                                  BoxDecoration(
-                                color:
-                                    AppColors
-                                        .surface,
-                                borderRadius:
-                                    BorderRadius
-                                        .circular(
-                                            28),
-                                border:
-                                    Border.all(
-                                  color:
-                                      AppColors
-                                          .border,
-                                ),
-                              ),
-                              child:
-                                  SingleChildScrollView(
-                                scrollDirection:
-                                    Axis.horizontal,
-                                child: Row(
-                                  mainAxisSize:
-                                      MainAxisSize
-                                          .min,
-                                  children: [
-                                    _buildStatusFilter(
-                                      'All',
-                                      compact:
-                                          isMobile,
-                                    ),
-                                    _buildStatusFilter(
-                                      'Active',
-                                      compact:
-                                          isMobile,
-                                    ),
-                                    _buildStatusFilter(
-                                      'Inactive',
-                                      compact:
-                                          isMobile,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-
-                            SizedBox(
-                              height:
-                                  isSmallMobile
-                                      ? 12
-                                      : 16,
-                            ),
-
-                            // ==========================================
-                            // UNIT LIST
-                            // ==========================================
-
-                            Expanded(
-                              child: _isLoading
-                                  ? const Center(
-                                      child:
-                                          CircularProgressIndicator(
-                                        color: AppColors
-                                            .primary,
-                                      ),
-                                    )
-                                  : units.isEmpty
-                                      ? _buildEmptyState()
-                                      : ListView.separated(
-                                          padding:
-                                              EdgeInsets.zero,
-                                          itemCount:
-                                              units.length,
-                                          separatorBuilder:
-                                              (
-                                            _,
-                                            __,
-                                          ) =>
-                                                  SizedBox(
-                                            height:
-                                                isSmallMobile
-                                                    ? 8
-                                                    : 10,
-                                          ),
-                                          itemBuilder:
-                                              (
-                                            context,
-                                            index,
-                                          ) {
-                                            return _buildUnitCard(
-                                              units[index],
-                                            );
-                                          },
-                                        ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // ========================================================
-              // TOP-RIGHT MESSAGE
-              // ========================================================
-
-              _buildTopRightMessage(),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  // ============================================================
-  // DIALOG INPUT DECORATION
-  // ============================================================
-
-  InputDecoration _inputDecoration({
-    required String hintText,
-    String? errorText,
-  }) {
-    return InputDecoration(
-      hintText: hintText,
-      hintStyle: const TextStyle(
-        fontSize: 14,
-        color: AppColors.textTertiary,
-      ),
-      errorText: errorText,
-      errorStyle: const TextStyle(
-        fontSize: 12,
-        color: AppColors.error,
-      ),
-      filled: true,
-      fillColor:
-          AppColors.inputBackground,
-      contentPadding:
-          const EdgeInsets.symmetric(
-        horizontal: 15,
-        vertical: 14,
-      ),
-      border: OutlineInputBorder(
-        borderRadius:
-            BorderRadius.circular(10),
-        borderSide: const BorderSide(
-          color: AppColors.border,
-        ),
-      ),
-      enabledBorder:
-          OutlineInputBorder(
-        borderRadius:
-            BorderRadius.circular(10),
-        borderSide: const BorderSide(
-          color: AppColors.border,
-        ),
-      ),
-      focusedBorder:
-          OutlineInputBorder(
-        borderRadius:
-            BorderRadius.circular(10),
-        borderSide: const BorderSide(
-          color: AppColors.primary,
-          width: 1.5,
-        ),
-      ),
-      errorBorder:
-          OutlineInputBorder(
-        borderRadius:
-            BorderRadius.circular(10),
-        borderSide: const BorderSide(
-          color: AppColors.error,
-        ),
-      ),
-      focusedErrorBorder:
-          OutlineInputBorder(
-        borderRadius:
-            BorderRadius.circular(10),
-        borderSide: const BorderSide(
-          color: AppColors.error,
-          width: 1.5,
-        ),
-      ),
-    );
-  }
-
-  // ============================================================
-  // DIALOG WIDTH
-  // ============================================================
-
-  double _dialogWidth(
-    BuildContext context,
-  ) {
-    final width =
-        MediaQuery.of(context).size.width;
-
-    if (width < 400) {
-      return width - 48;
-    }
-
-    return 420;
   }
 }

@@ -6,7 +6,7 @@ import '../models/sub_category_model.dart';
 
 class SubCategoryService {
   static const String baseUrl =
-      'http://192.168.0.4:8000';
+      'http://192.168.0.12:8000';
 
   static const String endpoint =
       '/api/sub-categories/';

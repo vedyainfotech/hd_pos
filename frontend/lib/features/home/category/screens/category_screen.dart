@@ -204,12 +204,14 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
                       const SizedBox(height: 8),
 
-                      TextField(
-                        controller: controller,
-                        autofocus: true,
-                        textCapitalization:
-                            TextCapitalization.words,
-                        maxLength: 50,
+                      SizedBox(
+                        height: 72,
+                        child: TextField(
+                          controller: controller,
+                          autofocus: true,
+                          textCapitalization:
+                              TextCapitalization.words,
+                          maxLength: 50,
                         buildCounter: (
                           context, {
                           required currentLength,
@@ -229,6 +231,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                           hintText: 'Enter category name',
                           errorText: nameError,
                         ),
+                      ),
                       ),
 
                       const SizedBox(height: 20),
@@ -506,12 +509,14 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
                       const SizedBox(height: 8),
 
-                      TextField(
-                        controller: controller,
-                        autofocus: true,
-                        textCapitalization:
-                            TextCapitalization.words,
-                        maxLength: 50,
+                      SizedBox(
+                        height: 72,
+                        child: TextField(
+                          controller: controller,
+                          autofocus: true,
+                          textCapitalization:
+                              TextCapitalization.words,
+                          maxLength: 50,
                         buildCounter: (
                           context, {
                           required currentLength,
@@ -531,6 +536,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                           hintText: 'Enter category name',
                           errorText: nameError,
                         ),
+                      ),
                       ),
 
                       const SizedBox(height: 20),
@@ -822,42 +828,225 @@ class _CategoryScreenState extends State<CategoryScreen> {
   // UPDATE STATUS
   // ============================================================
 
-  Future<void> _toggleStatus(
-    CategoryModel category,
-  ) async {
-    final newStatus = !category.isActive;
+ Future<void> _toggleStatus(
+  CategoryModel category,
+) async {
+  final newStatus = !category.isActive;
 
-    try {
-      await _categoryApiService.updateCategoryStatus(
-        category.id,
-        newStatus,
+  final confirmed = await showDialog<bool>(
+    context: context,
+    barrierDismissible: false,
+    barrierColor: Colors.black.withValues(alpha: 0.45),
+    builder: (dialogContext) {
+      final isActivating = newStatus;
+
+      return AlertDialog(
+        backgroundColor: AppColors.surface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+        ),
+        contentPadding: const EdgeInsets.fromLTRB(
+          28,
+          24,
+          28,
+          12,
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(
+          24,
+          8,
+          24,
+          24,
+        ),
+        content: SizedBox(
+          width: 380,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // ====================================================
+              // ICON
+              // ====================================================
+
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: isActivating
+                      ? const Color(0xFFEAF7E8)
+                      : const Color(0xFFFFE9E3),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  isActivating
+                      ? Icons.check_rounded
+                      : Icons.priority_high_rounded,
+                  size: 34,
+                  color: isActivating
+                      ? const Color(0xFF2E7D32)
+                      : AppColors.primary,
+                ),
+              ),
+
+              const SizedBox(height: 18),
+
+              // ====================================================
+              // TITLE
+              // ====================================================
+
+              Text(
+                isActivating
+                    ? 'Activate Category?'
+                    : 'Deactivate Category?',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 21,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // ====================================================
+              // MESSAGE
+              // ====================================================
+
+              Text(
+                isActivating
+                    ? 'Are you sure you want to activate this category?'
+                    : 'Are you sure you want to deactivate this category?',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 15,
+                  height: 1.5,
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // ==========================================================
+        // BUTTONS
+        // ==========================================================
+
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext, false);
+                  },
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(
+                      double.infinity,
+                      52,
+                    ),
+                    side: const BorderSide(
+                      color: AppColors.border,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(width: 12),
+
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext, true);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(
+                      double.infinity,
+                      52,
+                    ),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: Text(
+                    isActivating
+                        ? 'Activate'
+                        : 'Deactivate',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       );
+    },
+  );
 
-      if (!mounted) return;
+  // ==============================================================
+  // CANCEL
+  // ==============================================================
 
-      setState(() {
-        final index = _categories.indexWhere(
-          (item) => item.id == category.id,
-        );
-
-        if (index != -1) {
-          _categories[index] = CategoryModel(
-            id: category.id,
-            name: category.name,
-            allotmentTime: category.allotmentTime,
-            isActive: newStatus,
-          );
-        }
-      });
-    } catch (e) {
-      if (!mounted) return;
-
-      _showMessage(
-        'Failed to update status',
-        isError: true,
-      );
-    }
+  if (confirmed != true) {
+    return;
   }
+
+  // ==============================================================
+  // UPDATE STATUS
+  // ==============================================================
+
+  try {
+    await _categoryApiService.updateCategoryStatus(
+      category.id,
+      newStatus,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      final index = _categories.indexWhere(
+        (item) => item.id == category.id,
+      );
+
+      if (index != -1) {
+        _categories[index] = CategoryModel(
+          id: category.id,
+          name: category.name,
+          allotmentTime: category.allotmentTime,
+          isActive: newStatus,
+        );
+      }
+    });
+    _showMessage(
+  newStatus
+      ? 'Category activated successfully'
+      : 'Category deactivated successfully',
+);
+  } catch (e) {
+    if (!mounted) return;
+
+    _showMessage(
+      'Failed to update status',
+      isError: true,
+    );
+  }
+}
 
   // ============================================================
   // TIME PICKER
@@ -917,25 +1106,55 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   ),
                 ),
                 child: Column(
-                  children: [
-                    const SizedBox(height: 14),
+                
+                   children: [
+  const SizedBox(height: 14),
 
-                    Container(
-                      width: 42,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: AppColors.border,
-                        borderRadius:
-                            BorderRadius.circular(10),
-                      ),
-                    ),
+  // Top handle + close button
+  SizedBox(
+    height: 28,
+    width: double.infinity,
+    child: Stack(
+      alignment: Alignment.center,
+      children: [
+        Container(
+          width: 42,
+          height: 5,
+          decoration: BoxDecoration(
+            color: AppColors.border,
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
 
-                    const SizedBox(height: 16),
+        Positioned(
+          right: 0,
+          top: -6,
+          child: IconButton(
+            onPressed: () {
+              Navigator.pop(sheetContext);
+            },
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(
+              minWidth: 40,
+              minHeight: 40,
+            ),
+            icon: const Icon(
+              Icons.close_rounded,
+              size: 24,
+              color: AppColors.icon,
+            ),
+          ),
+        ),
+      ],
+    ),
+  ),
 
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: const Text(
-                        'Select Allowance Time',
+  const SizedBox(height: 8),
+
+  FittedBox(
+    fit: BoxFit.scaleDown,
+    child: const Text(
+      'Select Allowance Time',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
@@ -1294,12 +1513,14 @@ class _CategoryScreenState extends State<CategoryScreen> {
   }) {
     final hasValue = value.isNotEmpty;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: double.infinity,
-          height: 52,
+    return SizedBox(
+      height: 72,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: double.infinity,
+            height: 52,
           padding: const EdgeInsets.symmetric(
             horizontal: 15,
           ),
@@ -1349,7 +1570,8 @@ class _CategoryScreenState extends State<CategoryScreen> {
               ),
             ),
           ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -1632,91 +1854,236 @@ class _CategoryScreenState extends State<CategoryScreen> {
                           CrossAxisAlignment
                               .start,
                       children: [
-                        Text(
-                          'Manage your product categories.',
-                          style: TextStyle(
-                            fontSize:
-                                isSmallMobile
-                                    ? 13
-                                    : 15,
-                            color: AppColors
-                                .textSecondary,
-                            fontWeight:
-                                FontWeight.w500,
-                          ),
-                        ),
+                        if (isDesktop || isTablet) ...[
+  // ==================================================
+  // WEB + TABLET: DESCRIPTION + SMALL ADD BUTTON
+  // ==================================================
 
-                        SizedBox(
-                          height:
-                              isSmallMobile
-                                  ? 16
-                                  : 22,
-                        ),
+  Row(
+    children: [
+      Expanded(
+        child: Text(
+          'Manage your product categories.',
+          style: const TextStyle(
+            fontSize: 15,
+            color: AppColors.textSecondary,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
 
-                        // ==================================================
-                        // SEARCH + ADD
-                        // ==================================================
+      const SizedBox(width: 16),
 
-                        _buildSearchAndAdd(
-                          isMobile:
-                              isMobile,
-                          isSmallMobile:
-                              isSmallMobile,
-                          isTablet:
-                              isTablet,
-                          isDesktop:
-                              isDesktop,
-                        ),
-
-                        SizedBox(
-                          height:
-                              isSmallMobile
-                                  ? 10
-                                  : 14,
-                        ),
-
-                        // ==================================================
-                        // STATUS FILTER
-                        // ==================================================
-                           Container(
-  padding: const EdgeInsets.all(4),
-  decoration: BoxDecoration(
-    color: AppColors.surface,
-    borderRadius: BorderRadius.circular(28),
-    border: Border.all(
-      color: AppColors.border,
-    ),
+      SizedBox(
+        width: 126,
+        height: 42,
+        child: ElevatedButton.icon(
+          onPressed: _openAddDialog,
+          icon: const Icon(
+            Icons.add_rounded,
+            size: 18,
+          ),
+          label: const Text(
+            'Add',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            foregroundColor: AppColors.textOnPrimary,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 14,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(9),
+            ),
+          ),
+        ),
+      ),
+    ],
   ),
-  child: SingleChildScrollView(
-    scrollDirection: Axis.horizontal,
+
+  const SizedBox(height: 22),
+
+  // ==================================================
+  // WEB + TABLET: SEARCH + STATUS FILTER
+  // ==================================================
+
+  Container(
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(
+        color: AppColors.border,
+      ),
+    ),
     child: Row(
-       mainAxisSize: MainAxisSize.min,
       children: [
-        _buildStatusFilter(
-          'All',
-          compact: isMobile,
+        Expanded(
+          child: SizedBox(
+            height: 46,
+            child: TextField(
+              controller: _searchController,
+              textInputAction: TextInputAction.search,
+              decoration: InputDecoration(
+                hintText: 'Search categories...',
+                hintStyle: const TextStyle(
+                  color: AppColors.textTertiary,
+                  fontSize: 14,
+                ),
+                prefixIcon: const Icon(
+                  Icons.search_rounded,
+                  size: 22,
+                  color: AppColors.textTertiary,
+                ),
+                suffixIcon:
+                    _searchController.text.isNotEmpty
+                        ? IconButton(
+                            padding: EdgeInsets.zero,
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() {});
+                            },
+                            icon: const Icon(
+                              Icons.close_rounded,
+                              size: 19,
+                            ),
+                          )
+                        : null,
+                filled: true,
+                fillColor: AppColors.surface,
+                contentPadding:
+                    const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius:
+                      BorderRadius.circular(10),
+                  borderSide: const BorderSide(
+                    color: AppColors.border,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius:
+                      BorderRadius.circular(10),
+                  borderSide: const BorderSide(
+                    color: AppColors.border,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius:
+                      BorderRadius.circular(10),
+                  borderSide: const BorderSide(
+                    color: AppColors.primary,
+                    width: 1.5,
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
-        _buildStatusFilter(
-          'Active',
-          compact: isMobile,
-        ),
-        _buildStatusFilter(
-          'Inactive',
-          compact: isMobile,
+
+        const SizedBox(width: 16),
+
+        Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(
+              color: AppColors.border,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildStatusFilter(
+                'All',
+                compact: false,
+              ),
+              _buildStatusFilter(
+                'Active',
+                compact: false,
+              ),
+              _buildStatusFilter(
+                'Inactive',
+                compact: false,
+              ),
+            ],
+          ),
         ),
       ],
     ),
   ),
+] else ...[
+  // ==================================================
+  // MOBILE: KEEP EXISTING LAYOUT
+  // ==================================================
+
+  Text(
+    'Manage your product categories.',
+    style: TextStyle(
+      fontSize: isSmallMobile ? 13 : 15,
+      color: AppColors.textSecondary,
+      fontWeight: FontWeight.w500,
+    ),
+  ),
+
+  SizedBox(
+    height: isSmallMobile ? 16 : 22,
+  ),
+
+  _buildSearchAndAdd(
+    isMobile: isMobile,
+    isSmallMobile: isSmallMobile,
+    isTablet: isTablet,
+    isDesktop: isDesktop,
+  ),
+
+  SizedBox(
+    height: isSmallMobile ? 10 : 14,
+  ),
+
+  Container(
+    padding: const EdgeInsets.all(4),
+    decoration: BoxDecoration(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(28),
+      border: Border.all(
+        color: AppColors.border,
+      ),
+    ),
+    child: SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildStatusFilter(
+            'All',
+            compact: isMobile,
+          ),
+          _buildStatusFilter(
+            'Active',
+            compact: isMobile,
+          ),
+          _buildStatusFilter(
+            'Inactive',
+            compact: isMobile,
+          ),
+        ],
+      ),
+    ),
+  ),
+],
+
+SizedBox(
+  height: isSmallMobile ? 12 : 16,
 ),
-                        
-
-                        SizedBox(
-                          height:
-                              isSmallMobile
-                                  ? 12
-                                  : 16,
-                        ),
-
                         // ==================================================
                         // CATEGORY LIST
                         // ==================================================
@@ -1847,25 +2214,34 @@ class _CategoryScreenState extends State<CategoryScreen> {
     );
 
     final addButton = SizedBox(
-      width: isMobile ? 40 : isTablet ? 140 : 180,
-      height: isMobile ? 40 : 46,
-      child: isMobile
-          ? ElevatedButton(
-              onPressed: _openAddDialog,
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.zero,
-                backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.textOnPrimary,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(9),
-                ),
-              ),
-              child: const Icon(
-                Icons.add_rounded,
-                size: 20,
-              ),
-            )
+  width: isMobile ? 70 : isTablet ? 140 : 180,
+  height: isMobile ? 40 : 46,
+  child: isMobile
+      ? ElevatedButton.icon(
+          onPressed: _openAddDialog,
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10,
+            ),
+            backgroundColor: AppColors.primary,
+            foregroundColor: AppColors.textOnPrimary,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(9),
+            ),
+          ),
+          icon: const Icon(
+            Icons.add_rounded,
+            size: 18,
+          ),
+          label: const Text(
+            'Add',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        )
           : ElevatedButton.icon(
               onPressed: _openAddDialog,
               icon: const Icon(
@@ -1873,9 +2249,9 @@ class _CategoryScreenState extends State<CategoryScreen> {
                 size: 19,
               ),
               label: const Text(
-                'Add Category',
+                'Add ',
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
               ),

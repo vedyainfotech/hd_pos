@@ -1101,7 +1101,7 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
   int? _selectedCategoryId;
   int? _selectedSubCategoryId;
   double? _categoryPrice;
-  late bool _isActive;
+   bool status = true;
   bool _sameAsCategory = false;
   bool _loadingSubCategories = false;
 
@@ -1117,7 +1117,7 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
       _selectedCategoryId = existing.categoryId;
       _selectedSubCategoryId = existing.subCategoryId;
       _sameAsCategory = existing.sameAsCategory;
-      _isActive = existing.isActive;
+      status = existing.isActive;
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _loadSubCategories(
@@ -1288,7 +1288,7 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
         name: _nameController.text.trim(),
         price: price,
         sameAsCategory: _sameAsCategory,
-        isActive: _isActive,
+        isActive: status,
       ),
     );
   }
@@ -1638,10 +1638,10 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
               ),
               const SizedBox(height: 3),
               Text(
-                _isActive ? 'Active' : 'Inactive',
+                status ? 'Active' : 'Inactive',
                 style: TextStyle(
                   fontSize: 12,
-                  color: _isActive
+                  color: status
                       ? AppColors.active
                       : AppColors.textSecondary,
                   fontWeight: FontWeight.w600,
@@ -1677,10 +1677,10 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
             ),
           ),
           child: Switch(
-            value: _isActive,
+            value: status,
             onChanged: (value) {
               setState(() {
-                _isActive = value;
+                status = value;
               });
             },
           ),

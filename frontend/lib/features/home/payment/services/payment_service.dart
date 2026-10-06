@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import '../models/payment_model.dart';
 
 class PaymentService {
-  static const String _baseUrl = 'http://192.168.0.4:8000';
+  static const String _baseUrl = 'http://192.168.0.12:8000';
   static const String _endpoint = '/api/payment-modes';
 
   // ============================================================

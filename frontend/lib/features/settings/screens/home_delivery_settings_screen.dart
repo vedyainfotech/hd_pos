@@ -16,10 +16,7 @@ import '../../auth/screens/login_Screen.dart';
 class HomeDeliverySettingsScreen extends StatelessWidget {
   final String userName;
 
-  const HomeDeliverySettingsScreen({
-    super.key,
-    required this.userName,
-  });
+  const HomeDeliverySettingsScreen({super.key, required this.userName});
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +34,6 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
           // ==========================================================
           // MOBILE DRAWER
           // ==========================================================
-
           drawer: isMobile
               ? Drawer(
                   backgroundColor: Colors.transparent,
@@ -59,48 +55,36 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                 // ======================================================
                 // DESKTOP SIDEBAR
                 // ======================================================
-
                 if (isDesktop)
-                  _buildSidebar(
-                    context,
-                    width: 225,
-                    compact: false,
-                  ),
+                  _buildSidebar(context, width: 225, compact: false),
 
                 // ======================================================
                 // TABLET SIDEBAR
                 // ======================================================
-
                 if (isTablet)
-                  _buildSidebar(
-                   context,
-                    width: 190,
-                    compact: false,
-                  ),
+                  _buildSidebar(context, width: 190, compact: false),
 
                 // ======================================================
                 // MAIN CONTENT
                 // ======================================================
-
                 Expanded(
                   child: SingleChildScrollView(
                     padding: EdgeInsets.fromLTRB(
                       isMobile
                           ? 16
                           : isTablet
-                              ? 20
-                              : 28,
+                          ? 20
+                          : 28,
                       isMobile ? 16 : 24,
                       isMobile
                           ? 16
                           : isTablet
-                              ? 20
-                              : 28,
+                          ? 20
+                          : 28,
                       40,
                     ),
                     child: Column(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildTopBar(
                           context,
@@ -108,22 +92,15 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                           isTablet: isTablet,
                         ),
 
-                        SizedBox(
-                          height: isMobile ? 16 : 24,
-                        ),
+                        SizedBox(height: isMobile ? 16 : 24),
 
-                        _buildPageHeader(
-                          isMobile: isMobile,
-                        ),
+                        _buildPageHeader(isMobile: isMobile),
 
-                        SizedBox(
-                          height: isMobile ? 16 : 24,
-                        ),
+                        SizedBox(height: isMobile ? 16 : 24),
 
                         // ==================================================
                         // BUSINESS SETUP
                         // ==================================================
-
                         _buildSection(
                           icon: Icons.business_outlined,
                           title: 'Business Setup',
@@ -135,12 +112,9 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                               title: 'Business Profile',
                               subtitle:
                                   'Edit your business name, address and contact details',
-                              icon:
-                                  Icons.storefront_outlined,
-                              iconBackground:
-                                  const Color(0xFFEDE9FE),
-                              iconColor:
-                                  const Color(0xFF7C3AED),
+                              icon: Icons.storefront_outlined,
+                              iconBackground: const Color(0xFFEDE9FE),
+                              iconColor: const Color(0xFF7C3AED),
                             ),
                           ],
                         ),
@@ -150,10 +124,8 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                         // ==================================================
                         // MENU & PRODUCTS
                         // ==================================================
-
                         _buildSection(
-                          icon:
-                              Icons.restaurant_menu_outlined,
+                          icon: Icons.restaurant_menu_outlined,
                           title: 'Menu & Products',
                           subtitle:
                               'Manage your categories, items, pricing and menu schedule',
@@ -161,189 +133,151 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                             _settingCard(
                               context,
                               title: 'Categories',
-                              subtitle:
-                                  'Add and manage product categories',
-                              icon:
-                                  Icons.grid_view_rounded,
-                              iconBackground:
-                                  const Color(0xFFFFE8E5),
-                              iconColor:
-                                  const Color(0xFFEF4444),
+                              subtitle: 'Add and manage product categories',
+                              icon: Icons.grid_view_rounded,
+                              iconBackground: const Color(0xFFFFE8E5),
+                              iconColor: const Color(0xFFEF4444),
                               onTap: () {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) =>
-                                        const CategoryScreen(),
+                                    builder: (_) => const CategoryScreen(),
                                   ),
                                 );
                               },
                             ),
 
-                          _settingCard(
-                          context,
-                           title: 'Sub Categories',
-                           subtitle:
-                            'Add and manage sub categories',
-                             icon:
-                             Icons.layers_outlined,
-                             iconBackground:
-                               const Color(0xFFE6F0FF),
-                               iconColor:
-                                const Color(0xFF3B82F6),
-                               onTap: () {
-                              Navigator.push(
+                            _settingCard(
                               context,
-                              MaterialPageRoute(
-                               builder: (_) =>
-                            const SubCategoriesScreen(),
+                              title: 'Sub Categories',
+                              subtitle: 'Add and manage sub categories',
+                              icon: Icons.layers_outlined,
+                              iconBackground: const Color(0xFFE6F0FF),
+                              iconColor: const Color(0xFF3B82F6),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const SubCategoriesScreen(),
+                                  ),
+                                );
+                              },
                             ),
-                              );
-                             },
-                           ),
-                         _settingCard(
-  context,
-  title: 'Items',
-  subtitle: 'Add and manage your products',
-  icon: Icons.fastfood_outlined,
-  iconBackground: const Color(0xFFFFF0DA),
-  iconColor: const Color(0xFFD97706),
-  onTap: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const ItemsScreen(),
-      ),
-    );
-  },
-),
+                            _settingCard(
+                              context,
+                              title: 'Items',
+                              subtitle: 'Add and manage your products',
+                              icon: Icons.fastfood_outlined,
+                              iconBackground: const Color(0xFFFFF0DA),
+                              iconColor: const Color(0xFFD97706),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const ItemsScreen(),
+                                  ),
+                                );
+                              },
+                            ),
 
                             _settingCard(
                               context,
                               title: 'Prices',
-                              subtitle:
-                                  'Set and manage item prices',
-                              icon:
-                                  Icons.sell_outlined,
-                              iconBackground:
-                                  const Color(0xFFF0E9FF),
-                              iconColor:
-                                  const Color(0xFF7C3AED),
+                              subtitle: 'Set and manage item prices',
+                              icon: Icons.sell_outlined,
+                              iconBackground: const Color(0xFFF0E9FF),
+                              iconColor: const Color(0xFF7C3AED),
                             ),
 
                             _settingCard(
                               context,
                               title: 'Payment',
-                              subtitle:
-                                  'Add and manage payment methods',
-                              icon:
-                                  Icons.payments_outlined,
-                              iconBackground:
-                                  const Color(0xFFE3F8F1),
-                              iconColor:
-                                  const Color(0xFF059669),
+                              subtitle: 'Add and manage payment methods',
+                              icon: Icons.payments_outlined,
+                              iconBackground: const Color(0xFFE3F8F1),
+                              iconColor: const Color(0xFF059669),
                               onTap: () {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) =>
-                                        const PaymentScreen(),
+                                    builder: (_) => const PaymentScreen(),
                                   ),
                                 );
                               },
                             ),
-                               _settingCard(
+                            _settingCard(
                               context,
                               title: 'Roles',
-                              subtitle:
-                                  'Add and manage user roles ',
-                              icon:
-                                  Icons.grid_view_rounded,
-                              iconBackground:
-                                  const Color(0xFFFFE8E5),
-                              iconColor:
-                                  const Color(0xFFEF4444),
+                              subtitle: 'Add and manage user roles ',
+                              icon: Icons.grid_view_rounded,
+                              iconBackground: const Color(0xFFFFE8E5),
+                              iconColor: const Color(0xFFEF4444),
                               onTap: () {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) =>
-                                        const RoleScreen(),
+                                    builder: (_) => const RoleScreen(),
                                   ),
                                 );
                               },
                             ),
 
                             _settingCard(
-  context,
-  title: 'Menu Scheduling',
-  subtitle:
-      'Manage daily menu availability and schedules',
-  icon: Icons.calendar_month_outlined,
-  iconBackground:
-      const Color(0xFFE3F8F1),
-  iconColor:
-      const Color(0xFF059669),
-  onTap: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) =>
-            const MenuSchedulingScreen(),
-      ),
-    );
-  },
-),
-  ],
- ),
-
-                      
+                              context,
+                              title: 'Menu Scheduling',
+                              subtitle:
+                                  'Manage daily menu availability and schedules',
+                              icon: Icons.calendar_month_outlined,
+                              iconBackground: const Color(0xFFE3F8F1),
+                              iconColor: const Color(0xFF059669),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        const MenuSchedulingScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
 
                         const SizedBox(height: 18),
 
                         // ==================================================
                         // CUSTOMERS
                         // ==================================================
-
                         _buildSection(
-                          icon:
-                              Icons.people_outline,
+                          icon: Icons.people_outline,
                           title: 'Customers',
                           subtitle:
                               'Manage customers and their delivery information',
                           children: [
-                           _settingCard(
-  context,
-  title: 'Customers',
-  subtitle:
-      'Add and manage customer information',
-  icon:
-      Icons.people_outline,
-  iconBackground:
-      const Color(0xFFE6F0FF),
-  iconColor:
-      const Color(0xFF2563EB),
-  onTap: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const CustomersScreen(),
-      ),
-    );
-  },
-),
                             _settingCard(
                               context,
-                              title:
-                                  'Customer Delivery Details',
+                              title: 'Customers',
+                              subtitle: 'Add and manage customer information',
+                              icon: Icons.people_outline,
+                              iconBackground: const Color(0xFFE6F0FF),
+                              iconColor: const Color(0xFF2563EB),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const CustomersScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                            _settingCard(
+                              context,
+                              title: 'Customer Delivery Details',
                               subtitle:
                                   'Manage addresses, timings and special instructions',
-                              icon:
-                                  Icons.location_on_outlined,
-                              iconBackground:
-                                  const Color(0xFFFFE8EE),
-                              iconColor:
-                                  const Color(0xFFE11D48),
+                              icon: Icons.location_on_outlined,
+                              iconBackground: const Color(0xFFFFE8EE),
+                              iconColor: const Color(0xFFE11D48),
                             ),
                           ],
                         ),
@@ -353,55 +287,29 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                         // ==================================================
                         // DELIVERY MANAGEMENT
                         // ==================================================
-
                         _buildSection(
-                          icon: Icons
-                              .local_shipping_outlined,
-                          title:
-                              'Delivery Management',
+                          icon: Icons.local_shipping_outlined,
+                          title: 'Delivery Management',
                           subtitle:
                               'Manage delivery persons and daily delivery schedules',
                           children: [
                             _settingCard(
                               context,
-                              title:
-                                  'Delivery Persons',
-                              subtitle:
-                                  'Add and manage delivery staff',
-                              icon:
-                                  Icons.delivery_dining_outlined,
-                              iconBackground:
-                                  const Color(0xFFE5F0FF),
-                              iconColor:
-                                  const Color(0xFF2563EB),
+                              title: 'Delivery Persons',
+                              subtitle: 'Add and manage delivery staff',
+                              icon: Icons.delivery_dining_outlined,
+                              iconBackground: const Color(0xFFE5F0FF),
+                              iconColor: const Color(0xFF2563EB),
                             ),
 
                             _settingCard(
                               context,
-                              title:
-                                  'Delivery Schedule',
+                              title: 'Delivery Schedule',
                               subtitle:
                                   'Create and manage daily delivery schedules',
-                              icon:
-                                  Icons.calendar_today_outlined,
-                              iconBackground:
-                                  const Color(0xFFF0E9FF),
-                              iconColor:
-                                  const Color(0xFF7C3AED),
-                            ),
-
-                            _settingCard(
-                              context,
-                              title:
-                                  'Assign Deliveries',
-                              subtitle:
-                                  'Assign customers and deliveries to staff',
-                              icon:
-                                  Icons.route_outlined,
-                              iconBackground:
-                                  const Color(0xFFE2F8EF),
-                              iconColor:
-                                  const Color(0xFF059669),
+                              icon: Icons.calendar_today_outlined,
+                              iconBackground: const Color(0xFFF0E9FF),
+                              iconColor: const Color(0xFF7C3AED),
                             ),
                           ],
                         ),
@@ -411,83 +319,76 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                         // ==================================================
                         // INVENTORY
                         // ==================================================
-
                         _buildSection(
-                          icon:
-                              Icons.inventory_2_outlined,
+                          icon: Icons.inventory_2_outlined,
                           title: 'Inventory',
                           subtitle:
                               'Manage stock items, units, inventory categories and suppliers',
                           children: [
-                           _settingCard(
-  context,
-  title: 'Units',
-  subtitle:
-      'Manage measurement units such as kg, litre and piece',
-  icon: Icons.straighten_outlined,
-  iconBackground:
-      const Color(0xFFE6F0FF),
-  iconColor:
-      const Color(0xFF2563EB),
-  onTap: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const UnitsScreen(),
-      ),
-    );
-  },
-),
-
                             _settingCard(
-  context,
-  title: 'Inventory Categories',
-  subtitle: 'Create and manage inventory categories',
-  icon: Icons.category_outlined,
-  iconBackground: const Color(0xFFFFE8E5),
-  iconColor: const Color(0xFFEF4444),
-  onTap: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const InventoryCategoryScreen(),
-      ),
-    );
-  },
-),
-
-                            _settingCard(
-  context,
-  title: 'Inventory Sub Categories',
-  subtitle:
-      'Organize inventory items into sub categories',
-  icon: Icons.account_tree_outlined,
-  iconBackground:
-      const Color(0xFFF0E9FF),
-  iconColor:
-      const Color(0xFF7C3AED),
-  onTap: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const InvSubCategoryScreen(),
-      ),
-    );
-  },
-),
+                              context,
+                              title: 'Units',
+                              subtitle:
+                                  'Manage measurement units such as kg, litre and piece',
+                              icon: Icons.straighten_outlined,
+                              iconBackground: const Color(0xFFE6F0FF),
+                              iconColor: const Color(0xFF2563EB),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const UnitsScreen(),
+                                  ),
+                                );
+                              },
+                            ),
 
                             _settingCard(
                               context,
-                              title:
-                                  'Inventory Items',
+                              title: 'Inventory Categories',
+                              subtitle:
+                                  'Create and manage inventory categories',
+                              icon: Icons.category_outlined,
+                              iconBackground: const Color(0xFFFFE8E5),
+                              iconColor: const Color(0xFFEF4444),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        const InventoryCategoryScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+
+                            _settingCard(
+                              context,
+                              title: 'Inventory Sub Categories',
+                              subtitle:
+                                  'Organize inventory items into sub categories',
+                              icon: Icons.account_tree_outlined,
+                              iconBackground: const Color(0xFFF0E9FF),
+                              iconColor: const Color(0xFF7C3AED),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        const InvSubCategoryScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+
+                            _settingCard(
+                              context,
+                              title: 'Inventory Items',
                               subtitle:
                                   'Add and manage raw materials and stock items',
-                              icon:
-                                  Icons.inventory_outlined,
-                              iconBackground:
-                                  const Color(0xFFFFF0DA),
-                              iconColor:
-                                  const Color(0xFFD97706),
+                              icon: Icons.inventory_outlined,
+                              iconBackground: const Color(0xFFFFF0DA),
+                              iconColor: const Color(0xFFD97706),
                             ),
 
                             _settingCard(
@@ -495,12 +396,9 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                               title: 'Suppliers',
                               subtitle:
                                   'Manage suppliers for your inventory purchases',
-                              icon:
-                                  Icons.local_shipping_outlined,
-                              iconBackground:
-                                  const Color(0xFFE3F8F1),
-                              iconColor:
-                                  const Color(0xFF059669),
+                              icon: Icons.local_shipping_outlined,
+                              iconBackground: const Color(0xFFE3F8F1),
+                              iconColor: const Color(0xFF059669),
                             ),
                           ],
                         ),
@@ -510,59 +408,44 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                         // ==================================================
                         // USERS & SYSTEM
                         // ==================================================
-
                         _buildSection(
-                          icon:
-                              Icons.manage_accounts_outlined,
+                          icon: Icons.manage_accounts_outlined,
                           title: 'Users & System',
                           subtitle:
                               'Manage operators, printers and application settings',
                           children: [
                             _settingCard(
                               context,
-                              title:
-                                  'Operators / Users',
+                              title: 'Operators / Users',
                               subtitle:
                                   'Add and manage system users and operators',
-                              icon:
-                                  Icons.group_outlined,
-                              iconBackground:
-                                  const Color(0xFFFFF0DA),
-                              iconColor:
-                                  const Color(0xFFD97706),
+                              icon: Icons.group_outlined,
+                              iconBackground: const Color(0xFFFFF0DA),
+                              iconColor: const Color(0xFFD97706),
                             ),
 
                             _settingCard(
                               context,
-                              title:
-                                  'Printer Settings',
+                              title: 'Printer Settings',
                               subtitle:
                                   'Configure printers for orders and bills',
-                              icon:
-                                  Icons.print_outlined,
-                              iconBackground:
-                                  const Color(0xFFE6F0FF),
-                              iconColor:
-                                  const Color(0xFF2563EB),
+                              icon: Icons.print_outlined,
+                              iconBackground: const Color(0xFFE6F0FF),
+                              iconColor: const Color(0xFF2563EB),
                             ),
 
                             _settingCard(
                               context,
-                              title:
-                                  'System Settings',
-                              subtitle:
-                                  'Manage general application settings',
-                              icon:
-                                  Icons.settings_outlined,
-                              iconBackground:
-                                  const Color(0xFFFFE8EE),
-                              iconColor:
-                                  const Color(0xFFE11D48),
+                              title: 'System Settings',
+                              subtitle: 'Manage general application settings',
+                              icon: Icons.settings_outlined,
+                              iconBackground: const Color(0xFFFFE8EE),
+                              iconColor: const Color(0xFFE11D48),
                             ),
                           ],
                         ),
                       ],
-                    ),  
+                    ),
                   ),
                 ),
               ],
@@ -585,22 +468,14 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
   }) {
     return Container(
       width: width,
-      margin: isDrawer
-          ? const EdgeInsets.all(8)
-          : const EdgeInsets.all(16),
+      margin: isDrawer ? const EdgeInsets.all(8) : const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(
-          alpha: 0.92,
-        ),
-        borderRadius:
-            BorderRadius.circular(24),
-        border: Border.all(
-          color: Colors.white,
-        ),
+        color: Colors.white.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF64748B)
-                .withValues(alpha: 0.07),
+            color: const Color(0xFF64748B).withValues(alpha: 0.07),
             blurRadius: 30,
             offset: const Offset(0, 10),
           ),
@@ -611,22 +486,19 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
           const SizedBox(height: 24),
 
           Container(
-  width: 52,
-  height: 52,
-  decoration: BoxDecoration(
-    color: Colors.transparent,
-    borderRadius: BorderRadius.circular(16),
-    border: Border.all(
-      color: AppColors.primary,
-      width: 1.5,
-    ),
-  ),
-  child: const Icon(
-    Icons.delivery_dining_outlined,
-    color: AppColors.primary,
-    size: 28,
-  ),
-),
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.primary, width: 1.5),
+            ),
+            child: const Icon(
+              Icons.delivery_dining_outlined,
+              color: AppColors.primary,
+              size: 28,
+            ),
+          ),
 
           if (!compact) ...[
             const SizedBox(height: 12),
@@ -636,138 +508,125 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
               style: TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 16,
-                fontWeight:
-                    FontWeight.w800,
+                fontWeight: FontWeight.w800,
               ),
             ),
 
             const Text(
               'Management System',
-              style: TextStyle(
-                color:
-                    AppColors.textSecondary,
-                fontSize: 11,
-              ),
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
             ),
           ],
 
-          SizedBox(
-            height: compact ? 28 : 32,
-          ),
+          SizedBox(height: compact ? 28 : 32),
 
           _sidebarItem(
-            icon:
-                Icons.dashboard_outlined,
+            icon: Icons.dashboard_outlined,
             title: 'Dashboard',
             compact: compact,
           ),
 
           _sidebarItem(
-            icon:
-                Icons.settings_outlined,
+            icon: Icons.settings_outlined,
             title: 'Settings',
             selected: true,
             compact: compact,
           ),
 
           _sidebarItem(
-            icon:
-                Icons.grid_view_outlined,
+            icon: Icons.grid_view_outlined,
             title: 'Management',
             compact: compact,
           ),
 
           const Spacer(),
 
-          
-  Container(
-    margin: const EdgeInsets.all(10),
-    padding: const EdgeInsets.all(10),
-    decoration: BoxDecoration(
-      color: const Color(0xFFF4F7FF),
-      borderRadius: BorderRadius.circular(16),
-    ),
-    child: Column(
-      children: [
-        Row(
-          children: [
-            const CircleAvatar(
-              radius: 17,
-              backgroundColor: AppColors.primary,
-              child: Text(
-                'B',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+          Container(
+            margin: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF4F7FF),
+              borderRadius: BorderRadius.circular(16),
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                userName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        const Align(
-          alignment: Alignment.centerLeft,
-          child: Padding(
-            padding: EdgeInsets.only(left: 44),
-            child: Text(
-              'Administrator',
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 10,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 10),
-        InkWell(
-          borderRadius: BorderRadius.circular(10),
-          onTap: () {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const LoginScreen(),
-              ),
-              (route) => false,
-            );
-          },
-          child: const Padding(
-            padding: EdgeInsets.symmetric(vertical: 8),
-            child: Row(
+            child: Column(
               children: [
-                Icon(
-                  Icons.logout_outlined,
-                  color: AppColors.primary,
-                  size: 18,
+                Row(
+                  children: [
+                    const CircleAvatar(
+                      radius: 17,
+                      backgroundColor: AppColors.primary,
+                      child: Text(
+                        'B',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        userName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(width: 10),
-                Text(
-                  'Logout',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                const SizedBox(height: 4),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: EdgeInsets.only(left: 44),
+                    child: Text(
+                      'Administrator',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                InkWell(
+                  borderRadius: BorderRadius.circular(10),
+                  onTap: () {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      (route) => false,
+                    );
+                  },
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.logout_outlined,
+                          color: AppColors.primary,
+                          size: 18,
+                        ),
+                        SizedBox(width: 10),
+                        Text(
+                          'Logout',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-        ),
-      ],
-    ),
-  ),
         ],
       ),
     );
@@ -784,16 +643,10 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
     bool compact = false,
   }) {
     return Container(
-      margin: EdgeInsets.symmetric(
-        horizontal: compact ? 8 : 12,
-        vertical: 4,
-      ),
+      margin: EdgeInsets.symmetric(horizontal: compact ? 8 : 12, vertical: 4),
       decoration: BoxDecoration(
-        color: selected
-            ? AppColors.primarySoft
-            : Colors.transparent,
-        borderRadius:
-            BorderRadius.circular(14),
+        color: selected ? AppColors.primarySoft : Colors.transparent,
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Padding(
         padding: EdgeInsets.symmetric(
@@ -808,9 +661,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
             Icon(
               icon,
               size: 20,
-              color: selected
-                  ? AppColors.primary
-                  : AppColors.textSecondary,
+              color: selected ? AppColors.primary : AppColors.textSecondary,
             ),
 
             if (!compact) ...[
@@ -824,9 +675,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                         ? AppColors.primary
                         : AppColors.textSecondary,
                     fontSize: 14,
-                    fontWeight: selected
-                        ? FontWeight.w700
-                        : FontWeight.w500,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                   ),
                 ),
               ),
@@ -834,8 +683,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
               if (selected)
                 const Icon(
                   Icons.chevron_right,
-                  color:
-                      AppColors.primary,
+                  color: AppColors.primary,
                   size: 19,
                 ),
             ],
@@ -859,7 +707,6 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
         // ==========================================================
         // MOBILE MENU
         // ==========================================================
-
         if (isMobile)
           Builder(
             builder: (drawerContext) {
@@ -867,29 +714,18 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: Colors.white
-                      .withValues(
-                    alpha: 0.75,
-                  ),
-                  borderRadius:
-                      BorderRadius.circular(
-                    13,
-                  ),
-                  border: Border.all(
-                    color: Colors.white,
-                  ),
+                  color: Colors.white.withValues(alpha: 0.75),
+                  borderRadius: BorderRadius.circular(13),
+                  border: Border.all(color: Colors.white),
                 ),
                 child: IconButton(
                   padding: EdgeInsets.zero,
                   onPressed: () {
-                    Scaffold.of(
-                      drawerContext,
-                    ).openDrawer();
+                    Scaffold.of(drawerContext).openDrawer();
                   },
                   icon: const Icon(
                     Icons.menu_rounded,
-                    color:
-                        AppColors.textPrimary,
+                    color: AppColors.textPrimary,
                     size: 22,
                   ),
                 ),
@@ -897,46 +733,29 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
             },
           ),
 
-        if (isMobile)
-          const Spacer(),
+        if (isMobile) const Spacer(),
 
         // ==========================================================
         // SEARCH
         // ==========================================================
-
         if (!isMobile && !isTablet)
           Container(
             width: 220,
             height: 42,
-            decoration:
-                BoxDecoration(
-              color: Colors.white
-                  .withValues(
-                alpha: 0.75,
-              ),
-              borderRadius:
-                  BorderRadius.circular(
-                13,
-              ),
-              border: Border.all(
-                color: Colors.white,
-              ),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.75),
+              borderRadius: BorderRadius.circular(13),
+              border: Border.all(color: Colors.white),
             ),
             child: const Row(
               children: [
                 SizedBox(width: 13),
-                Icon(
-                  Icons.search,
-                  color: AppColors
-                      .textSecondary,
-                  size: 19,
-                ),
+                Icon(Icons.search, color: AppColors.textSecondary, size: 19),
                 SizedBox(width: 9),
                 Text(
                   'Search...',
                   style: TextStyle(
-                    color: AppColors
-                        .textSecondary,
+                    color: AppColors.textSecondary,
                     fontSize: 13,
                   ),
                 ),
@@ -944,32 +763,22 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
             ),
           ),
 
-        if (!isMobile && !isTablet)
-          const SizedBox(width: 14),
+        if (!isMobile && !isTablet) const SizedBox(width: 14),
 
         // ==========================================================
         // NOTIFICATION
         // ==========================================================
-
         Container(
           width: 42,
           height: 42,
           decoration: BoxDecoration(
-            color: Colors.white
-                .withValues(
-              alpha: 0.75,
-            ),
-            borderRadius:
-                BorderRadius.circular(13),
-            border: Border.all(
-              color: Colors.white,
-            ),
+            color: Colors.white.withValues(alpha: 0.75),
+            borderRadius: BorderRadius.circular(13),
+            border: Border.all(color: Colors.white),
           ),
           child: const Icon(
-            Icons
-                .notifications_none_outlined,
-            color:
-                AppColors.textPrimary,
+            Icons.notifications_none_outlined,
+            color: AppColors.textPrimary,
             size: 21,
           ),
         ),
@@ -977,41 +786,26 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
         // ==========================================================
         // PROFILE
         // ==========================================================
-
         if (!isMobile) ...[
           const SizedBox(width: 12),
 
           Container(
-            padding:
-                const EdgeInsets.symmetric(
-              horizontal: 10,
-              vertical: 7,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             decoration: BoxDecoration(
-              color: Colors.white
-                  .withValues(
-                alpha: 0.75,
-              ),
-              borderRadius:
-                  BorderRadius.circular(
-                14,
-              ),
-              border: Border.all(
-                color: Colors.white,
-              ),
+              color: Colors.white.withValues(alpha: 0.75),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.white),
             ),
             child: const Row(
               children: [
                 CircleAvatar(
                   radius: 15,
-                  backgroundColor:
-                      AppColors.primary,
+                  backgroundColor: AppColors.primary,
                   child: Text(
                     'B',
                     style: TextStyle(
                       color: Colors.white,
-                      fontWeight:
-                          FontWeight.w700,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
@@ -1019,20 +813,16 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                 Text(
                   'Owner',
                   style: TextStyle(
-                    color: AppColors
-                        .textPrimary,
+                    color: AppColors.textPrimary,
                     fontSize: 13,
-                    fontWeight:
-                        FontWeight.w600,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 SizedBox(width: 3),
                 Icon(
-                  Icons
-                      .keyboard_arrow_down,
+                  Icons.keyboard_arrow_down,
                   size: 17,
-                  color: AppColors
-                      .textSecondary,
+                  color: AppColors.textSecondary,
                 ),
               ],
             ),
@@ -1046,41 +836,23 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
   // PAGE HEADER
   // ============================================================
 
-  Widget _buildPageHeader({
-    required bool isMobile,
-  }) {
+  Widget _buildPageHeader({required bool isMobile}) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(
-        isMobile ? 16 : 24,
-      ),
+      padding: EdgeInsets.all(isMobile ? 16 : 24),
       decoration: BoxDecoration(
-        borderRadius:
-            BorderRadius.circular(
-          isMobile ? 18 : 22,
-        ),
-        gradient:
-            const LinearGradient(
+        borderRadius: BorderRadius.circular(isMobile ? 18 : 22),
+        gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFFEFF4FF),
-            Color(0xFFF8F6FF),
-          ],
+          colors: [Color(0xFFEFF4FF), Color(0xFFF8F6FF)],
         ),
-        border: Border.all(
-          color: Colors.white,
-        ),
+        border: Border.all(color: Colors.white),
         boxShadow: [
           BoxShadow(
-            color: const Color(
-              0xFF64748B,
-            ).withValues(
-              alpha: 0.06,
-            ),
+            color: const Color(0xFF64748B).withValues(alpha: 0.06),
             blurRadius: 24,
-            offset:
-                const Offset(0, 8),
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -1090,41 +862,28 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
             width: isMobile ? 46 : 56,
             height: isMobile ? 46 : 56,
             decoration: BoxDecoration(
-              color: AppColors.primary
-                  .withValues(
-                alpha: 0.10,
-              ),
-              borderRadius:
-                  BorderRadius.circular(
-                isMobile ? 14 : 17,
-              ),
+              color: AppColors.primary.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(isMobile ? 14 : 17),
             ),
             child: Icon(
               Icons.settings_outlined,
-              color:
-                  AppColors.primary,
+              color: AppColors.primary,
               size: isMobile ? 24 : 29,
             ),
           ),
 
-          SizedBox(
-            width: isMobile ? 12 : 16,
-          ),
+          SizedBox(width: isMobile ? 12 : 16),
 
           Expanded(
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Settings',
                   style: TextStyle(
-                    color:
-                        AppColors.textPrimary,
-                    fontSize:
-                        isMobile ? 24 : 28,
-                    fontWeight:
-                        FontWeight.w800,
+                    color: AppColors.textPrimary,
+                    fontSize: isMobile ? 24 : 28,
+                    fontWeight: FontWeight.w800,
                     letterSpacing: -0.4,
                   ),
                 ),
@@ -1134,8 +893,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                 const Text(
                   'Configure your business, products, customers, deliveries and inventory',
                   style: TextStyle(
-                    color:
-                        AppColors.textSecondary,
+                    color: AppColors.textSecondary,
                     fontSize: 13,
                   ),
                 ),
@@ -1159,110 +917,60 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
   }) {
     return Container(
       width: double.infinity,
-      padding:
-          const EdgeInsets.fromLTRB(
-        16,
-        16,
-        16,
-        18,
-      ),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
       decoration: BoxDecoration(
-        color: Colors.white
-            .withValues(
-          alpha: 0.58,
-        ),
-        borderRadius:
-            BorderRadius.circular(22),
-        border: Border.all(
-          color: Colors.white
-              .withValues(
-            alpha: 0.95,
-          ),
-        ),
+        color: Colors.white.withValues(alpha: 0.58),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.95)),
         boxShadow: [
           BoxShadow(
-            color: const Color(
-              0xFF64748B,
-            ).withValues(
-              alpha: 0.045,
-            ),
+            color: const Color(0xFF64748B).withValues(alpha: 0.045),
             blurRadius: 20,
-            offset:
-                const Offset(0, 7),
+            offset: const Offset(0, 7),
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ========================================================
           // SECTION HEADER
           // ========================================================
-
           Row(
             children: [
               Container(
                 width: 38,
                 height: 38,
-                decoration:
-                    BoxDecoration(
-                  color: AppColors
-                      .primary
-                      .withValues(
-                    alpha: 0.09,
-                  ),
-                  borderRadius:
-                      BorderRadius
-                          .circular(
-                    12,
-                  ),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.09),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  icon,
-                  color:
-                      AppColors.primary,
-                  size: 20,
-                ),
+                child: Icon(icon, color: AppColors.primary, size: 20),
               ),
 
-              const SizedBox(
-                width: 11,
-              ),
+              const SizedBox(width: 11),
 
               Expanded(
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment
-                          .start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
-                      style:
-                          const TextStyle(
-                        color: AppColors
-                            .textPrimary,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
                         fontSize: 17,
-                        fontWeight:
-                            FontWeight
-                                .w700,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
 
-                    const SizedBox(
-                      height: 2,
-                    ),
+                    const SizedBox(height: 2),
 
                     Text(
                       subtitle,
                       maxLines: 2,
-                      overflow:
-                          TextOverflow
-                              .ellipsis,
-                      style:
-                          const TextStyle(
-                        color: AppColors
-                            .textSecondary,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
                         fontSize: 11,
                       ),
                     ),
@@ -1272,50 +980,32 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(
-            height: 14,
-          ),
+          const SizedBox(height: 14),
 
           // ========================================================
           // RESPONSIVE CARDS
           // ========================================================
-
           LayoutBuilder(
-            builder:
-                (context, constraints) {
+            builder: (context, constraints) {
               int columns;
 
-              if (constraints
-                      .maxWidth >=
-                  1000) {
+              if (constraints.maxWidth >= 1000) {
                 columns = 3;
-              } else if (constraints
-                      .maxWidth >=
-                  650) {
+              } else if (constraints.maxWidth >= 650) {
                 columns = 2;
               } else {
                 columns = 1;
               }
 
               final cardWidth =
-                  (constraints
-                          .maxWidth -
-                      ((columns - 1) *
-                          14)) /
-                  columns;
+                  (constraints.maxWidth - ((columns - 1) * 14)) / columns;
 
               return Wrap(
                 spacing: 14,
                 runSpacing: 14,
-                children:
-                    children.map(
-                  (child) {
-                    return SizedBox(
-                      width: cardWidth,
-                      child: child,
-                    );
-                  },
-                ).toList(),
+                children: children.map((child) {
+                  return SizedBox(width: cardWidth, child: child);
+                }).toList(),
               );
             },
           ),
@@ -1340,56 +1030,30 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius:
-            BorderRadius.circular(17),
-        onTap: onTap ??
+        borderRadius: BorderRadius.circular(17),
+        onTap:
+            onTap ??
             () {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(
+              ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(
-                    '$title will be implemented here.',
-                  ),
-                  behavior:
-                      SnackBarBehavior
-                          .floating,
-                  duration:
-                      const Duration(
-                    seconds: 2,
-                  ),
+                  content: Text('$title will be implemented here.'),
+                  behavior: SnackBarBehavior.floating,
+                  duration: const Duration(seconds: 2),
                 ),
               );
             },
         child: Container(
-          constraints:
-              const BoxConstraints(
-            minHeight: 88,
-          ),
-          padding:
-              const EdgeInsets.all(14),
+          constraints: const BoxConstraints(minHeight: 88),
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: AppColors.white
-                .withValues(
-              alpha: 0.72,
-            ),
-            borderRadius:
-                BorderRadius.circular(
-              17,
-            ),
-            border: Border.all(
-              color: AppColors.white,
-            ),
+            color: AppColors.white.withValues(alpha: 0.72),
+            borderRadius: BorderRadius.circular(17),
+            border: Border.all(color: AppColors.white),
             boxShadow: [
               BoxShadow(
-                color: AppColors
-                    .textSecondary
-                    .withValues(
-                  alpha: 0.045,
-                ),
+                color: AppColors.textSecondary.withValues(alpha: 0.045),
                 blurRadius: 15,
-                offset:
-                    const Offset(0, 5),
+                offset: const Offset(0, 5),
               ),
             ],
           ),
@@ -1398,75 +1062,45 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
               // ======================================================
               // ICON
               // ======================================================
-
               Container(
                 width: 48,
                 height: 48,
-                decoration:
-                    BoxDecoration(
-                  color:
-                      iconBackground,
-                  borderRadius:
-                      BorderRadius
-                          .circular(
-                    14,
-                  ),
+                decoration: BoxDecoration(
+                  color: iconBackground,
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(
-                  icon,
-                  color: iconColor,
-                  size: 22,
-                ),
+                child: Icon(icon, color: iconColor, size: 22),
               ),
 
-              const SizedBox(
-                width: 13,
-              ),
+              const SizedBox(width: 13),
 
               // ======================================================
               // TEXT
               // ======================================================
-
               Expanded(
                 child: Column(
-                  mainAxisAlignment:
-                      MainAxisAlignment
-                          .center,
-                  crossAxisAlignment:
-                      CrossAxisAlignment
-                          .start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
                       maxLines: 1,
-                      overflow:
-                          TextOverflow
-                              .ellipsis,
-                      style:
-                          const TextStyle(
-                        color: AppColors
-                            .textPrimary,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
                         fontSize: 14,
-                        fontWeight:
-                            FontWeight
-                                .w700,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
 
-                    const SizedBox(
-                      height: 4,
-                    ),
+                    const SizedBox(height: 4),
 
                     Text(
                       subtitle,
                       maxLines: 2,
-                      overflow:
-                          TextOverflow
-                              .ellipsis,
-                      style:
-                          const TextStyle(
-                        color: AppColors
-                            .textSecondary,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
                         fontSize: 11,
                         height: 1.3,
                       ),
@@ -1475,30 +1109,21 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(
-                width: 8,
-              ),
+              const SizedBox(width: 8),
 
               // ======================================================
               // ARROW
               // ======================================================
-
               Container(
                 width: 28,
                 height: 28,
-                decoration:
-                    const BoxDecoration(
-                  color:
-                      Color(0xFFF5F7FC),
-                  shape:
-                      BoxShape.circle,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF5F7FC),
+                  shape: BoxShape.circle,
                 ),
-                child:
-                    const Icon(
-                  Icons
-                      .chevron_right,
-                  color: AppColors
-                      .textSecondary,
+                child: const Icon(
+                  Icons.chevron_right,
+                  color: AppColors.textSecondary,
                   size: 18,
                 ),
               ),
