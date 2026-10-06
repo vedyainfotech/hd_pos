@@ -6,6 +6,7 @@ import '../../home/sub_categories/screens/sub_category_screens.dart';
 import '../../home/items/screens/items_screens.dart';
 import '../../home/delivery_persons/screens/delivery_person_screens.dart';
 import '../../home/delivery_schedule/screens/delivery_schedule_screen.dart';
+import '../../home/operators_adding/screens/operator_add_screens.dart';
 
 class HomeDeliverySettingsScreen extends StatelessWidget {
   const HomeDeliverySettingsScreen({super.key});
@@ -311,6 +312,14 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                           icon: Icons.group_outlined,
                           iconBackground: const Color(0xFFFFF0DA),
                           iconColor: const Color(0xFFD97706),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const OperatorAddScreen(),
+                              ),
+                            );
+                          },
                         ),
                         _settingCard(
                           context,
