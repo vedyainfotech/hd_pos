@@ -8,6 +8,7 @@ import '../../home/sub_categories/screens/sub_category_screens.dart';
 import '../../home/menu_scheduling/screens/menu_scheduling_screen.dart';
 import '../../auth/screens/login_screen.dart';
 import '../../home/customers/screens/customers_screen.dart';
+import '../../home/kot_settings/screens/kot_settings_screen.dart';
 
 class HomeDeliverySettingsScreen extends StatelessWidget {
   const HomeDeliverySettingsScreen({super.key});
@@ -392,6 +393,23 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                               icon: Icons.group_outlined,
                               iconBackground: const Color(0xFFFFF0DA),
                               iconColor: const Color(0xFFD97706),
+                            ),
+
+                            _settingCard(
+                              context,
+                              title: 'KOT Settings',
+                              subtitle: 'Configure KOT prefix, suffix and numbering',
+                              icon: Icons.receipt_long_outlined,
+                              iconBackground: const Color(0xFFE6F0FF),
+                              iconColor: const Color(0xFF2563EB),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const KotSettingsScreen(),
+                                  ),
+                                );
+                              },
                             ),
 
                             _settingCard(
