@@ -1,13 +1,8 @@
 ﻿import 'package:flutter/material.dart';
-
 import 'package:flutter/services.dart';
-
 import 'package:file_picker/file_picker.dart';
-
 import '../../../../core/theme/theme.dart';
-
 import '../models/delivery_person_model.dart';
-
 import '../services/delivery_person_services.dart';
 
 class DeliveryPersonsScreen extends StatefulWidget {
@@ -19,7 +14,6 @@ class DeliveryPersonsScreen extends StatefulWidget {
 
 class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
   final DeliveryPersonApiService _service = DeliveryPersonApiService();
-
   final TextEditingController _searchController = TextEditingController();
 
   List<DeliveryPersonModel> _deliveryPersons = [];
@@ -31,16 +25,13 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
   @override
   void initState() {
     super.initState();
-
     _loadDeliveryPersons();
-
     _searchController.addListener(_applyFilters);
   }
 
   @override
   void dispose() {
     _searchController.dispose();
-
     super.dispose();
   }
 
@@ -56,7 +47,6 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
 
       setState(() {
         _deliveryPersons = data;
-
         _isLoading = false;
       });
     } catch (e) {
@@ -66,7 +56,7 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
         _isLoading = false;
       });
 
-      _showMessage(e.toString().replaceFirst('Exception: ', ''));
+      _showMessage(e.toString().replaceFirst('Exception: ', ''), isError: true);
     }
   }
 
@@ -97,9 +87,7 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
   Future<void> _openAddDialog() async {
     final result = await showDialog<_DeliveryPersonFormResult>(
       context: context,
-
       barrierDismissible: false,
-
       builder: (_) => const _DeliveryPersonFormDialog(),
     );
 
@@ -108,21 +96,13 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
     try {
       await _service.createDeliveryPerson(
         name: result.name,
-
         contactNumber: result.contactNumber,
-
         bankName: result.bankName,
-
         accountNumber: result.accountNumber,
-
         ifscCode: result.ifscCode,
-
         aadhaarNumber: result.aadhaarNumber,
-
         panCardNumber: result.panCardNumber,
-
         drivingLicense: result.drivingLicense,
-
         identityProofFile: result.identityProofFile!,
       );
 
@@ -134,16 +114,14 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
     } catch (e) {
       if (!mounted) return;
 
-      _showMessage(e.toString().replaceFirst('Exception: ', ''));
+      _showMessage(e.toString().replaceFirst('Exception: ', ''), isError: true);
     }
   }
 
   Future<void> _openEditDialog(DeliveryPersonModel person) async {
     final result = await showDialog<_DeliveryPersonFormResult>(
       context: context,
-
       barrierDismissible: false,
-
       builder: (_) => _DeliveryPersonFormDialog(person: person),
     );
 
@@ -152,23 +130,14 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
     try {
       await _service.updateDeliveryPerson(
         id: person.id,
-
         name: result.name,
-
         contactNumber: result.contactNumber,
-
         bankName: result.bankName,
-
         accountNumber: result.accountNumber,
-
         ifscCode: result.ifscCode,
-
         aadhaarNumber: result.aadhaarNumber,
-
         panCardNumber: result.panCardNumber,
-
         drivingLicense: result.drivingLicense,
-
         status: person.isActive,
       );
 
@@ -180,7 +149,7 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
     } catch (e) {
       if (!mounted) return;
 
-      _showMessage(e.toString().replaceFirst('Exception: ', ''));
+      _showMessage(e.toString().replaceFirst('Exception: ', ''), isError: true);
     }
   }
 
@@ -192,11 +161,16 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
   }
 
   Future<void> _toggleStatus(DeliveryPersonModel person) async {
+    final activate = !person.isActive;
+
+    final confirmed = await _showStatusConfirmation(activate);
+
+    if (!confirmed || !mounted) return;
+
     try {
       final updated = await _service.updateDeliveryPersonStatus(
         person.id,
-
-        !person.isActive,
+        activate,
       );
 
       if (!mounted) return;
@@ -210,53 +184,237 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
           _deliveryPersons[index] = updated;
         }
       });
+
+      _showMessage(
+        activate
+            ? 'Delivery person activated.'
+            : 'Delivery person deactivated.',
+      );
     } catch (e) {
       if (!mounted) return;
 
-      _showMessage(e.toString().replaceFirst('Exception: ', ''));
+      _showMessage(e.toString().replaceFirst('Exception: ', ''), isError: true);
     }
   }
 
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
+  Future<bool> _showStatusConfirmation(bool activate) async {
+    final action = activate ? 'Activate' : 'Deactivate';
+    final actionLower = activate ? 'activate' : 'deactivate';
+
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 24,
+            vertical: 24,
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 545),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(28, 28, 28, 26),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(22),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 78,
+                    height: 78,
+                    decoration: BoxDecoration(
+                      color: activate
+                          ? const Color(0xFFEAF5E8)
+                          : AppColors.primarySoft,
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: Icon(
+                      activate
+                          ? Icons.check_rounded
+                          : Icons.priority_high_rounded,
+                      size: 42,
+                      color: activate
+                          ? const Color(0xFF2E7D32)
+                          : AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    '$action Delivery Person?',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Are you sure you want to $actionLower this delivery person?',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      height: 1.45,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () =>
+                              Navigator.of(dialogContext).pop(false),
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size.fromHeight(54),
+                            foregroundColor: AppColors.textPrimary,
+                            backgroundColor: AppColors.surface,
+                            side: const BorderSide(color: AppColors.border),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () =>
+                              Navigator.of(dialogContext).pop(true),
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size.fromHeight(54),
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text(
+                            action,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
+
+    return result ?? false;
+  }
+
+  void _showMessage(String message, {bool isError = false}) {
+    if (!mounted) return;
+
+    final overlay = Overlay.of(context);
+    late OverlayEntry entry;
+
+    final backgroundColor = isError
+        ? const Color(0xFFFFE5E5)
+        : const Color(0xFFE5F7E9);
+
+    final iconColor = isError
+        ? const Color(0xFFD32F2F)
+        : const Color(0xFF1E9E45);
+
+    final icon = isError ? Icons.close_rounded : Icons.check_rounded;
+
+    entry = OverlayEntry(
+      builder: (context) {
+        return Positioned(
+          top: MediaQuery.of(context).padding.top + 12,
+          right: 16,
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 360),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: backgroundColor,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, size: 22, color: iconColor),
+                  const SizedBox(width: 10),
+                  Flexible(
+                    child: Text(
+                      message,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: iconColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    overlay.insert(entry);
+
+    Future.delayed(const Duration(seconds: 3), () {
+      if (entry.mounted) {
+        entry.remove();
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-
       appBar: AppBar(
         backgroundColor: AppColors.surface,
-
         elevation: 0,
-
         surfaceTintColor: Colors.transparent,
-
         title: const Text(
           'Delivery Persons',
-
           style: TextStyle(
             color: AppColors.textPrimary,
-
             fontSize: 16,
-
             fontWeight: FontWeight.w700,
           ),
         ),
-
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-
           onPressed: () => Navigator.pop(context),
         ),
       ),
-
       body: SafeArea(
         top: false,
-
         child: LayoutBuilder(
           builder: (context, constraints) {
             final horizontalPadding = constraints.maxWidth >= 1100
@@ -268,26 +426,17 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
             return Padding(
               padding: EdgeInsets.fromLTRB(
                 horizontalPadding,
-
                 28,
-
                 horizontalPadding,
-
                 20,
               ),
-
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-
                 children: [
                   _buildHeader(constraints.maxWidth),
-
                   const SizedBox(height: 24),
-
                   _buildFilters(constraints.maxWidth),
-
                   const SizedBox(height: 18),
-
                   Expanded(
                     child: _buildDeliveryPersonsCard(constraints.maxWidth),
                   ),
@@ -306,42 +455,29 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
         const Expanded(
           child: Text(
             'Manage your delivery persons',
-
             style: TextStyle(
-              color: AppColors.textPrimary,
-
-              fontSize: 22,
-
+              color: Colors.grey,
+              fontSize: 15,
               fontWeight: FontWeight.w700,
             ),
           ),
         ),
-
         const SizedBox(width: 16),
-
         SizedBox(
           height: 44,
-
           child: ElevatedButton(
             onPressed: _openAddDialog,
-
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
-
               foregroundColor: Colors.white,
-
               elevation: 0,
-
               padding: const EdgeInsets.symmetric(horizontal: 20),
-
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-
             child: const Text(
-              '+  Add Delivery Person',
-
+              '+  Add ',
               style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
             ),
           ),
@@ -355,41 +491,28 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
 
     final search = SizedBox(
       height: 48,
-
       child: TextField(
         controller: _searchController,
-
         decoration: InputDecoration(
           hintText: 'Search by name or phone number',
-
           hintStyle: const TextStyle(
             color: AppColors.textTertiary,
-
             fontSize: 13,
           ),
-
           filled: true,
-
           fillColor: AppColors.surface,
-
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-
             borderSide: const BorderSide(color: AppColors.border),
           ),
-
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-
             borderSide: const BorderSide(color: AppColors.border),
           ),
-
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-
             borderSide: const BorderSide(color: AppColors.primary, width: 1.2),
           ),
-
           contentPadding: const EdgeInsets.symmetric(horizontal: 14),
         ),
       ),
@@ -400,23 +523,18 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
     return _CardContainer(
       child: Padding(
         padding: const EdgeInsets.all(16),
-
         child: isCompact
             ? Column(
                 children: [
                   search,
-
                   const SizedBox(height: 12),
-
                   Align(alignment: Alignment.centerRight, child: status),
                 ],
               )
             : Row(
                 children: [
                   Expanded(child: search),
-
                   const SizedBox(width: 14),
-
                   status,
                 ],
               ),
@@ -429,52 +547,37 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
 
     return Container(
       height: 44,
-
       padding: const EdgeInsets.all(3),
-
       decoration: BoxDecoration(
         color: AppColors.surfaceSoft,
-
         border: Border.all(color: AppColors.border),
-
         borderRadius: BorderRadius.circular(24),
       ),
-
       child: Row(
         children: options.map((option) {
           final selected = _statusFilter == option;
 
           return SizedBox(
             width: 70,
-
             child: InkWell(
               borderRadius: BorderRadius.circular(20),
-
               onTap: () {
                 setState(() {
                   _statusFilter = option;
                 });
               },
-
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 160),
-
                 alignment: Alignment.center,
-
                 decoration: BoxDecoration(
                   color: selected ? AppColors.primarySoft : Colors.transparent,
-
                   borderRadius: BorderRadius.circular(20),
                 ),
-
                 child: Text(
                   option,
-
                   style: TextStyle(
                     color: selected ? AppColors.primary : AppColors.textPrimary,
-
                     fontSize: 12,
-
                     fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
                   ),
                 ),
@@ -492,25 +595,18 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
     return _CardContainer(
       child: Padding(
         padding: const EdgeInsets.all(18),
-
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-
           children: [
             const Text(
               'Delivery Persons',
-
               style: TextStyle(
                 color: AppColors.textPrimary,
-
                 fontSize: 17,
-
                 fontWeight: FontWeight.w700,
               ),
             ),
-
             const SizedBox(height: 14),
-
             Expanded(
               child: _isLoading
                   ? const Center(
@@ -535,34 +631,25 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
-
           decoration: BoxDecoration(
             color: AppColors.primarySoft,
-
             borderRadius: BorderRadius.circular(10),
           ),
-
           child: const Row(
             children: [
               Expanded(flex: 3, child: Text('Name', style: _headerStyle)),
-
               Expanded(
                 flex: 3,
-
                 child: Text('Phone Number', style: _headerStyle),
               ),
-
               SizedBox(
                 width: 180,
-
                 child: Center(child: Text('Actions', style: _headerStyle)),
               ),
             ],
           ),
         ),
-
         const SizedBox(height: 6),
-
         Expanded(
           child: SingleChildScrollView(
             child: Column(
@@ -577,45 +664,31 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
   Widget _buildDesktopPersonRow(DeliveryPersonModel person) {
     return Container(
       margin: const EdgeInsets.only(bottom: 6),
-
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
-
       decoration: BoxDecoration(
         color: AppColors.surface,
-
         borderRadius: BorderRadius.circular(10),
-
         border: Border.all(color: AppColors.borderLight),
       ),
-
       child: Row(
         children: [
           Expanded(flex: 3, child: Text(person.name, style: _valueStyle)),
-
           Expanded(
             flex: 3,
-
             child: Text(person.contactNumber, style: _valueStyle),
           ),
-
           SizedBox(
             width: 180,
-
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-
               children: [
                 _StatusSwitch(
                   value: person.isActive,
                   onChanged: (_) => _toggleStatus(person),
                 ),
-
                 const SizedBox(width: 10),
-
                 _PreviewButton(onPressed: () => _openPreviewDialog(person)),
-
                 const SizedBox(width: 10),
-
                 _EditButton(onPressed: () => _openEditDialog(person)),
               ],
             ),
@@ -630,49 +703,35 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
       children: persons.map((person) {
         return Container(
           margin: const EdgeInsets.only(bottom: 10),
-
           padding: const EdgeInsets.all(14),
-
           decoration: BoxDecoration(
             color: AppColors.surface,
-
             borderRadius: BorderRadius.circular(14),
-
             border: Border.all(color: AppColors.borderLight),
           ),
-
           child: Row(
             children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-
                   children: [
                     Text(person.name, style: _valueStyle),
-
                     const SizedBox(height: 5),
-
                     Text(
                       person.contactNumber,
-
                       style: const TextStyle(
                         color: AppColors.textSecondary,
-
                         fontSize: 13,
                       ),
                     ),
                   ],
                 ),
               ),
-
               _StatusSwitch(
                 value: person.isActive,
-
                 onChanged: (_) => _toggleStatus(person),
               ),
-
               const SizedBox(width: 10),
-
               _EditButton(onPressed: () => _openEditDialog(person)),
             ],
           ),
@@ -684,13 +743,10 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
   Widget _buildEmptyState() {
     return Container(
       width: double.infinity,
-
       padding: const EdgeInsets.symmetric(vertical: 45),
-
       child: const Center(
         child: Text(
           'No delivery persons found.',
-
           style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
         ),
       ),
@@ -699,57 +755,37 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
 
   static const TextStyle _headerStyle = TextStyle(
     color: AppColors.textPrimary,
-
     fontSize: 12,
-
     fontWeight: FontWeight.w700,
   );
 
   static const TextStyle _valueStyle = TextStyle(
     color: AppColors.textPrimary,
-
     fontSize: 14,
-
     fontWeight: FontWeight.w600,
   );
 }
 
 class _DeliveryPersonFormResult {
   final String name;
-
   final String contactNumber;
-
   final String? bankName;
-
   final String? accountNumber;
-
   final String? ifscCode;
-
   final String? aadhaarNumber;
-
   final String? panCardNumber;
-
   final String? drivingLicense;
-
   final PlatformFile? identityProofFile;
 
   const _DeliveryPersonFormResult({
     required this.name,
-
     required this.contactNumber,
-
     this.bankName,
-
     this.accountNumber,
-
     this.ifscCode,
-
     this.aadhaarNumber,
-
     this.panCardNumber,
-
     this.drivingLicense,
-
     this.identityProofFile,
   });
 }
@@ -823,19 +859,12 @@ class _DeliveryPersonFormDialogState extends State<_DeliveryPersonFormDialog> {
   @override
   void dispose() {
     _nameController.dispose();
-
     _contactController.dispose();
-
     _bankController.dispose();
-
     _accountController.dispose();
-
     _ifscController.dispose();
-
     _aadhaarController.dispose();
-
     _panController.dispose();
-
     _licenseController.dispose();
 
     super.dispose();
@@ -844,7 +873,6 @@ class _DeliveryPersonFormDialogState extends State<_DeliveryPersonFormDialog> {
   Future<void> _pickIdentityProof() async {
     final file = await FilePicker.pickFile(
       type: FileType.custom,
-
       allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png'],
     );
 
@@ -870,7 +898,6 @@ class _DeliveryPersonFormDialogState extends State<_DeliveryPersonFormDialog> {
 
     setState(() {
       _identityProofFile = file;
-
       _identityProofError = null;
     });
   }
@@ -898,24 +925,15 @@ class _DeliveryPersonFormDialogState extends State<_DeliveryPersonFormDialog> {
 
     Navigator.pop(
       context,
-
       _DeliveryPersonFormResult(
         name: _nameController.text.trim(),
-
         contactNumber: _contactController.text.trim(),
-
         bankName: _bankController.text.trim(),
-
         accountNumber: _accountController.text.trim(),
-
         ifscCode: _ifscController.text.trim(),
-
         aadhaarNumber: _aadhaarController.text.trim(),
-
         panCardNumber: _panController.text.trim(),
-
         drivingLicense: _licenseController.text.trim(),
-
         identityProofFile: _identityProofFile,
       ),
     );
@@ -923,187 +941,149 @@ class _DeliveryPersonFormDialogState extends State<_DeliveryPersonFormDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.sizeOf(context).height;
+
+    final dialogHeight = screenHeight >= 790 ? 740.0 : screenHeight - 48.0;
+
     return Dialog(
       backgroundColor: Colors.transparent,
-
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 820),
-
-        child: Material(
-          color: AppColors.surface,
-
-          borderRadius: BorderRadius.circular(20),
-
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(28, 24, 28, 22),
-
-            child: Form(
-              key: _formKey,
-
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-
-                          children: [
-                            Text(
-                              isEdit
-                                  ? 'Edit Delivery Person'
-                                  : 'Add Delivery Person',
-
-                              style: const TextStyle(
-                                color: AppColors.textPrimary,
-
-                                fontSize: 20,
-
-                                fontWeight: FontWeight.w700,
+        constraints: BoxConstraints(maxWidth: 860, maxHeight: dialogHeight),
+        child: SizedBox(
+          width: double.infinity,
+          height: dialogHeight,
+          child: Material(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(20),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(28, 24, 28, 22),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                isEdit
+                                    ? 'Edit Delivery Person'
+                                    : 'Add Delivery Person',
+                                style: const TextStyle(
+                                  color: AppColors.textPrimary,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
-                            ),
-
-                            const SizedBox(height: 4),
-
-                            Text(
-                              isEdit
-                                  ? 'Update delivery person details'
-                                  : 'Add a new delivery person',
-
-                              style: const TextStyle(
-                                color: AppColors.textSecondary,
-
-                                fontSize: 12,
+                              const SizedBox(height: 4),
+                              Text(
+                                isEdit
+                                    ? 'Update delivery person details'
+                                    : 'Add a new delivery person',
+                                style: const TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 12,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-
-                      IconButton(
-                        onPressed: () => Navigator.pop(context),
-
-                        icon: const Icon(
-                          Icons.close,
-
-                          color: AppColors.textSecondary,
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(
+                            Icons.close,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final twoColumns = constraints.maxWidth >= 620;
 
-                  const SizedBox(height: 20),
+                            if (!twoColumns) {
+                              return Column(
+                                children: [
+                                  ..._buildFields(oneColumn: true),
+                                  const SizedBox(height: 18),
+                                  _buildIdentityProofSection(),
+                                ],
+                              );
+                            }
 
-                  Flexible(
-                    child: SingleChildScrollView(
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          final twoColumns = constraints.maxWidth >= 620;
+                            final fields = _buildFields(oneColumn: false);
 
-                          if (!twoColumns) {
                             return Column(
                               children: [
-                                ..._buildFields(oneColumn: true),
-
+                                GridView.count(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 20,
+                                  mainAxisSpacing: 12,
+                                  childAspectRatio: 4.3,
+                                  children: fields,
+                                ),
                                 const SizedBox(height: 18),
-
                                 _buildIdentityProofSection(),
                               ],
                             );
-                          }
-
-                          final fields = _buildFields(oneColumn: false);
-
-                          return Column(
-                            children: [
-                              GridView.count(
-                                shrinkWrap: true,
-
-                                physics: const NeverScrollableScrollPhysics(),
-
-                                crossAxisCount: 2,
-
-                                crossAxisSpacing: 20,
-
-                                mainAxisSpacing: 12,
-
-                                childAspectRatio: 4.8,
-
-                                children: fields,
-                              ),
-
-                              const SizedBox(height: 18),
-
-                              _buildIdentityProofSection(),
-                            ],
-                          );
-                        },
+                          },
+                        ),
                       ),
                     ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.pop(context),
-
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: const Size.fromHeight(46),
-
-                            foregroundColor: AppColors.textPrimary,
-
-                            side: const BorderSide(color: AppColors.border),
-
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size.fromHeight(46),
+                              foregroundColor: AppColors.textPrimary,
+                              side: const BorderSide(color: AppColors.border),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: const Text(
+                              'Cancel',
+                              style: TextStyle(fontWeight: FontWeight.w600),
                             ),
                           ),
-
-                          child: const Text(
-                            'Cancel',
-
-                            style: TextStyle(fontWeight: FontWeight.w600),
-                          ),
                         ),
-                      ),
-
-                      const SizedBox(width: 12),
-
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: _submit,
-
-                          style: ElevatedButton.styleFrom(
-                            minimumSize: const Size.fromHeight(46),
-
-                            backgroundColor: AppColors.primary,
-
-                            foregroundColor: Colors.white,
-
-                            elevation: 0,
-
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: _submit,
+                            style: ElevatedButton.styleFrom(
+                              minimumSize: const Size.fromHeight(46),
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: Text(
+                              isEdit ? 'Update' : 'Save',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
-
-                          child: Text(
-                            isEdit ? 'Update' : 'Save',
-
-                            style: const TextStyle(fontWeight: FontWeight.w700),
-                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -1116,116 +1096,80 @@ class _DeliveryPersonFormDialogState extends State<_DeliveryPersonFormDialog> {
     final fields = [
       _formField(
         label: 'Name',
-
         controller: _nameController,
-
         requiredField: true,
-
         hint: 'Enter Name',
+        maxLength: 50,
+        onChanged: (_) {
+          setState(() {});
+        },
       ),
-
       _formField(
         label: 'Contact Number',
-
         controller: _contactController,
-
         requiredField: true,
-
         hint: 'Enter Contact Number',
-
         keyboardType: TextInputType.phone,
-
         inputFormatters: [
           FilteringTextInputFormatter.digitsOnly,
-
           LengthLimitingTextInputFormatter(10),
         ],
       ),
-
       _formField(
         label: 'Bank Name',
-
         controller: _bankController,
-
         hint: 'Enter Bank Name',
+        inputFormatters: [
+          FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z ]')),
+        ],
       ),
-
       _formField(
         label: 'Account Number',
-
         controller: _accountController,
-
         hint: 'Enter Account Number',
-
         keyboardType: TextInputType.number,
-
         inputFormatters: [
           FilteringTextInputFormatter.digitsOnly,
-
           LengthLimitingTextInputFormatter(18),
         ],
       ),
-
       _formField(
         label: 'IFSC Code',
-
         controller: _ifscController,
-
         hint: 'Enter IFSC Code',
-
         inputFormatters: [
           FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
-
           LengthLimitingTextInputFormatter(11),
-
           _UpperCaseTextFormatter(),
         ],
       ),
-
       _formField(
         label: 'Aadhaar Number',
-
         controller: _aadhaarController,
-
         hint: 'Enter Aadhaar Number',
-
         keyboardType: TextInputType.number,
-
         inputFormatters: [
           FilteringTextInputFormatter.digitsOnly,
-
           LengthLimitingTextInputFormatter(12),
         ],
       ),
-
       _formField(
         label: 'PAN Card Number',
-
         controller: _panController,
-
         hint: 'Enter PAN Card Number',
-
         inputFormatters: [
           FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
-
           LengthLimitingTextInputFormatter(10),
-
           _UpperCaseTextFormatter(),
         ],
       ),
-
       _formField(
         label: 'Driving License',
-
         controller: _licenseController,
-
         hint: 'Enter Driving License Number',
-
         inputFormatters: [
           FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9/-]')),
-
           LengthLimitingTextInputFormatter(20),
-
           _UpperCaseTextFormatter(),
         ],
       ),
@@ -1236,7 +1180,6 @@ class _DeliveryPersonFormDialogState extends State<_DeliveryPersonFormDialog> {
           .map(
             (field) => Padding(
               padding: const EdgeInsets.only(bottom: 12),
-
               child: field,
             ),
           )
@@ -1251,119 +1194,82 @@ class _DeliveryPersonFormDialogState extends State<_DeliveryPersonFormDialog> {
 
     return Container(
       width: double.infinity,
-
       padding: const EdgeInsets.all(16),
-
       decoration: BoxDecoration(
         color: AppColors.surfaceSoft,
-
         borderRadius: BorderRadius.circular(12),
-
         border: Border.all(
           color: _identityProofError != null
               ? AppColors.error
               : AppColors.border,
         ),
       ),
-
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-
         children: [
           const Text(
             'Identity Proof',
-
             style: TextStyle(
               color: AppColors.textPrimary,
-
               fontSize: 14,
-
               fontWeight: FontWeight.w700,
             ),
           ),
-
           const SizedBox(height: 5),
-
           const Text(
             'Upload one identity proof document.',
-
             style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
           ),
-
           const SizedBox(height: 12),
-
           Row(
             children: [
               OutlinedButton(
                 onPressed: _pickIdentityProof,
-
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size(0, 42),
-
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-
                   foregroundColor: AppColors.primary,
-
                   side: const BorderSide(color: AppColors.primary),
-
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-
                 child: Text(
                   file == null ? 'Choose Document' : 'Change Document',
                 ),
               ),
-
               if (file != null) ...[
                 const SizedBox(width: 12),
-
                 Expanded(
                   child: Text(
                     file.name,
-
                     maxLines: 2,
-
                     overflow: TextOverflow.ellipsis,
-
                     style: const TextStyle(
                       color: AppColors.textPrimary,
-
                       fontSize: 12,
-
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
-
                 const SizedBox(width: 8),
-
                 TextButton(
                   onPressed: _removeIdentityProof,
-
                   style: TextButton.styleFrom(foregroundColor: AppColors.error),
-
                   child: const Text('Remove'),
                 ),
               ],
             ],
           ),
-
           const SizedBox(height: 8),
-
           const Text(
             'PDF, JPG, JPEG, PNG • Maximum file size: 10 MB',
-
             style: TextStyle(color: AppColors.textTertiary, fontSize: 11),
           ),
-
           if (_identityProofError != null) ...[
             const SizedBox(height: 6),
-
             Text(
               _identityProofError!,
-
               style: const TextStyle(color: AppColors.error, fontSize: 11),
             ),
           ],
@@ -1374,72 +1280,50 @@ class _DeliveryPersonFormDialogState extends State<_DeliveryPersonFormDialog> {
 
   Widget _formField({
     required String label,
-
     required TextEditingController controller,
-
     required String hint,
-
     bool requiredField = false,
-
     TextInputType? keyboardType,
-
     List<TextInputFormatter>? inputFormatters,
+    int? maxLength,
+    ValueChanged<String>? onChanged,
   }) {
     return TextFormField(
       controller: controller,
-
       keyboardType: keyboardType,
-
       inputFormatters: inputFormatters,
-
+      maxLength: maxLength,
+      onChanged: onChanged,
       textInputAction: TextInputAction.next,
-
       autovalidateMode: AutovalidateMode.onUserInteraction,
-
       decoration: InputDecoration(
         labelText: requiredField ? '$label *' : label,
-
         hintText: hint,
-
         labelStyle: const TextStyle(
           color: AppColors.textPrimary,
-
           fontSize: 12,
-
           fontWeight: FontWeight.w600,
         ),
-
         hintStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 12),
-
         filled: true,
-
         fillColor: AppColors.inputBackground,
-
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 14,
-
           vertical: 12,
         ),
-
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-
           borderSide: const BorderSide(color: AppColors.border),
         ),
-
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-
           borderSide: const BorderSide(color: AppColors.border),
         ),
-
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-
           borderSide: const BorderSide(color: AppColors.primary, width: 1.2),
         ),
       ),
-
       validator: (value) {
         final text = value?.trim() ?? '';
 
@@ -1452,18 +1336,22 @@ class _DeliveryPersonFormDialogState extends State<_DeliveryPersonFormDialog> {
         }
 
         switch (label) {
+          case 'Name':
+            if (text.length > 50) {
+              return 'Name must not exceed 50 characters';
+            }
+            break;
+
           case 'Contact Number':
             if (!RegExp(r'^[06789][0-9]{9}$').hasMatch(text)) {
               return 'Enter exactly 10 digits starting with 0, 6, 7, 8 or 9';
             }
-
             break;
 
           case 'Account Number':
             if (!RegExp(r'^[0-9]{6,18}$').hasMatch(text)) {
               return 'Enter 6 to 18 digits';
             }
-
             break;
 
           case 'IFSC Code':
@@ -1472,14 +1360,12 @@ class _DeliveryPersonFormDialogState extends State<_DeliveryPersonFormDialog> {
             ).hasMatch(text.toUpperCase())) {
               return 'Enter a valid 11-character IFSC code';
             }
-
             break;
 
           case 'Aadhaar Number':
             if (!RegExp(r'^[0-9]{12}$').hasMatch(text)) {
               return 'Enter exactly 12 digits';
             }
-
             break;
 
           case 'PAN Card Number':
@@ -1488,14 +1374,12 @@ class _DeliveryPersonFormDialogState extends State<_DeliveryPersonFormDialog> {
             ).hasMatch(text.toUpperCase())) {
               return 'Enter a valid PAN (e.g. ABCDE1234F)';
             }
-
             break;
 
           case 'Driving License':
             if (!RegExp(r'^[A-Z0-9/-]{5,20}$').hasMatch(text.toUpperCase())) {
               return 'Enter a valid driving licence number';
             }
-
             break;
         }
 
@@ -1509,14 +1393,11 @@ class _UpperCaseTextFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
     TextEditingValue oldValue,
-
     TextEditingValue newValue,
   ) {
     return TextEditingValue(
       text: newValue.text.toUpperCase(),
-
       selection: newValue.selection,
-
       composing: newValue.composing,
     );
   }
@@ -1524,7 +1405,6 @@ class _UpperCaseTextFormatter extends TextInputFormatter {
 
 class _StatusSwitch extends StatelessWidget {
   final bool value;
-
   final ValueChanged<bool> onChanged;
 
   const _StatusSwitch({required this.value, required this.onChanged});
@@ -1533,17 +1413,11 @@ class _StatusSwitch extends StatelessWidget {
   Widget build(BuildContext context) {
     return Switch(
       value: value,
-
       onChanged: onChanged,
-
       activeTrackColor: AppColors.primary,
-
       activeThumbColor: Colors.white,
-
       inactiveTrackColor: Colors.white,
-
       inactiveThumbColor: AppColors.textTertiary,
-
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
     );
   }
@@ -1558,26 +1432,18 @@ class _EditButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: 42,
-
       height: 38,
-
       child: OutlinedButton(
         onPressed: onPressed,
-
         style: OutlinedButton.styleFrom(
           foregroundColor: Colors.black,
-
           backgroundColor: Colors.transparent,
-
           side: BorderSide.none,
-
           padding: EdgeInsets.zero,
-
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
         ),
-
         child: const Icon(Icons.edit_outlined, size: 18, color: Colors.black),
       ),
     );
@@ -1813,25 +1679,18 @@ class _CardContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-
       decoration: BoxDecoration(
         color: AppColors.surface,
-
         borderRadius: BorderRadius.circular(18),
-
         border: Border.all(color: AppColors.borderLight),
-
         boxShadow: [
           BoxShadow(
             color: AppColors.textSecondary.withValues(alpha: 0.035),
-
             blurRadius: 18,
-
             offset: const Offset(0, 5),
           ),
         ],
       ),
-
       child: child,
     );
   }
