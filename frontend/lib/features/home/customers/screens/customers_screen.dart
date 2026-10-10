@@ -25,14 +25,28 @@ class _CustomersScreenState extends State<CustomersScreen> {
     super.dispose();
   }
 
-  void _openAddCustomer() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const AddCustomerScreen(),
-      ),
-    );
+
+
+
+Future<void> _openAddCustomer() async {
+  final result = await Navigator.push<bool>(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const AddCustomerScreen(),
+    ),
+  );
+
+  if (!mounted) return;
+
+  if (result == true) {
+    _showSuccessToast('Customer added successfully');
   }
+}
+
+
+
+
+
 
   List<Customer> _filterCustomers(
     List<Customer> customers,
@@ -56,6 +70,82 @@ class _CustomersScreenState extends State<CustomersScreen> {
           phoneMatches;
     }).toList();
   }
+
+
+void _showSuccessToast(String message) {
+  final overlay = Overlay.of(context);
+  late OverlayEntry overlayEntry;
+
+ 
+overlayEntry = OverlayEntry(
+  builder: (overlayContext) {
+    final screenWidth = MediaQuery.of(overlayContext).size.width;
+    final isMobile = screenWidth < 600;
+
+    return Positioned(
+      top: MediaQuery.of(overlayContext).padding.top + 12,
+      right: isMobile ? 12 : 16,
+      left: screenWidth < 380 ? 12 : null,
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          constraints: BoxConstraints(
+            maxWidth: isMobile ? screenWidth - 24 : 320,
+          ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 9,
+          ),
+          decoration: BoxDecoration(
+            color: const Color(0xFFE8F5E9),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: const Color(0xFFC8E6C9),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.10),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.check_circle,
+                color: Color(0xFF2E7D32),
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  message,
+                  style: const TextStyle(
+                    color: Color(0xFF1B5E20),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+
+  overlay.insert(overlayEntry);
+
+  Future.delayed(const Duration(seconds: 3), () {
+    overlayEntry.remove();
+    overlayEntry.dispose();
+  });
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -179,154 +269,157 @@ class _CustomersScreenState extends State<CustomersScreen> {
     );
   }
 
-  Widget _buildCustomerList(
-    List<Customer> customers, {
-    required bool isMobile,
-    required bool isTablet,
-  }) {
-    if (isMobile) {
-      return ListView.separated(
-        padding: const EdgeInsets.only(bottom: 20),
-        itemCount: customers.length,
-        separatorBuilder: (_, __) =>
-            const SizedBox(height: 12),
-        itemBuilder: (context, index) {
-          return _buildCustomerCard(
-            customers[index],
-          );
-        },
-      );
-    }
+ 
+Widget _buildCustomerList(
+  List<Customer> customers, {
+  required bool isMobile,
+  required bool isTablet,
+}) {
 
-    final columns = isTablet ? 2 : 3;
+if (isMobile) {
+  return GridView.builder(
+    padding: const EdgeInsets.only(bottom: 20),
+    gridDelegate:
+        const SliverGridDelegateWithFixedCrossAxisCount(
+      crossAxisCount: 2,
+      crossAxisSpacing: 10,
+      mainAxisSpacing: 10,
+      childAspectRatio: 1.35,
+    ),
+    itemCount: customers.length,
+    itemBuilder: (context, index) {
+      return _buildCustomerCard(customers[index]);
+    },
+  );
+}
 
-    return GridView.builder(
-      padding: const EdgeInsets.only(bottom: 20),
-      gridDelegate:
-          SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: columns,
-        crossAxisSpacing: 14,
-        mainAxisSpacing: 14,
-        childAspectRatio: 1.8,
-      ),
-      itemCount: customers.length,
-      itemBuilder: (context, index) {
-        return _buildCustomerCard(
-          customers[index],
-        );
-      },
-    );
-  }
 
-  Widget _buildCustomerCard(
-    Customer customer,
-  ) {
-    final phone = customer.phoneNumbers.isNotEmpty
-        ? customer.phoneNumbers.first
-        : 'No phone number';
 
-    final address = customer.addresses.isNotEmpty
-        ? customer.addresses.first
-        : null;
+return GridView.builder(
+  padding: const EdgeInsets.only(bottom: 20),
+  gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+    maxCrossAxisExtent: isTablet ? 320 : 280,
+    crossAxisSpacing: 12,
+    mainAxisSpacing: 10,
+    childAspectRatio: 3.0,
+  ),
+  itemCount: customers.length,
+  itemBuilder: (context, index) {
+    return _buildCustomerCard(customers[index]);
+  },
+);
 
-    final addressText = address == null
-        ? 'No address'
-        : _formatAddress(address);
+}
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => CustomerDetailsScreen(
-                customer: customer,
-              ),
-            ),
-          );
-        },
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: AppColors.border,
+
+
+Widget _buildCustomerCard(Customer customer) {
+  final phone = customer.phoneNumbers.isNotEmpty
+      ? customer.phoneNumbers.first
+      : 'No phone number';
+
+  return Material(
+    color: Colors.transparent,
+    child: InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CustomerDetailsScreen(
+              customer: customer,
             ),
           ),
-          child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
-            children: [
-              Row(
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 10,
+          vertical: 6,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: AppColors.border,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.primarySoft,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: Text(
+                  customer.name.trim().isEmpty
+                      ? '?'
+                      : customer.name.trim()[0].toUpperCase(),
+                  style: const TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 17,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: AppColors.primarySoft,
-                      borderRadius:
-                          BorderRadius.circular(12),
+                  Text(
+                    customer.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
                     ),
-                    child: Center(
-                      child: Text(
-                        customer.name.isEmpty
-                            ? '?'
-                            : customer.name[0]
-                                .toUpperCase(),
-                        style: const TextStyle(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 18,
+                  ),
+                  const SizedBox(height: 5),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.phone_outlined,
+                        size: 15,
+                        color: AppColors.icon,
+                      ),
+                      const SizedBox(width: 7),
+                      Expanded(
+                        child: Text(
+                          phone,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-
-                  const SizedBox(width: 12),
-
-                  Expanded(
-                    child: Text(
-                      customer.name,
-                      maxLines: 1,
-                      overflow:
-                          TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-
-                  const Icon(
-                    Icons.chevron_right,
-                    color: AppColors.textSecondary,
+                    ],
                   ),
                 ],
               ),
-
-              const SizedBox(height: 14),
-
-              _customerInfoRow(
-                Icons.phone_outlined,
-                phone,
-              ),
-
-              const SizedBox(height: 8),
-
-              _customerInfoRow(
-                Icons.location_on_outlined,
-                addressText,
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(
+              Icons.chevron_right,
+              color: AppColors.textSecondary,
+              size: 21,
+            ),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   Widget _customerInfoRow(
     IconData icon,

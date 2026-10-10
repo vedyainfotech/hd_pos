@@ -135,6 +135,103 @@ class _MenuSchedulingScreenState extends State<MenuSchedulingScreen> {
     });
   }
 
+  Future<bool> showUpdateConfirmation({
+  required String meal,
+}) async {
+  final result = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) {
+      return AlertDialog(
+        title: const Text('Update Menu?'),
+        content: Text(
+          'Are you sure you want to update the $meal menu '
+          'for $formattedDate?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext, false);
+            },
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(dialogContext, true);
+            },
+            child: const Text('Yes, Update'),
+          ),
+        ],
+      );
+    },
+  );
+
+  return result ?? false;
+}
+
+void showSuccessAlert(String message) {
+  final overlay = Overlay.of(context);
+
+  late OverlayEntry overlayEntry;
+
+  overlayEntry = OverlayEntry(
+    builder: (context) {
+      return Positioned(
+        top: 14,
+        right: 18,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 18,
+              vertical: 12,
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE8F7ED),
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 14,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.check_circle,
+                  color: Color(0xFF2E9D50),
+                  size: 23,
+                ),
+
+                const SizedBox(width: 9),
+
+                Text(
+                  message,
+                  style: const TextStyle(
+                    color: Color(0xFF2E9D50),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
+
+  overlay.insert(overlayEntry);
+
+  Future.delayed(const Duration(seconds: 3), () {
+    if (overlayEntry.mounted) {
+      overlayEntry.remove();
+    }
+  });
+}
+
   Future<void> selectDate() async {
   final pickedDate = await showDatePicker(
     context: context,
@@ -209,14 +306,26 @@ class _MenuSchedulingScreenState extends State<MenuSchedulingScreen> {
       // STEP 3: SUBMIT
       // ------------------------------------------------------------
 
-      if (submitted == true) {
-        setState(() {
-          menus[meal] = groups;
-        });
+   if (submitted == true) {
+  final confirmed = await showUpdateConfirmation(
+    meal: meal,
+  );
 
-        return;
-      }
+  if (!confirmed) {
+    // Stay on preview
+    continue;
+  }
 
+setState(() {
+  menus[meal] = groups;
+});
+
+if (!mounted) return;
+
+showSuccessAlert('Menu added successfully');
+
+return;
+}                 
       // ------------------------------------------------------------
       // STEP 4: BACK
       // ------------------------------------------------------------
@@ -268,14 +377,26 @@ class _MenuSchedulingScreenState extends State<MenuSchedulingScreen> {
         ),
       );
 
-      if (submitted == true) {
-        // Only now save the changes
-        setState(() {
-          menus[meal] = groups;
-        });
+    if (submitted == true) {
+  final confirmed = await showUpdateConfirmation(
+    meal: meal,
+  );
 
-        return;
-      }
+  if (!confirmed) {
+    // Stay on preview
+    continue;
+  }
+
+setState(() {
+  menus[meal] = groups;
+});
+
+if (!mounted) return;
+
+showSuccessAlert('Menu updated successfully');
+
+return;
+}
 
       // submitted == false
       // Preview Back → open Edit again

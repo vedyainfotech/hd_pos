@@ -5,6 +5,7 @@ import '../services/customer_store.dart';
 import 'package:countrify/countrify.dart';
 import '../services/location_service.dart';
 import '../services/area_store.dart';
+import 'package:flutter/services.dart';
 
 class AddCustomerScreen extends StatefulWidget {
   final Customer? customer;
@@ -22,6 +23,11 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
     TextEditingController(),
   ];
   final List<_AddressFormData> _addresses = [];
+
+  static const double _addressInputHeight = 56;
+static const double _addressLabelGap = 7;
+static const double _addressFieldGap = 10;
+static const double _addressErrorHeight = 18;
 
 List<Country> _countries = [];
 
@@ -133,316 +139,11 @@ void _showAddAreaDialog(_AddressFormData address) {
     controller.dispose();
   });
 }
-void _showCountryPicker(_AddressFormData address) {
-  final searchController = TextEditingController();
-  List<Country> filteredCountries = List.from(_countries);
 
-  showDialog(
-    context: context,
-    builder: (dialogContext) {
-      return StatefulBuilder(
-        builder: (context, setDialogState) {
-          return AlertDialog(
-            title: const Text('Select Country'),
-            content: SizedBox(
-              width: 420,
-              height: 420,
-              child: Column(
-                children: [
-                  TextField(
-                    controller: searchController,
-                    autofocus: true,
-                    decoration: InputDecoration(
-                      hintText: 'Search country...',
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: searchController.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                searchController.clear();
 
-                                setDialogState(() {
-                                  filteredCountries = List.from(_countries);
-                                });
-                              },
-                            )
-                          : null,
-                    ),
-                    onChanged: (value) {
-                      final query = value.trim().toLowerCase();
 
-                      setDialogState(() {
-                        filteredCountries = _countries.where((country) {
-                          return country.name.toLowerCase().contains(query);
-                        }).toList();
-                      });
-                    },
-                  ),
 
-                  const SizedBox(height: 12),
 
-                  Expanded(
-                    child: filteredCountries.isEmpty
-                        ? const Center(
-                            child: Text('No countries found'),
-                          )
-                        : ListView.separated(
-                            itemCount: filteredCountries.length,
-                            separatorBuilder: (_, __) =>
-                                const Divider(height: 1),
-                            itemBuilder: (context, index) {
-                              final country = filteredCountries[index];
-
-                              final isSelected =
-                                  address.selectedCountry ==
-                                      country.alpha2Code;
-
-                              return ListTile(
-                                dense: true,
-                                title: Text(country.name),
-                                trailing: isSelected
-                                    ? const Icon(
-                                        Icons.check,
-                                        color: AppColors.primary,
-                                      )
-                                    : null,
-                                onTap: () {
-                                  setState(() {
-                                    address.selectedCountry =
-                                        country.alpha2Code;
-                                  });
-
-                                  Navigator.pop(dialogContext);
-
-                                  _loadStatesForAddress(
-                                    address,
-                                    country.alpha2Code,
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    },
-  ).then((_) {
-    searchController.dispose();
-  });
-}
-
-void _showStatePicker(_AddressFormData address) {
-  final searchController = TextEditingController();
-  List<CountryState> filteredStates = List.from(address.states);
-
-  showDialog(
-    context: context,
-    builder: (dialogContext) {
-      return StatefulBuilder(
-        builder: (context, setDialogState) {
-          return AlertDialog(
-            title: const Text('Select State'),
-            content: SizedBox(
-              width: 420,
-              height: 420,
-              child: Column(
-                children: [
-                  TextField(
-                    controller: searchController,
-                    autofocus: true,
-                    decoration: InputDecoration(
-                      hintText: 'Search state...',
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: searchController.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                searchController.clear();
-
-                                setDialogState(() {
-                                  filteredStates =
-                                      List.from(address.states);
-                                });
-                              },
-                            )
-                          : null,
-                    ),
-                    onChanged: (value) {
-                      final query = value.trim().toLowerCase();
-
-                      setDialogState(() {
-                        filteredStates = address.states.where((state) {
-                          return state.name.toLowerCase().contains(query);
-                        }).toList();
-                      });
-                    },
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  Expanded(
-                    child: filteredStates.isEmpty
-                        ? const Center(
-                            child: Text('No states found'),
-                          )
-                        : ListView.separated(
-                            itemCount: filteredStates.length,
-                            separatorBuilder: (_, __) =>
-                                const Divider(height: 1),
-                            itemBuilder: (context, index) {
-                              final state = filteredStates[index];
-
-                              final isSelected =
-                                  address.selectedState == state.name;
-
-                              return ListTile(
-                                dense: true,
-                                title: Text(state.name),
-                                trailing: isSelected
-                                    ? const Icon(
-                                        Icons.check,
-                                        color: AppColors.primary,
-                                      )
-                                    : null,
-                                onTap: () {
-                                  setState(() {
-                                    address.selectedState = state.name;
-                                  });
-
-                                  Navigator.pop(dialogContext);
-
-                                  _loadDistrictsForAddress(
-                                    address,
-                                    state.name,
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    },
-  ).then((_) {
-    searchController.dispose();
-  });
-}
-
-void _showDistrictPicker(_AddressFormData address) {
-  final searchController = TextEditingController();
-  List<String> filteredDistricts = List.from(address.districts);
-
-  showDialog(
-    context: context,
-    builder: (dialogContext) {
-      return StatefulBuilder(
-        builder: (context, setDialogState) {
-          return AlertDialog(
-            title: const Text('Select District'),
-            content: SizedBox(
-              width: 420,
-              height: 420,
-              child: Column(
-                children: [
-                  TextField(
-                    controller: searchController,
-                    autofocus: true,
-                    decoration: InputDecoration(
-                      hintText: 'Search district...',
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: searchController.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                searchController.clear();
-
-                                setDialogState(() {
-                                  filteredDistricts =
-                                      List.from(address.districts);
-                                });
-                              },
-                            )
-                          : null,
-                    ),
-                    onChanged: (value) {
-                      final query = value.trim().toLowerCase();
-
-                      setDialogState(() {
-                        filteredDistricts =
-                            address.districts.where((district) {
-                          return district
-                              .toLowerCase()
-                              .contains(query);
-                        }).toList();
-                      });
-                    },
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  Expanded(
-                    child: filteredDistricts.isEmpty
-                        ? const Center(
-                            child: Text('No districts found'),
-                          )
-                        : ListView.separated(
-                            itemCount: filteredDistricts.length,
-                            separatorBuilder: (_, __) =>
-                                const Divider(height: 1),
-                            itemBuilder: (context, index) {
-                              final district =
-                                  filteredDistricts[index];
-
-                              final isSelected =
-                                  address.selectedDistrict ==
-                                      district;
-
-                              return ListTile(
-                                dense: true,
-                                title: Text(district),
-                                trailing: isSelected
-                                    ? const Icon(
-                                        Icons.check,
-                                        color: AppColors.primary,
-                                      )
-                                    : null,
-                                onTap: () {
-                                  setState(() {
-                                    address.selectedDistrict =
-                                        district;
-
-                                    // Clear area because the
-                                    // district has changed.
-                                    address.selectedArea = null;
-                                    address.areas = [];
-                                    address.areaController.clear();
-                                  });
-
-                                  Navigator.pop(dialogContext);
-                                },
-                              );
-                            },
-                          ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    },
-  ).then((_) {
-    searchController.dispose();
-  });
-}
 
 void _showAreaPicker(_AddressFormData address) {
   final searchController = TextEditingController();
@@ -569,6 +270,354 @@ List<String> _getAvailableAreas(_AddressFormData address) {
     ...address.areas,
     ...customAreas,
   }.toList();
+}
+
+void _showDistrictPicker(_AddressFormData address) {
+  final searchController = TextEditingController();
+  List<String> filteredDistricts = List.from(address.districts);
+
+  showDialog(
+    context: context,
+    builder: (dialogContext) {
+      return StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            title: Row(
+                children: [
+                  const Expanded(
+                    child: Text('Select District'),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () {
+                      Navigator.pop(dialogContext);
+                    },
+                  ),
+                ],
+              ),
+            content: SizedBox(
+              width: 420,
+              height: 420,
+              child: Column(
+                children: [
+                  TextField(
+                    controller: searchController,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      hintText: 'Search district...',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                searchController.clear();
+
+                                setDialogState(() {
+                                  filteredDistricts =
+                                      List.from(address.districts);
+                                });
+                              },
+                            )
+                          : null,
+                    ),
+                    onChanged: (value) {
+                      final query = value.trim().toLowerCase();
+
+                      setDialogState(() {
+                        filteredDistricts =
+                            address.districts.where((district) {
+                          return district
+                              .toLowerCase()
+                              .contains(query);
+                        }).toList();
+                      });
+                    },
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  Expanded(
+                    child: filteredDistricts.isEmpty
+                        ? const Center(
+                            child: Text('No districts found'),
+                          )
+                        : ListView.separated(
+                            itemCount: filteredDistricts.length,
+                            separatorBuilder: (_, __) =>
+                                const Divider(height: 1),
+                            itemBuilder: (context, index) {
+                              final district =
+                                  filteredDistricts[index];
+
+                              final isSelected =
+                                  address.selectedDistrict ==
+                                      district;
+
+                              return ListTile(
+                                dense: true,
+                                title: Text(district),
+                                trailing: isSelected
+                                    ? const Icon(
+                                        Icons.check,
+                                        color: AppColors.primary,
+                                      )
+                                    : null,
+                                onTap: () {
+                                  setState(() {
+                                    address.selectedDistrict =
+                                        district;
+
+                                    // Clear area because the
+                                    // district has changed.
+                                    address.selectedArea = null;
+                                    address.areas = [];
+                                    address.areaController.clear();
+                                  });
+
+                                  Navigator.pop(dialogContext);
+                                },
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  ).then((_) {
+    searchController.dispose();
+  });
+}
+
+void _showStatePicker(_AddressFormData address) {
+  final searchController = TextEditingController();
+  List<CountryState> filteredStates = List.from(address.states);
+
+  showDialog(
+    context: context,
+    builder: (dialogContext) {
+      return StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            title: Row(
+              children: [
+                const Expanded(
+                  child: Text('Select State'),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                  },
+                ),
+              ],
+            ),
+            content: SizedBox(
+              width: 420,
+              height: 420,
+              child: Column(
+                children: [
+                  TextField(
+                    controller: searchController,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      hintText: 'Search state...',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                searchController.clear();
+
+                                setDialogState(() {
+                                  filteredStates =
+                                      List.from(address.states);
+                                });
+                              },
+                            )
+                          : null,
+                    ),
+                    onChanged: (value) {
+                      final query = value.trim().toLowerCase();
+
+                      setDialogState(() {
+                        filteredStates = address.states.where((state) {
+                          return state.name.toLowerCase().contains(query);
+                        }).toList();
+                      });
+                    },
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  Expanded(
+                    child: filteredStates.isEmpty
+                        ? const Center(
+                            child: Text('No states found'),
+                          )
+                        : ListView.separated(
+                            itemCount: filteredStates.length,
+                            separatorBuilder: (_, __) =>
+                                const Divider(height: 1),
+                            itemBuilder: (context, index) {
+                              final state = filteredStates[index];
+
+                              final isSelected =
+                                  address.selectedState == state.name;
+
+                              return ListTile(
+                                dense: true,
+                                title: Text(state.name),
+                                trailing: isSelected
+                                    ? const Icon(
+                                        Icons.check,
+                                        color: AppColors.primary,
+                                      )
+                                    : null,
+                                onTap: () {
+                                  setState(() {
+                                    address.selectedState = state.name;
+                                  });
+
+                                  Navigator.pop(dialogContext);
+
+                                  _loadDistrictsForAddress(
+                                    address,
+                                    state.name,
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  ).then((_) {
+    searchController.dispose();
+  });
+}
+
+void _showCountryPicker(_AddressFormData address) {
+  final searchController = TextEditingController();
+  List<Country> filteredCountries = List.from(_countries);
+
+  showDialog(
+    context: context,
+    builder: (dialogContext) {
+      return StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+           title: Row(
+                  children: [
+                    const Expanded(
+                      child: Text('Select Country'),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      tooltip: 'Close',
+                      onPressed: () {
+                        Navigator.pop(dialogContext);
+                      },
+                    ),
+                  ],
+                ),
+             content: SizedBox(
+              width: 420,
+              height: 420,
+              child: Column(
+                children: [
+                  TextField(
+                    controller: searchController,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      hintText: 'Search country...',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                searchController.clear();
+
+                                setDialogState(() {
+                                  filteredCountries = List.from(_countries);
+                                });
+                              },
+                            )
+                          : null,
+                    ),
+                    onChanged: (value) {
+                      final query = value.trim().toLowerCase();
+
+                      setDialogState(() {
+                        filteredCountries = _countries.where((country) {
+                          return country.name.toLowerCase().contains(query);
+                        }).toList();
+                      });
+                    },
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  Expanded(
+                    child: filteredCountries.isEmpty
+                        ? const Center(
+                            child: Text('No countries found'),
+                          )
+                        : ListView.separated(
+                            itemCount: filteredCountries.length,
+                            separatorBuilder: (_, __) =>
+                                const Divider(height: 1),
+                            itemBuilder: (context, index) {
+                              final country = filteredCountries[index];
+
+                              final isSelected =
+                                  address.selectedCountry ==
+                                      country.alpha2Code;
+
+                              return ListTile(
+                                dense: true,
+                                title: Text(country.name),
+                                trailing: isSelected
+                                    ? const Icon(
+                                        Icons.check,
+                                        color: AppColors.primary,
+                                      )
+                                    : null,
+                                onTap: () {
+                                  setState(() {
+                                    address.selectedCountry =
+                                        country.alpha2Code;
+                                  });
+
+                                  Navigator.pop(dialogContext);
+
+                                  _loadStatesForAddress(
+                                    address,
+                                    country.alpha2Code,
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  ).then((_) {
+    searchController.dispose();
+  });
 }
 
 Future<void> _loadDistrictsForAddress(
@@ -719,78 +768,278 @@ Future<void> _loadStatesForAddress(
     });
   }
 
-  void _registerCustomer() {
-    final name = _nameController.text.trim();
 
-    final phones = _phoneControllers
-        .map((controller) => controller.text.trim())
-        .where((phone) => phone.isNotEmpty)
-        .toList();
+// ============================================================
+// LIVE VALIDATION
+// ============================================================
 
-    if (name.isEmpty) {
-      _showMessage('Customer name is required.');
-      return;
-    }
+final Set<TextEditingController> _touchedControllers = {};
 
-    if (phones.isEmpty) {
-      _showMessage('Phone number is required.');
-      return;
-    }
+void _markTouched(TextEditingController controller) {
+  if (!_touchedControllers.contains(controller)) {
+    setState(() {
+      _touchedControllers.add(controller);
+    });
+  }
+}
 
-    if (_addresses.isEmpty || !_addresses.every((address) => address.isSaved)) {
-      _showMessage('Please preview and save all addresses before registering.');
-      return;
-    }
+String? _validateName(String value, {String fieldName = 'Name'}) {
+  final text = value.trim();
 
-    final customer = Customer(
-      id: widget.customer?.id ??
-    DateTime.now().microsecondsSinceEpoch.toString(),
-      name: name,
-      phoneNumbers: phones,
-      email: _emailController.text.trim(),
-      addresses: _addresses.map((address) {
-        return CustomerAddress(
-          id: address.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
+  if (text.isEmpty) {
+    return '$fieldName is required';
+  }
 
-          contactName: address.contactNameController.text.trim(),
+  if (text.length < 2) {
+    return '$fieldName must be at least 2 characters';
+  }
 
-          contactNumber: address.contactNumberController.text.trim(),
+  if (text.length > 50) {
+    return '$fieldName cannot exceed 50 characters';
+  }
 
-          houseName: address.houseNameController.text.trim(),
+  if (!RegExp(r"^[a-zA-Z\s.'-]+$").hasMatch(text)) {
+    return '$fieldName can contain letters only';
+  }
 
-          houseFlatNumber: address.houseController.text.trim(),
+  return null;
+}
 
-          addressType: address.addressType,
+String? _validateIndianPhone(String value) {
+  final text = value.trim();
 
-          country: address.selectedCountry ?? '',
+  if (text.isEmpty) {
+    return 'Phone number is required';
+  }
 
-          state: address.selectedState ?? '',
+  // Remove spaces, hyphens and brackets for validation.
+  final normalized = text.replaceAll(
+    RegExp(r'[\s\-()]'),
+    '',
+  );
 
-          district: address.selectedDistrict ?? '',
+  // Indian mobile number: 10 digits starting with 6-9
+  if (RegExp(r'^[6-9]\d{9}$').hasMatch(normalized)) {
+    return null;
+  }
 
-          street: address.streetController.text.trim(),
+  // Indian landline with STD code
+  // Examples:
+  // 0891 2567890
+  // 040 23456789
+  // 011 23456789
+  // 08912567890
+  // 04023456789
+  if (RegExp(r'^(?:0\d{2,4})\d{6,8}$').hasMatch(normalized)) {
+    return null;
+  }
 
-          area: address.areaController.text.trim(),
+  return 'Enter a valid Indian mobile or landline number';
+}
 
-          landmark: address.landmarkController.text.trim(),
+String? _validateEmail(String value) {
+  final text = value.trim();
 
-          pincode: address.pincodeController.text.trim(),
+  // Email is optional
+  if (text.isEmpty) {
+    return null;
+  }
 
-          locationLink: address.locationController.text.trim(),
+  if (!RegExp(
+    r'^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@'
+    r'[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?'
+    r'(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$',
+  ).hasMatch(text)) {
+    return 'Enter a valid email address';
+  }
 
-          monthlyFoodOrder: address.monthlyFoodOrder,
-        );
-      }).toList(),
+  return null;
+}
+
+String? _validatePincode(String value) {
+  final text = value.trim();
+
+  if (text.isEmpty) {
+    return 'Pincode is required';
+  }
+
+  if (!RegExp(r'^[1-9][0-9]{5}$').hasMatch(text)) {
+    return 'Enter a valid 6-digit Indian pincode';
+  }
+
+  return null;
+}
+
+String? _validateUrl(String value) {
+  final text = value.trim();
+
+  // Location link is optional
+  if (text.isEmpty) {
+    return null;
+  }
+
+  final uri = Uri.tryParse(text);
+
+  if (uri == null ||
+      !uri.hasScheme ||
+      !['http', 'https'].contains(uri.scheme.toLowerCase()) ||
+      uri.host.isEmpty) {
+    return 'Enter a valid location link';
+  }
+
+  return null;
+}
+
+String? _validateRequired(
+  String value, {
+  required String fieldName,
+}) {
+  if (value.trim().isEmpty) {
+    return '$fieldName is required';
+  }
+
+  return null;
+}
+
+ 
+Future<void> _registerCustomer() async {
+  // Ask for confirmation only when updating an existing customer.
+  if (widget.customer != null) {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Confirm Update'),
+        content: const Text(
+          'Are you sure you want to update this customer?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext, false);
+            },
+            child: const Text('No'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(dialogContext, true);
+            },
+            child: const Text('Yes'),
+          ),
+        ],
+      ),
     );
 
-    if (widget.customer == null) {
-      CustomerStore.addCustomer(customer);
-    } else {
-      CustomerStore.updateCustomer(customer);
-    }
-
-    Navigator.pop(context, true);
+    if (confirm != true || !mounted) return;
   }
+
+  final name = _nameController.text.trim();
+
+  final phones = _phoneControllers
+      .map((controller) => controller.text.trim())
+      .where((phone) => phone.isNotEmpty)
+      .toList();
+
+  if (name.isEmpty) {
+    _showMessage('Customer name is required.');
+    return;
+  }
+
+  if (phones.isEmpty) {
+    _showMessage('Phone number is required.');
+    return;
+  }
+
+  if (_addresses.isEmpty) {
+    _showMessage('Please add at least one delivery address.');
+    return;
+  }
+
+  // Find the first address that has not been reviewed/saved.
+  final firstUnsavedIndex = _addresses.indexWhere(
+    (address) => !address.isSaved,
+  );
+
+  if (firstUnsavedIndex != -1) {
+    _showAddressPreview(firstUnsavedIndex);
+    return;
+  }
+
+  // All addresses are already saved.
+  _saveCustomer();
+}
+
+
+void _saveCustomer() {
+  final name = _nameController.text.trim();
+
+  final phones = _phoneControllers
+      .map((controller) => controller.text.trim())
+      .where((phone) => phone.isNotEmpty)
+      .toList();
+
+  final customer = Customer(
+    id: widget.customer?.id ??
+        DateTime.now().microsecondsSinceEpoch.toString(),
+    name: name,
+    phoneNumbers: phones,
+    email: _emailController.text.trim(),
+    addresses: _addresses.map((address) {
+      return CustomerAddress(
+        id: address.id ??
+            DateTime.now().microsecondsSinceEpoch.toString(),
+
+        contactName:
+            address.contactNameController.text.trim(),
+
+        contactNumber:
+            address.contactNumberController.text.trim(),
+
+        houseName:
+            address.houseNameController.text.trim(),
+
+        houseFlatNumber:
+            address.houseController.text.trim(),
+
+        addressType: address.addressType,
+
+        country:
+            address.selectedCountry ?? '',
+
+        state:
+            address.selectedState ?? '',
+
+        district:
+            address.selectedDistrict ?? '',
+
+        street:
+            address.streetController.text.trim(),
+
+        area:
+            address.areaController.text.trim(),
+
+        landmark:
+            address.landmarkController.text.trim(),
+
+        pincode:
+            address.pincodeController.text.trim(),
+
+        locationLink:
+            address.locationController.text.trim(),
+
+        monthlyFoodOrder:
+            address.monthlyFoodOrder,
+      );
+    }).toList(),
+  );
+
+  if (widget.customer == null) {
+    CustomerStore.addCustomer(customer);
+  } else {
+    CustomerStore.updateCustomer(customer);
+  }
+
+  Navigator.pop(context, true);
+}
 
   void _showMessage(String message) {
     ScaffoldMessenger.of(
@@ -1354,58 +1603,76 @@ Future<void> _loadStatesForAddress(
   // CUSTOMER INFO
   // ============================================================
 
-  Widget _buildCustomerInfoSection({required bool isMobile}) {
-    return _sectionContainer(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _sectionTitle(icon: Icons.person_outline, title: 'Customer Info'),
+Widget _buildCustomerInfoSection({required bool isMobile}) {
+  return _sectionContainer(
+    child: SingleChildScrollView(
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionTitle(
+            icon: Icons.person_outline,
+            title: 'Customer Info',
+          ),
 
-            const SizedBox(height: 20),
+          const SizedBox(height: 20),
 
-            _fieldLabel('Full Name'),
+          _fieldLabel('Full Name'),
+          const SizedBox(height: 7),
 
-            const SizedBox(height: 7),
-
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(hintText: 'Enter full name'),
+          _buildFixedValidationField(
+            controller: _nameController,
+            hintText: 'Enter full name',
+            keyboardType: TextInputType.name,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(
+                RegExp(r"[a-zA-Z\s.'-]"),
+              ),
+            ],
+            validator: () => _validateName(
+              _nameController.text,
+              fieldName: 'Customer name',
             ),
+          ),
 
-            const SizedBox(height: 18),
+          const SizedBox(height: 18),
 
-            _fieldLabel('Phone Numbers'),
+          _fieldLabel('Phone Numbers'),
+          const SizedBox(height: 7),
 
-            const SizedBox(height: 7),
+          Column(
+            children: [
+              ..._phoneControllers.asMap().entries.map((entry) {
+                final index = entry.key;
+                final controller = entry.value;
 
-            Column(
-              children: [
-                ..._phoneControllers.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final controller = entry.value;
-
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: controller,
-                            keyboardType: TextInputType.phone,
-                            decoration: InputDecoration(
-                              hintText: index == 0
-                                  ? 'Primary phone number'
-                                  : 'Additional phone number',
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: _buildFixedValidationField(
+                          controller: controller,
+                          hintText: index == 0
+                              ? 'Primary phone number'
+                              : 'Additional phone number',
+                          keyboardType: TextInputType.phone,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                              RegExp(r'[0-9\s()+-]'),
                             ),
-                          ),
+                          ],
+                          validator: () =>
+                              _validateIndianPhone(controller.text),
                         ),
+                      ),
 
-                        if (_phoneControllers.length > 1) ...[
-                          const SizedBox(width: 8),
-
-                          SizedBox(
+                      if (_phoneControllers.length > 1) ...[
+                        const SizedBox(width: 8),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: SizedBox(
                             width: 46,
                             height: 48,
                             child: OutlinedButton(
@@ -1413,44 +1680,113 @@ Future<void> _loadStatesForAddress(
                               style: OutlinedButton.styleFrom(
                                 padding: EdgeInsets.zero,
                               ),
-                              child: const Icon(Icons.close, size: 18),
+                              child: const Icon(
+                                Icons.close,
+                                size: 18,
+                              ),
                             ),
                           ),
-                        ],
+                        ),
                       ],
-                    ),
-                  );
-                }),
-
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: OutlinedButton.icon(
-                    onPressed: _addPhone,
-                    icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Add Phone'),
+                    ],
                   ),
+                );
+              }),
+
+              Align(
+                alignment: Alignment.centerLeft,
+                child: OutlinedButton.icon(
+                  onPressed: _addPhone,
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Add Phone'),
                 ),
-              ],
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 18),
+
+          _fieldLabel('Email'),
+          const SizedBox(height: 7),
+
+          _buildFixedValidationField(
+            controller: _emailController,
+            hintText: 'Optional email',
+            keyboardType: TextInputType.emailAddress,
+            validator: () => _validateEmail(_emailController.text),
+          ),
+
+          const SizedBox(height: 28),
+        ],
+      ),
+    ),
+  );
+}
+
+
+Widget _buildFixedValidationField({
+  required TextEditingController controller,
+  required String hintText,
+  required String? Function() validator,
+  TextInputType? keyboardType,
+  List<TextInputFormatter>? inputFormatters,
+}) {
+  final isTouched = _touchedControllers.contains(controller);
+  final error = isTouched ? validator() : null;
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      SizedBox(
+        height: 56,
+        child: TextField(
+          controller: controller,
+          keyboardType: keyboardType,
+          inputFormatters: inputFormatters,
+          onChanged: (_) {
+            _markTouched(controller);
+            setState(() {});
+          },
+          decoration: InputDecoration(
+            hintText: hintText,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 16,
             ),
-
-            const SizedBox(height: 18),
-
-            _fieldLabel('Email'),
-
-            const SizedBox(height: 7),
-
-            TextField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(hintText: 'Optional email'),
+            constraints: const BoxConstraints(
+              minHeight: 56,
+              maxHeight: 56,
             ),
-
-            const SizedBox(height: 28),
-          ],
+          ),
         ),
       ),
-    );
-  }
+
+      // Fixed space for the validation message.
+      SizedBox(
+        height: 22,
+        child: error == null
+            ? const SizedBox.shrink()
+            : Padding(
+                padding: const EdgeInsets.only(
+                  left: 12,
+                  top: 2,
+                ),
+                child: Text(
+                  error,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.red,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+      ),
+    ],
+  );
+}
+
+
 
   // ============================================================
   // ADDRESS SECTION
@@ -1599,6 +1935,10 @@ Future<void> _loadStatesForAddress(
                     'Same as Customer Name',
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                 ),
               ],
@@ -1607,154 +1947,153 @@ Future<void> _loadStatesForAddress(
 
           const SizedBox(height: 12),
 
-          _addressField(
-            label: 'Delivery Contact Number',
-            controller: address.contactNumberController,
-            keyboardType: TextInputType.phone,
-            suffix: Row(
-              children: [
-                Checkbox(
-                  value: address.sameAsPhoneNumber,
-                  visualDensity: VisualDensity.compact,
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  onChanged: (value) {
-                    setState(() {
-                      address.sameAsPhoneNumber = value ?? false;
-
-                      if (address.sameAsPhoneNumber) {
-                        final primaryPhone = _phoneControllers.isNotEmpty
-                            ? _phoneControllers.first.text
-                            : '';
-
-                        address.contactNumberController.text = primaryPhone;
-                      }
-                    });
-                  },
-                ),
-                Expanded(
-                  child: Text(
-                    'Same as Phone Number',
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          DropdownButtonFormField<String>(
-            value: address.addressType,
-            decoration: const InputDecoration(
-              labelText: 'Address Type',
-              prefixIcon: Icon(Icons.home_work_outlined),
-            ),
-            items: const [
-              DropdownMenuItem(value: 'Home', child: Text('Home')),
-              DropdownMenuItem(value: 'Office', child: Text('Office')),
-              DropdownMenuItem(value: 'Other', child: Text('Other')),
-            ],
-            onChanged: (value) {
-              setState(() {
-                address.addressType = value ?? 'Home';
-              });
-            },
-          ),
-          _simpleAddressField(
-            label: 'House Name',
-            controller: address.houseNameController,
-          ),
-
-          const SizedBox(height: 12),
-
-          _simpleAddressField(
-            label: 'House / Flat No.',
-            controller: address.houseController,
-          ),
-
-          
-
-         const SizedBox(height: 16),
-
- InkWell(
-  onTap: () {
-    _showCountryPicker(address);
-  },
-  borderRadius: BorderRadius.circular(12),
-  child: InputDecorator(
-    decoration: const InputDecoration(
-      labelText: 'Country',
-      prefixIcon: Icon(Icons.public_outlined),
-      suffixIcon: Icon(Icons.keyboard_arrow_down),
+         
+_addressField(
+  label: 'Delivery Contact Number',
+  controller: address.contactNumberController,
+  keyboardType: TextInputType.phone,
+  validator: _validateIndianPhone,
+  inputFormatters: [
+    FilteringTextInputFormatter.allow(
+      RegExp(r'[0-9\s()+-]'),
     ),
-    child: Text(
-      address.selectedCountry == null ||
-              address.selectedCountry!.isEmpty
-          ? 'Select country'
-          : _countries
-              .firstWhere(
-                (country) =>
-                    country.alpha2Code == address.selectedCountry,
-                orElse: () => _countries.first,
-              )
-              .name,
-      style: TextStyle(
-        color: address.selectedCountry == null ||
-                address.selectedCountry!.isEmpty
-            ? AppColors.textSecondary
-            : AppColors.textPrimary,
-        fontSize: 15,
-        fontWeight: FontWeight.w500,
-      ),
-    ),
-  ),
-),
+  ],
+  suffix: Row(
+    children: [
+      Checkbox(
+        value: address.sameAsPhoneNumber,
+        visualDensity: VisualDensity.compact,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        onChanged: (value) {
+          setState(() {
+            address.sameAsPhoneNumber = value ?? false;
 
-          const SizedBox(height: 16),
+            if (address.sameAsPhoneNumber) {
+              final primaryPhone = _phoneControllers.isNotEmpty
+                  ? _phoneControllers.first.text
+                  : '';
 
-InkWell(
-  onTap: address.loadingStates || address.states.isEmpty
-      ? null
-      : () {
-          _showStatePicker(address);
+              address.contactNumberController.text = primaryPhone;
+            }
+
+            _markTouched(address.contactNumberController);
+          });
         },
-  borderRadius: BorderRadius.circular(12),
-  child: InputDecorator(
-    decoration: InputDecoration(
-      labelText: 'State',
-      prefixIcon: const Icon(Icons.map_outlined),
-      suffixIcon: address.loadingStates
-          ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: Padding(
-                padding: EdgeInsets.all(10),
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                ),
-              ),
-            )
-          : const Icon(Icons.keyboard_arrow_down),
-    ),
-    child: Text(
-      address.selectedState == null ||
-              address.selectedState!.isEmpty
-          ? 'Select state'
-          : address.selectedState!,
-      style: TextStyle(
-        color: address.selectedState == null ||
-                address.selectedState!.isEmpty
-            ? AppColors.textSecondary
-            : AppColors.textPrimary,
-        fontSize: 15,
-        fontWeight: FontWeight.w500,
       ),
-    ),
+      Expanded(
+        child: Text(
+          'Same as Phone Number',
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+      ),
+    ],
   ),
 ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
+       
+DropdownButtonFormField<String>(
+  value: address.addressType,
+  isExpanded: true,
+  decoration: const InputDecoration(
+    labelText: 'Address Type',
+    prefixIcon: Icon(Icons.home_work_outlined),
+    constraints: BoxConstraints(
+      minHeight: _addressInputHeight,
+      maxHeight: _addressInputHeight,
+    ),
+    contentPadding: EdgeInsets.symmetric(
+      horizontal: 12,
+      vertical: 12,
+    ),
+  ),
+  items: const [
+    DropdownMenuItem(value: 'Home', child: Text('Home')),
+    DropdownMenuItem(value: 'Office', child: Text('Office')),
+    DropdownMenuItem(value: 'Other', child: Text('Other')),
+  ],
+  onChanged: (value) {
+    setState(() {
+      address.addressType = value ?? 'Home';
+    });
+  },
+),
+
+const SizedBox(height: _addressFieldGap),
+
+_simpleAddressField(
+  label: address.addressType == 'Office'
+      ? 'Office Name'
+      : address.addressType == 'Other'
+          ? 'Address Name'
+          : 'House Name',
+  controller: address.houseNameController,
+),
+
+const SizedBox(height: _addressFieldGap),
+
+_simpleAddressField(
+  label: 'House / Flat No.',
+  controller: address.houseController,
+  validator: (value) => _validateRequired(
+    value,
+    fieldName: 'House / Flat No.',
+  ),
+),
+
+
+const SizedBox(height: _addressFieldGap ),
+
+_simpleAddressField(
+  label: 'Street',
+  controller: address.streetController,
+  validator: (value) => _validateRequired(
+    value,
+    fieldName: 'Street',
+  ),
+),
+
+const SizedBox(height: _addressFieldGap),
+
+_simpleAddressField(
+  label: 'Area',
+  controller: address.areaController,
+),
+
+         const SizedBox(height: _addressFieldGap),
+
+          _simpleAddressField(
+            label: 'Landmark',
+            controller: address.landmarkController,
+          ),
+
+         const SizedBox(height: _addressFieldGap),
+
+          _simpleAddressField(
+  label: 'Pincode',
+  controller: address.pincodeController,
+  keyboardType: TextInputType.number,
+  inputFormatters: [
+    FilteringTextInputFormatter.digitsOnly,
+  ],
+  maxLength: 6,
+  validator: _validatePincode,
+),
+
+         const SizedBox(height: _addressFieldGap),
+_simpleAddressField(
+  label: 'Location Link',
+  controller: address.locationController,
+  keyboardType: TextInputType.url,
+  validator: _validateUrl,
+),
+const SizedBox(height: _addressFieldGap),
 InkWell(
   onTap: address.loadingDistricts ||
           address.districts.isEmpty
@@ -1801,36 +2140,102 @@ InkWell(
   ),
 ),
 
-          const SizedBox(height: 16),
-Column(
-  crossAxisAlignment: CrossAxisAlignment.start,
-  children: [
-   InkWell(
-  onTap: address.selectedDistrict == null ||
-          address.selectedDistrict!.isEmpty
+          const SizedBox(height: 14),
+
+
+InkWell(
+  onTap: address.loadingStates || address.states.isEmpty
       ? null
       : () {
-          _showAreaPicker(address);
+          _showStatePicker(address);
         },
   borderRadius: BorderRadius.circular(12),
-  child: InputDecorator(
-    decoration: InputDecoration(
-      labelText: 'Area',
-      prefixIcon: const Icon(
-        Icons.location_on_outlined,
-      ),
-      suffixIcon: const Icon(
-        Icons.keyboard_arrow_down,
-      ),
+
+child: InputDecorator(
+  decoration: InputDecoration(
+    labelText: 'State',
+    prefixIcon: const Icon(Icons.map_outlined),
+
+    suffixIcon: address.loadingStates
+        ? const SizedBox(
+            width: 20,
+            height: 20,
+            child: Padding(
+              padding: EdgeInsets.all(10),
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+              ),
+            ),
+          )
+        : const Icon(Icons.keyboard_arrow_down),
+
+    // Keep these properties inside InputDecoration.
+    constraints: const BoxConstraints(
+      minHeight: 56,
+      maxHeight: 56,
     ),
+    contentPadding: const EdgeInsets.symmetric(
+      horizontal: 12,
+      vertical: 12,
+    ),
+  ),
+  child: Text(
+    address.selectedState == null ||
+            address.selectedState!.isEmpty
+        ? 'Select state'
+        : address.selectedState!,
+    style: TextStyle(
+      color: address.selectedState == null ||
+              address.selectedState!.isEmpty
+          ? AppColors.textSecondary
+          : AppColors.textPrimary,
+      fontSize: 15,
+      fontWeight: FontWeight.w500,
+    ),
+  ),
+),
+
+),
+
+const SizedBox(height: _addressFieldGap),
+
+ InkWell(
+  onTap: () {
+    _showCountryPicker(address);
+  },
+  borderRadius: BorderRadius.circular(12),
+  child: InputDecorator(
+  
+decoration: const InputDecoration(
+  labelText: 'Country',
+  prefixIcon: Icon(Icons.public_outlined),
+  suffixIcon: Icon(Icons.keyboard_arrow_down),
+
+  constraints: BoxConstraints(
+    minHeight: 56,
+    maxHeight: 56,
+  ),
+
+  contentPadding: EdgeInsets.symmetric(
+    horizontal: 12,
+    vertical: 12,
+  ),
+),
+
     child: Text(
-      address.selectedArea == null ||
-              address.selectedArea!.isEmpty
-          ? 'Select area'
-          : address.selectedArea!,
+      address.selectedCountry == null ||
+              address.selectedCountry!.isEmpty
+          ? 'Select country'
+          : _countries
+              .firstWhere(
+                (country) =>
+                    country.alpha2Code == address.selectedCountry,
+                orElse: () => _countries.first,
+              )
+              .name,
       style: TextStyle(
-        color: address.selectedArea == null ||
-                address.selectedArea!.isEmpty
+        color: address.selectedCountry == null ||
+                address.selectedCountry!.isEmpty
             ? AppColors.textSecondary
             : AppColors.textPrimary,
         fontSize: 15,
@@ -1840,48 +2245,10 @@ Column(
   ),
 ),
 
-    const SizedBox(height: 16),
 
- Align(
-  alignment: Alignment.centerRight,
-  child: TextButton.icon(
-    onPressed: () {
-      _showAddAreaDialog(address);
-    },
-    icon: const Icon(Icons.add, size: 17),
-    label: const Text('Add New Area'),
-  ),
-),
-  ],
-),
-          const SizedBox(height: 16),
 
-          _simpleAddressField(
-            label: 'Street',
-            controller: address.streetController,
-          ),
 
-          const SizedBox(height: 16),
-
-          _simpleAddressField(
-            label: 'Landmark',
-            controller: address.landmarkController,
-          ),
-
-          const SizedBox(height: 16),
-
-          _simpleAddressField(
-            label: 'Pincode',
-            controller: address.pincodeController,
-            keyboardType: TextInputType.number,
-          ),
-
-          const SizedBox(height: 16),
-
-          _simpleAddressField(
-            label: 'Location Link',
-            controller: address.locationController,
-          ),
+         const SizedBox(height: _addressFieldGap),
 
           Container(
             width: double.infinity,
@@ -1911,21 +2278,6 @@ Column(
                   ),
                 ),
               ],
-            ),
-          ),
-
-          const SizedBox(height: 8),
-
-          const SizedBox(height: 8),
-
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () {
-                _previewAddress(index);
-              },
-              icon: const Icon(Icons.visibility_outlined),
-              label: const Text('Preview Address'),
             ),
           ),
         ],
@@ -2075,171 +2427,297 @@ Column(
     );
   }
 
-  void _showAddressPreview(int index) {
-    final address = _addresses[index];
+void _showAddressPreview(int index) {
+  final address = _addresses[index];
 
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        final screenWidth = MediaQuery.of(dialogContext).size.width;
-        final screenHeight = MediaQuery.of(dialogContext).size.height;
+  showDialog(
+    context: context,
+    barrierDismissible: false,  
+    builder: (dialogContext) {
+      final screenWidth = MediaQuery.of(dialogContext).size.width;
+      final screenHeight = MediaQuery.of(dialogContext).size.height;
 
-        final isMobile = screenWidth < 700;
+      final isMobile = screenWidth < 700;
 
-        return Dialog(
-          backgroundColor: AppColors.surface,
-          insetPadding: EdgeInsets.symmetric(
-            horizontal: isMobile ? 12 : 40,
-            vertical: 24,
+      return Dialog(
+        backgroundColor: AppColors.surface,
+        insetPadding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 12 : 40,
+          vertical: 24,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: 700,
+            maxHeight: screenHeight * 0.88,
           ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: 700,
-              maxHeight: screenHeight * 0.88,
-            ),
-            child: Column(
-              children: [
-                _buildPreviewHeader(
-                  title: 'Address ${index + 1} Preview',
-                  address: address,
+          child: Column(
+            children: [
+              _buildPreviewHeader(
+                title: 'Address ${index + 1} Preview',
+                address: address,
+              ),
+
+              const Divider(height: 1),
+
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.all(
+                    isMobile ? 18 : 24,
+                  ),
+                  child: _buildAddressPreviewContent(
+                    address,
+                    isMobile: isMobile,
+                  ),
                 ),
+              ),
 
-                const Divider(height: 1),
+              const Divider(height: 1),
 
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.all(isMobile ? 18 : 24),
-                    child: _buildAddressPreviewContent(
-                      address,
-                      isMobile: isMobile,
+              Padding(
+                padding: EdgeInsets.all(
+                  isMobile ? 14 : 18,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    // BACK
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(dialogContext);
+                      },
+                      child: const Text('Back'),
                     ),
-                  ),
-                ),
 
-                const Divider(height: 1),
+                    const SizedBox(width: 10),
 
-                Padding(
-                  padding: EdgeInsets.all(isMobile ? 14 : 18),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(dialogContext);
-                          _editAddress(index);
-                        },
-                        child: const Text('Edit Address'),
+                    // SAVE ADDRESS
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          address.isSaved = true;
+                        });
+
+                        Navigator.pop(dialogContext);
+
+                        // Check if there are more unsaved addresses.
+                        final nextUnsavedIndex =
+                            _addresses.indexWhere(
+                          (address) => !address.isSaved,
+                        );
+
+                        if (nextUnsavedIndex != -1) {
+                          _showAddressPreview(
+                            nextUnsavedIndex,
+                          );
+                        } else {
+                          // All addresses are reviewed.
+                          _saveCustomer();
+                        }
+                      },
+                      icon: const Icon(
+                        Icons.check,
+                        size: 18,
                       ),
-
-                      const SizedBox(width: 10),
-
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(dialogContext);
-                        },
-                        child: const Text('Close'),
-                      ),
-                    ],
-                  ),
+                      label: const Text('Save Address'),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
 
   // ============================================================
   // ADDRESS FIELD
   // ============================================================
   Widget _addressField({
-    required String label,
-    required TextEditingController controller,
-    TextInputType? keyboardType,
-    Widget? suffix,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _fieldLabel(label),
+  required String label,
+  required TextEditingController controller,
+  TextInputType? keyboardType,
+  Widget? suffix,
+  String? Function(String)? validator,
+  List<TextInputFormatter>? inputFormatters,
+  int? maxLength,
+}) {
+   return Column(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    _fieldLabel(label),
+    const SizedBox(height: 7),
 
-        const SizedBox(height: 7),
+    LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 600;
 
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final isNarrow = constraints.maxWidth < 600;
+        Widget buildInput() {
+          return SizedBox(
+            height: 56,
+            child: TextField(
+              controller: controller,
+              keyboardType: keyboardType,
+              inputFormatters: inputFormatters,
+              onChanged: (_) {
+                _markTouched(controller);
+                setState(() {});
+              },
+              decoration: InputDecoration(
+                hintText: 'Enter $label',
+                counterText: '',
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 16,
+                ),
+              ),
+            ),
+          );
+        }
 
-            if (suffix == null) {
-              return TextField(
-                controller: controller,
-                keyboardType: keyboardType,
-                decoration: InputDecoration(hintText: 'Enter $label'),
-              );
-            }
+        Widget buildError() {
+          final error = _touchedControllers.contains(controller)
+              ? validator?.call(controller.text)
+              : null;
 
-            if (isNarrow) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextField(
-                    controller: controller,
-                    keyboardType: keyboardType,
-                    decoration: InputDecoration(hintText: 'Enter $label'),
+          return SizedBox(
+            height: 22,
+            child: error == null
+                ? null
+                : Padding(
+                    padding: const EdgeInsets.only(left: 12, top: 3),
+                    child: Text(
+                      error,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                        fontSize: 11,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
+          );
+        }
 
-                  const SizedBox(height: 4),
+        if (suffix == null) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              buildInput(),
+              buildError(),
+            ],
+          );
+        }
 
-                  suffix,
-                ],
-              );
-            }
+        if (isNarrow) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              buildInput(),
+              buildError(),
+              const SizedBox(height: 4),
+              suffix!,
+            ],
+          );
+        }
 
-            return Row(
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: controller,
-                    keyboardType: keyboardType,
-                    decoration: InputDecoration(hintText: 'Enter $label'),
-                  ),
-                ),
-
+                Expanded(child: buildInput()),
                 const SizedBox(width: 10),
-
-                SizedBox(width: 245, child: suffix),
+                SizedBox(width: 245, child: suffix!),
               ],
-            );
-          },
-        ),
-      ],
-    );
+            ),
+            buildError(),
+          ],
+        );
+      },
+    ),
+  ],
+);
   }
 
-  Widget _simpleAddressField({
-    required String label,
-    required TextEditingController controller,
-    TextInputType? keyboardType,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _fieldLabel(label),
+ 
 
-        const SizedBox(height: 7),
+Widget _simpleAddressField({
+  required String label,
+  required TextEditingController controller,
+  TextInputType? keyboardType,
+  String? Function(String)? validator,
+  List<TextInputFormatter>? inputFormatters,
+  int? maxLength,
+}) {
+  final error = _touchedControllers.contains(controller)
+      ? validator?.call(controller.text)
+      : null;
 
-        TextField(
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      _fieldLabel(label),
+      const SizedBox(height: _addressLabelGap),
+
+      SizedBox(
+        height: _addressInputHeight,
+        child: TextField(
           controller: controller,
           keyboardType: keyboardType,
-          decoration: InputDecoration(hintText: 'Enter $label'),
+          inputFormatters: inputFormatters,
+          maxLength: maxLength,
+          onChanged: (_) {
+            _markTouched(controller);
+            setState(() {});
+          },
+          decoration: InputDecoration(
+            hintText: 'Enter $label',
+            counterText: '',
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 16,
+            ),
+            constraints: const BoxConstraints(
+              minHeight: _addressInputHeight,
+              maxHeight: _addressInputHeight,
+            ),
+          ),
         ),
-      ],
-    );
-  }
+      ),
+
+      if (validator != null)
+        SizedBox(
+          height: _addressErrorHeight,
+          child: error == null
+              ? const SizedBox.shrink()
+              : Padding(
+                  padding: const EdgeInsets.only(
+                    left: 12,
+                    top: 2,
+                  ),
+                  child: Text(
+                    error,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+        ),
+    ],
+  );
+}
+
+
+
 
   // ============================================================
   // BOTTOM BUTTONS
