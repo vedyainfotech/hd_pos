@@ -11,6 +11,11 @@ import '../../home/customers/screens/customers_screen.dart';
 import '../../inventory/units/screens/units_screen.dart';
 import '../../inventory/inventory_category/screens/inventory_category_screen.dart';
 import '../../inventory/inventory_sub_category/screens/inv_subcategory_screen.dart';
+import '../../home/permissions/screens/permissions_screen.dart';
+import '../../home/kot_settings/screens/kot_settings_screen.dart';
+import '../../home/delivery_persons/screens/delivery_person_screens.dart';
+import '../../home/delivery_schedule/screens/delivery_schedule_screen.dart';
+import '../../home/operators_adding/screens/operator_add_screens.dart';
 import '../../auth/screens/login_Screen.dart';
 
 class HomeDeliverySettingsScreen extends StatelessWidget {
@@ -300,6 +305,16 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                               icon: Icons.delivery_dining_outlined,
                               iconBackground: const Color(0xFFE5F0FF),
                               iconColor: const Color(0xFF2563EB),
+                              
+onTap: () {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const DeliveryPersonsScreen(),
+    ),
+  );
+},
+
                             ),
 
                             _settingCard(
@@ -310,6 +325,14 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                               icon: Icons.calendar_today_outlined,
                               iconBackground: const Color(0xFFF0E9FF),
                               iconColor: const Color(0xFF7C3AED),
+                              onTap: () {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const DeliveryScheduleScreen(),
+    ),
+  );
+},
                             ),
                           ],
                         ),
@@ -422,6 +445,14 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                               icon: Icons.group_outlined,
                               iconBackground: const Color(0xFFFFF0DA),
                               iconColor: const Color(0xFFD97706),
+                              onTap: () {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const OperatorAddScreen(),
+    ),
+  );
+},
                             ),
 
                             _settingCard(
@@ -432,6 +463,39 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                               icon: Icons.print_outlined,
                               iconBackground: const Color(0xFFE6F0FF),
                               iconColor: const Color(0xFF2563EB),
+                            ),
+                            _settingCard(
+                                context,
+                                title: 'Permissions',
+                                subtitle: 'Manage screen access for each role',
+                                icon: Icons.lock_outline,
+                                iconBackground: const Color(0xFFF7E8DE),
+                                iconColor: AppColors.primary,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const PermissionsScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
+
+                            _settingCard(
+                              context,
+                              title: 'KOT Settings',
+                              subtitle: 'Configure KOT prefix, suffix and numbering',
+                              icon: Icons.receipt_long_outlined,
+                              iconBackground: const Color(0xFFE6F0FF),
+                              iconColor: const Color(0xFF2563EB),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const KotSettingsScreen(),
+                                  ),
+                                );
+                              },
                             ),
 
                             _settingCard(

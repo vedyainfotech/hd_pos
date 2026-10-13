@@ -116,13 +116,8 @@ class _ItemsScreenState extends State<ItemsScreen> {
           child: Material(
             color: Colors.transparent,
             child: Container(
-              constraints: const BoxConstraints(
-                maxWidth: 320,
-              ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 12,
-              ),
+              constraints: const BoxConstraints(maxWidth: 320),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
                 color: const Color(0xFFFFE5E5),
                 borderRadius: BorderRadius.circular(12),
@@ -163,14 +158,11 @@ class _ItemsScreenState extends State<ItemsScreen> {
 
     overlay.insert(entry);
 
-    Future.delayed(
-      const Duration(seconds: 3),
-      () {
-        if (entry.mounted) {
-          entry.remove();
-        }
-      },
-    );
+    Future.delayed(const Duration(seconds: 3), () {
+      if (entry.mounted) {
+        entry.remove();
+      }
+    });
   }
 
   void _showSuccess(String message) {
@@ -188,13 +180,8 @@ class _ItemsScreenState extends State<ItemsScreen> {
           child: Material(
             color: Colors.transparent,
             child: Container(
-              constraints: const BoxConstraints(
-                maxWidth: 320,
-              ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 12,
-              ),
+              constraints: const BoxConstraints(maxWidth: 320),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
                 color: const Color(0xFFE5F7E9),
                 borderRadius: BorderRadius.circular(12),
@@ -235,14 +222,11 @@ class _ItemsScreenState extends State<ItemsScreen> {
 
     overlay.insert(entry);
 
-    Future.delayed(
-      const Duration(seconds: 3),
-      () {
-        if (entry.mounted) {
-          entry.remove();
-        }
-      },
-    );
+    Future.delayed(const Duration(seconds: 3), () {
+      if (entry.mounted) {
+        entry.remove();
+      }
+    });
   }
 
   List<SubCategoryModel> get _filteredSubCategoryOptions {
@@ -252,8 +236,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
 
     return _subCategories
         .where(
-          (subCategory) =>
-              subCategory.categoryId == _selectedCategoryFilter,
+          (subCategory) => subCategory.categoryId == _selectedCategoryFilter,
         )
         .toList();
   }
@@ -262,21 +245,26 @@ class _ItemsScreenState extends State<ItemsScreen> {
     final search = _searchController.text.trim().toLowerCase();
 
     return _items.where((item) {
-      final matchesCategory = _selectedCategoryFilter == null ||
+      final matchesCategory =
+          _selectedCategoryFilter == null ||
           item.categoryId == _selectedCategoryFilter;
 
-      final matchesSubCategory = _selectedSubCategoryFilter == null ||
+      final matchesSubCategory =
+          _selectedSubCategoryFilter == null ||
           item.subCategoryId == _selectedSubCategoryFilter;
 
-      final matchesStatus = _statusFilter == 'All' ||
+      final matchesStatus =
+          _statusFilter == 'All' ||
           (_statusFilter == 'Active' && item.isActive) ||
           (_statusFilter == 'Inactive' && !item.isActive);
 
       final categoryName = _categoryName(item.categoryId).toLowerCase();
-      final subCategoryName =
-          _subCategoryName(item.subCategoryId).toLowerCase();
+      final subCategoryName = _subCategoryName(
+        item.subCategoryId,
+      ).toLowerCase();
 
-      final matchesSearch = search.isEmpty ||
+      final matchesSearch =
+          search.isEmpty ||
           item.name.toLowerCase().contains(search) ||
           categoryName.contains(search) ||
           subCategoryName.contains(search);
@@ -367,22 +355,148 @@ class _ItemsScreenState extends State<ItemsScreen> {
   Future<void> _toggleStatus(ItemModel item) async {
     if (_isSaving) return;
 
+    final newStatus = !item.isActive;
+
+    final confirmed = await _showStatusConfirmation(newStatus);
+
+    if (!confirmed || !mounted) return;
+
     try {
-      await _itemService.updateItemStatus(
-        item.id,
-        !item.isActive,
-      );
+      await _itemService.updateItemStatus(item.id, newStatus);
 
       await _refreshItems();
 
       if (!mounted) return;
-
-      
     } catch (e) {
       if (mounted) {
         _showError(_cleanError(e));
       }
     }
+  }
+
+  Future<bool> _showStatusConfirmation(bool activate) async {
+    final action = activate ? 'Activate' : 'Deactivate';
+    final actionLower = activate ? 'activate' : 'deactivate';
+
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 24,
+            vertical: 24,
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 545),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(28, 28, 28, 26),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(22),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 78,
+                    height: 78,
+                    decoration: BoxDecoration(
+                      color: activate
+                          ? const Color(0xFFEAF5E8)
+                          : AppColors.primarySoft,
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: Icon(
+                      activate
+                          ? Icons.check_rounded
+                          : Icons.priority_high_rounded,
+                      size: 42,
+                      color: activate
+                          ? const Color(0xFF2E7D32)
+                          : AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    '$action Item?',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Are you sure you want to $actionLower this item?',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      height: 1.45,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () =>
+                              Navigator.of(dialogContext).pop(false),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.textPrimary,
+                            backgroundColor: AppColors.surface,
+                            side: const BorderSide(color: AppColors.border),
+                            minimumSize: const Size.fromHeight(50),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: FilledButton(
+                          onPressed: () =>
+                              Navigator.of(dialogContext).pop(true),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size.fromHeight(50),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text(
+                            action,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    return result ?? false;
   }
 
   void _onCategoryFilterChanged(int? categoryId) {
@@ -526,41 +640,29 @@ class _ItemsScreenState extends State<ItemsScreen> {
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 28,
-                vertical: 17,
-              ),
-              minimumSize: const Size(132, 50),
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 17),
+              minimumSize: const Size(110, 50),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-          child: const Row(
-  mainAxisSize: MainAxisSize.min,
-  children: [
-    Icon(
-      Icons.add,
-      size: 19,
-    ),
-    SizedBox(width: 6),
-    Text(
-      'Add Item',
-      style: TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w700,
-      ),
-    ),
-  ],
-),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.add, size: 19),
+                SizedBox(width: 6),
+                Text(
+                  'Add',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                ),
+              ],
+            ),
           ),
       ],
     );
   }
 
-  Widget _buildFilterCard({
-    bool tablet = false,
-    bool mobile = false,
-  }) {
+  Widget _buildFilterCard({bool tablet = false, bool mobile = false}) {
     return _SurfaceCard(
       child: Padding(
         padding: EdgeInsets.all(mobile ? 14 : 18),
@@ -585,44 +687,37 @@ class _ItemsScreenState extends State<ItemsScreen> {
               Column(
                 children: [
                   Row(
-  children: [
-    Expanded(
-      child: _buildFilterSearch(),
-    ),
-    const SizedBox(width: 10),
-    SizedBox(
-      width: 48,
-      height: 48,
-      child: ElevatedButton(
-        onPressed: _isSaving
-            ? null
-            : () => _openItemForm(),
-        style: ElevatedButton.styleFrom(
-          padding: EdgeInsets.zero,
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-        child: const Icon(
-          Icons.add,
-          size: 20,
-        ),
-      ),
-    ),
-  ],
-),
-const SizedBox(height: 12),
+                    children: [
+                      Expanded(child: _buildFilterSearch()),
+                      const SizedBox(width: 10),
+                      SizedBox(
+                        width: 48,
+                        height: 48,
+                        child: ElevatedButton(
+                          onPressed: _isSaving ? null : () => _openItemForm(),
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: const Icon(Icons.add, size: 20),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
                   _buildCategoryFilter(),
                   const SizedBox(height: 12),
                   _buildSubCategoryFilter(),
                   const SizedBox(height: 12),
                   Align(
-  alignment: Alignment.centerLeft,
-  child: _buildStatusFilter(mobile: true),
-),
+                    alignment: Alignment.centerLeft,
+                    child: _buildStatusFilter(mobile: true),
+                  ),
                 ],
               )
             else
@@ -675,64 +770,56 @@ const SizedBox(height: 12),
       value: _selectedCategoryFilter ?? 0,
       icon: null,
       items: [
-        const DropdownMenuItem<int>(
-          value: 0,
-          child: Text('All Categories'),
-        ),
+        const DropdownMenuItem<int>(value: 0, child: Text('All Categories')),
         ..._categories.map(
           (category) => DropdownMenuItem<int>(
             value: category.id,
-            child: Text(
-              category.name,
-              overflow: TextOverflow.ellipsis,
-            ),
+            child: Text(category.name, overflow: TextOverflow.ellipsis),
           ),
         ),
       ],
       onChanged: (value) {
-        _onCategoryFilterChanged(
-          value == null || value == 0 ? null : value,
-        );
+        _onCategoryFilterChanged(value == null || value == 0 ? null : value);
       },
     );
   }
 
   Widget _buildSubCategoryFilter() {
-  return _FilterDropdown<int>(
-    label: 'Sub Category',
-    hint: _selectedCategoryFilter == null
-        ? 'Select category first'
-        : 'All Sub Categories',
-    value: _selectedCategoryFilter == null
-        ? 0
-        : _selectedSubCategoryFilter ?? 0,
-    icon: null,
-    items: _selectedCategoryFilter == null
-        ? const []
-        : [
-            const DropdownMenuItem<int>(
-              value: 0,
-              child: Text('All Sub Categories'),
-            ),
-            ..._filteredSubCategoryOptions.map(
-              (subCategory) => DropdownMenuItem<int>(
-                value: subCategory.id,
-                child: Text(
-                  subCategory.name,
-                  overflow: TextOverflow.ellipsis,
+    return _FilterDropdown<int>(
+      label: 'Sub Category',
+      hint: _selectedCategoryFilter == null
+          ? 'Select category first'
+          : 'All Sub Categories',
+      value: _selectedCategoryFilter == null
+          ? 0
+          : _selectedSubCategoryFilter ?? 0,
+      icon: null,
+      items: _selectedCategoryFilter == null
+          ? const []
+          : [
+              const DropdownMenuItem<int>(
+                value: 0,
+                child: Text('All Sub Categories'),
+              ),
+              ..._filteredSubCategoryOptions.map(
+                (subCategory) => DropdownMenuItem<int>(
+                  value: subCategory.id,
+                  child: Text(
+                    subCategory.name,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ),
-            ),
-          ],
-    onChanged: _selectedCategoryFilter == null
-        ? null
-        : (value) {
-            _onSubCategoryFilterChanged(
-              value == null || value == 0 ? null : value,
-            );
-          },
-  );
-}
+            ],
+      onChanged: _selectedCategoryFilter == null
+          ? null
+          : (value) {
+              _onSubCategoryFilterChanged(
+                value == null || value == 0 ? null : value,
+              );
+            },
+    );
+  }
 
   Widget _buildFilterSearch() {
     return TextField(
@@ -754,91 +841,21 @@ const SizedBox(height: 12),
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: AppColors.border,
-          ),
+          borderSide: const BorderSide(color: AppColors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: AppColors.border,
-          ),
+          borderSide: const BorderSide(color: AppColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: AppColors.primary,
-            width: 1.4,
-          ),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.4),
         ),
       ),
     );
   }
 
-  Widget _buildItemListCard({
-    bool compact = false,
-    bool mobile = false,
-  }) {
-    final items = _filteredItems;
-
-    return _SurfaceCard(
-      child: Padding(
-        padding: EdgeInsets.all(mobile ? 14 : 18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (mobile)
-              _buildMobileListHeader()
-            else
-              _buildDesktopListHeader(compact: compact),
-            const SizedBox(height: 14),
-            if (_isLoading)
-              const SizedBox(
-                height: 260,
-                child: Center(
-                  child: CircularProgressIndicator(
-                    color: AppColors.primary,
-                  ),
-                ),
-              )
-            else if (items.isEmpty)
-              _buildEmptyState()
-            else if (mobile)
-              _buildMobileItems(items)
-            else
-              _buildItemsTable(items),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDesktopListHeader({bool compact = false}) {
-    return const Text(
-      'Item List',
-      style: TextStyle(
-        fontSize: 19,
-        fontWeight: FontWeight.w800,
-        color: AppColors.textPrimary,
-      ),
-    );
-  }
-
-  Widget _buildMobileListHeader() {
-    return const Text(
-      'Item List',
-      style: TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.w800,
-        color: AppColors.textPrimary,
-      ),
-    );
-  }
-
-  Widget _buildStatusFilter({
-    bool compact = false,
-    bool mobile = false,
-  }) {
+  Widget _buildStatusFilter({bool compact = false, bool mobile = false}) {
     const options = ['All', 'Active', 'Inactive'];
 
     return Container(
@@ -846,9 +863,7 @@ const SizedBox(height: 12),
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
         color: AppColors.surfaceSoft,
-        border: Border.all(
-          color: AppColors.border,
-        ),
+        border: Border.all(color: AppColors.border),
         borderRadius: BorderRadius.circular(24),
       ),
       child: Row(
@@ -857,34 +872,27 @@ const SizedBox(height: 12),
           final selected = _statusFilter == option;
 
           return SizedBox(
-  width: compact ? 64 : 70,
-  child: InkWell(
-              child: InkWell(
-                borderRadius: BorderRadius.circular(20),
-                onTap: () {
-                  setState(() {
-                    _statusFilter = option;
-                  });
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 160),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: selected
-                        ? AppColors.primarySoft
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    option,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight:
-                          selected ? FontWeight.w700 : FontWeight.w600,
-                      color: selected
-                          ? AppColors.primary
-                          : AppColors.textPrimary,
-                    ),
+            width: compact ? 64 : 70,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(20),
+              onTap: () {
+                setState(() {
+                  _statusFilter = option;
+                });
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 160),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: selected ? AppColors.primarySoft : Colors.transparent,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  option,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+                    color: selected ? AppColors.primary : AppColors.textPrimary,
                   ),
                 ),
               ),
@@ -895,158 +903,157 @@ const SizedBox(height: 12),
     );
   }
 
-  Widget _buildItemsTable(List<ItemModel> items) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: SizedBox(
-            width: constraints.maxWidth,
-            child: Table(
-              columnWidths: const {
-                0: FlexColumnWidth(1.45),
-                1: FlexColumnWidth(1.05),
-                2: FlexColumnWidth(1.25),
-                3: FlexColumnWidth(0.80),
-                4: FlexColumnWidth(1.05),
-              },
-              border: TableBorder.all(
-                color: AppColors.borderLight,
-                width: 0.7,
-              ),
-              children: [
-                TableRow(
-                  decoration: const BoxDecoration(
-                    color: AppColors.primarySoft,
-                  ),
-                  children: [
-                    _tableHeader('Item Name'),
-                    _tableHeader('Category'),
-                    _tableHeader('Sub Category'),
-                    _tableHeader('Price (₹)'),
-                    _tableHeader('Actions'),
-                  ],
-                ),
-                ...items.map(
-                  (item) => TableRow(
-                    decoration: const BoxDecoration(
-                      color: AppColors.surface,
-                    ),
-                    children: [
-                      _tableCell(item.name),
-                      _tableCell(_categoryName(item.categoryId)),
-                      _tableCell(_subCategoryName(item.subCategoryId)),
-                      _tableCell('₹ ${item.price.toStringAsFixed(2)}'),
-                      _tableActionsCell(item),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+  Widget _buildItemListCard({bool compact = false, bool mobile = false}) {
+    final items = _filteredItems;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Item List',
+          style: TextStyle(
+            fontSize: 19,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textPrimary,
           ),
-        );
-      },
-    );
-  }
-
-  Widget _tableHeader(String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 13,
-      ),
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w800,
-          color: AppColors.textPrimary,
         ),
-      ),
+        const SizedBox(height: 14),
+        if (_isLoading)
+          const SizedBox(
+            height: 260,
+            child: Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            ),
+          )
+        else if (items.isEmpty)
+          _buildEmptyState()
+        else
+          _buildItemTableWithCards(items, mobile: mobile),
+      ],
     );
   }
 
-  Widget _tableCell(String text, {bool bold = true}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 14,
-      ),
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          fontSize: 14,
-          color: AppColors.textPrimary,
-          fontWeight: bold ? FontWeight.w600 : FontWeight.w500,
+  Widget _buildItemTableWithCards(
+    List<ItemModel> items, {
+    required bool mobile,
+  }) {
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildItemColumnHeader(mobile),
+        const SizedBox(height: 10),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 520),
+          child: ListView.separated(
+            shrinkWrap: true,
+            padding: EdgeInsets.zero,
+            itemCount: items.length,
+            separatorBuilder: (_, _) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final item = items[index];
+
+              return _ItemCard(
+                item: item,
+                categoryName: _categoryName(item.categoryId),
+                subCategoryName: _subCategoryName(item.subCategoryId),
+                onEdit: _isSaving ? null : () => _openItemForm(item: item),
+                onToggle: _isSaving ? null : () => _toggleStatus(item),
+              );
+            },
+          ),
         ),
-      ),
+      ],
+    );
+
+    if (!mobile) {
+      return content;
+    }
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: SizedBox(width: 820, child: content),
     );
   }
 
-  Widget _tableActionsCell(ItemModel item) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 7,
+  Widget _buildItemColumnHeader(bool isMobile) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 14 : 22,
+        vertical: isMobile ? 13 : 15,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceSoft,
+        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _StatusSwitch(
-            isActive: item.isActive,
-            enabled: !_isSaving,
-            onChanged: (_) => _toggleStatus(item),
-          ),
-          const SizedBox(width: 12),
-          IconButton(
-            tooltip: 'Edit item',
-            onPressed: _isSaving
-                ? null
-                : () => _openItemForm(item: item),
-            icon: const Icon(
-              Icons.edit_outlined,
-              size: 19,
+          Expanded(
+            flex: 3,
+            child: _buildItemColumnHeading(
+              'Item Name',
+              align: TextAlign.left,
+              isMobile: isMobile,
             ),
-            color: const Color.fromARGB(255, 20, 20, 20),
+          ),
+          Expanded(
+            flex: 2,
+            child: _buildItemColumnHeading(
+              'Category',
+              align: TextAlign.center,
+              isMobile: isMobile,
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: _buildItemColumnHeading(
+              'Sub Category',
+              align: TextAlign.center,
+              isMobile: isMobile,
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: _buildItemColumnHeading(
+              'Price (₹)',
+              align: TextAlign.center,
+              isMobile: isMobile,
+            ),
+          ),
+          SizedBox(
+            width: isMobile ? 108 : 140,
+            child: _buildItemColumnHeading(
+              'Actions',
+              align: TextAlign.right,
+              isMobile: isMobile,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMobileItems(List<ItemModel> items) {
-    return Column(
-      children: items.map((item) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: _MobileItemCard(
-            item: item,
-            categoryName: _categoryName(item.categoryId),
-            subCategoryName: _subCategoryName(item.subCategoryId),
-            onEdit: _isSaving
-                ? null
-                : () => _openItemForm(item: item),
-            onToggle: _isSaving
-                ? null
-                : () => _toggleStatus(item),
-          ),
-        );
-      }).toList(),
+  Widget _buildItemColumnHeading(
+    String text, {
+    required TextAlign align,
+    required bool isMobile,
+  }) {
+    return Text(
+      text,
+      textAlign: align,
+      style: TextStyle(
+        fontSize: isMobile ? 10 : 12,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0.2,
+        color: AppColors.textTertiary,
+      ),
     );
   }
 
   Widget _buildEmptyState() {
     return Container(
       width: double.infinity,
-      constraints: const BoxConstraints(
-        minHeight: 350,
-      ),
+      constraints: const BoxConstraints(minHeight: 350),
       decoration: BoxDecoration(
         color: AppColors.surfaceSoft,
         borderRadius: BorderRadius.circular(14),
@@ -1065,10 +1072,7 @@ const SizedBox(height: 12),
           const SizedBox(height: 6),
           const Text(
             'Add a new item or change your filters.',
-            style: TextStyle(
-              fontSize: 13,
-              color: AppColors.textSecondary,
-            ),
+            style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
           ),
         ],
       ),
@@ -1101,7 +1105,7 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
   int? _selectedCategoryId;
   int? _selectedSubCategoryId;
   double? _categoryPrice;
-   bool status = true;
+  bool status = true;
   bool _sameAsCategory = false;
   bool _loadingSubCategories = false;
 
@@ -1150,7 +1154,7 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
 
     try {
       final data = await widget.subCategoryService.getSubCategories(
-       includeInactive: true,
+        includeInactive: true,
         categoryId: categoryId,
       );
 
@@ -1162,18 +1166,12 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
         if (initialSubCategoryId != null &&
             data.any((item) => item.id == initialSubCategoryId)) {
           _selectedSubCategoryId = initialSubCategoryId;
-          _setCategoryPrice(
-            initialSubCategoryId,
-            data,
-            updateItemPrice: false,
-          );
+          _setCategoryPrice(initialSubCategoryId, data, updateItemPrice: false);
         }
       });
     } catch (e) {
       if (mounted) {
-        _showError(
-          e.toString().replaceFirst('Exception: ', ''),
-        );
+        _showError(e.toString().replaceFirst('Exception: ', ''));
       }
     } finally {
       if (mounted) {
@@ -1195,8 +1193,7 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
           _categoryPrice = subCategory.price;
 
           if (_sameAsCategory || updateItemPrice) {
-            _priceController.text =
-                subCategory.price.toStringAsFixed(2);
+            _priceController.text = subCategory.price.toStringAsFixed(2);
           }
         });
 
@@ -1237,10 +1234,7 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
       _selectedSubCategoryId = subCategoryId;
     });
 
-    _setCategoryPrice(
-      subCategoryId,
-      _subCategories,
-    );
+    _setCategoryPrice(subCategoryId, _subCategories);
   }
 
   void _onSameAsCategoryChanged(bool? value) {
@@ -1250,8 +1244,7 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
       _sameAsCategory = checked;
 
       if (checked && _categoryPrice != null) {
-        _priceController.text =
-            _categoryPrice!.toStringAsFixed(2);
+        _priceController.text = _categoryPrice!.toStringAsFixed(2);
       }
     });
   }
@@ -1271,9 +1264,7 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
       return;
     }
 
-    final price = double.tryParse(
-      _priceController.text.trim(),
-    );
+    final price = double.tryParse(_priceController.text.trim());
 
     if (price == null || price < 0) {
       _showError('Please enter a valid item price');
@@ -1308,13 +1299,8 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
           child: Material(
             color: Colors.transparent,
             child: Container(
-              constraints: const BoxConstraints(
-                maxWidth: 320,
-              ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 12,
-              ),
+              constraints: const BoxConstraints(maxWidth: 320),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
                 color: const Color(0xFFFFE5E5),
                 borderRadius: BorderRadius.circular(12),
@@ -1355,14 +1341,11 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
 
     overlay.insert(entry);
 
-    Future.delayed(
-      const Duration(seconds: 3),
-      () {
-        if (entry.mounted) {
-          entry.remove();
-        }
-      },
-    );
+    Future.delayed(const Duration(seconds: 3), () {
+      if (entry.mounted) {
+        entry.remove();
+      }
+    });
   }
 
   @override
@@ -1429,9 +1412,7 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
                   const SizedBox(height: 7),
                   DropdownButtonFormField<int>(
                     initialValue: _selectedCategoryId,
-                    decoration: _inputDecoration(
-                      hint: 'Select Category',
-                    ),
+                    decoration: _inputDecoration(hint: 'Select Category'),
                     items: widget.categories
                         .map(
                           (category) => DropdownMenuItem<int>(
@@ -1460,8 +1441,8 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
                       hint: _selectedCategoryId == null
                           ? 'Select category first'
                           : _loadingSubCategories
-                              ? 'Loading...'
-                              : 'Select Sub Category',
+                          ? 'Loading...'
+                          : 'Select Sub Category',
                     ),
                     items: _subCategories
                         .map(
@@ -1474,8 +1455,8 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
                           ),
                         )
                         .toList(),
-                    onChanged: _selectedCategoryId == null ||
-                            _loadingSubCategories
+                    onChanged:
+                        _selectedCategoryId == null || _loadingSubCategories
                         ? null
                         : _onSubCategoryChanged,
                     validator: (value) {
@@ -1489,18 +1470,18 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
                   _buildLabel('Sub Category Price'),
                   const SizedBox(height: 7),
                   TextFormField(
-  readOnly: true,
-  controller: TextEditingController(
-    text: _categoryPrice != null
-        ? '₹ ${_categoryPrice!.toStringAsFixed(2)}'
-        : '',
-  ),
-  decoration: _inputDecoration(
-    hint: _categoryPrice != null
-        ? 'Selected sub category price'
-        : 'Same as Sub Category price',
-  ),
-),
+                    readOnly: true,
+                    controller: TextEditingController(
+                      text: _categoryPrice != null
+                          ? '₹ ${_categoryPrice!.toStringAsFixed(2)}'
+                          : '',
+                    ),
+                    decoration: _inputDecoration(
+                      hint: _categoryPrice != null
+                          ? 'Selected sub category price'
+                          : 'Same as Sub Category price',
+                    ),
+                  ),
                   const SizedBox(height: 18),
                   _buildLabel('Item Name', required: true),
                   const SizedBox(height: 7),
@@ -1509,17 +1490,16 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     textCapitalization: TextCapitalization.sentences,
                     maxLength: 50,
-                    buildCounter: (
-                      context, {
-                      required currentLength,
-                      required isFocused,
-                      maxLength,
-                    }) {
-                      return null;
-                    },
-                    decoration: _inputDecoration(
-                      hint: 'Enter Item Name',
-                    ),
+                    buildCounter:
+                        (
+                          context, {
+                          required currentLength,
+                          required isFocused,
+                          maxLength,
+                        }) {
+                          return null;
+                        },
+                    decoration: _inputDecoration(hint: 'Enter Item Name'),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'Enter item name';
@@ -1539,9 +1519,7 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
                       decimal: true,
                     ),
                     readOnly: _sameAsCategory,
-                    decoration: _inputDecoration(
-                      hint: 'Enter Price',
-                    ).copyWith(
+                    decoration: _inputDecoration(hint: 'Enter Price').copyWith(
                       fillColor: _sameAsCategory
                           ? AppColors.surfaceSoft
                           : AppColors.inputBackground,
@@ -1568,9 +1546,7 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
                     ),
                     decoration: BoxDecoration(
                       color: AppColors.surfaceSoft,
-                      border: Border.all(
-                        color: AppColors.border,
-                      ),
+                      border: Border.all(color: AppColors.border),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -1607,104 +1583,91 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
                     ),
                   ),
                   if (isEditing) ...[
-  const SizedBox(height: 18),
+                    const SizedBox(height: 18),
 
-  Container(
-    width: double.infinity,
-    padding: const EdgeInsets.symmetric(
-      horizontal: 14,
-      vertical: 11,
-    ),
-    decoration: BoxDecoration(
-      color: AppColors.inputBackground,
-      borderRadius: BorderRadius.circular(10),
-      border: Border.all(
-        color: AppColors.border,
-      ),
-    ),
-    child: Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Status',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                status ? 'Active' : 'Inactive',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: status
-                      ? AppColors.active
-                      : AppColors.textSecondary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 11,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.inputBackground,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Status',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  status ? 'Active' : 'Inactive',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: status
+                                        ? AppColors.active
+                                        : AppColors.textSecondary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
 
-        SwitchTheme(
-          data: SwitchThemeData(
-            thumbColor:
-                WidgetStateProperty.resolveWith(
-              (_) => Colors.white,
-            ),
-            trackColor:
-                WidgetStateProperty.resolveWith(
-              (states) {
-                if (states.contains(
-                  WidgetState.selected,
-                )) {
-                  return AppColors.primary;
-                }
+                          SwitchTheme(
+                            data: SwitchThemeData(
+                              thumbColor: WidgetStateProperty.resolveWith(
+                                (_) => Colors.white,
+                              ),
+                              trackColor: WidgetStateProperty.resolveWith((
+                                states,
+                              ) {
+                                if (states.contains(WidgetState.selected)) {
+                                  return AppColors.primary;
+                                }
 
-                return Colors.grey.withValues(
-                  alpha: 0.35,
-                );
-              },
-            ),
-            trackOutlineColor:
-                WidgetStateProperty.all(
-              Colors.transparent,
-            ),
-          ),
-          child: Switch(
-            value: status,
-            onChanged: (value) {
-              setState(() {
-                status = value;
-              });
-            },
-          ),
-        ),
-      ],
-    ),
-  ),
-],
+                                return Colors.grey.withValues(alpha: 0.35);
+                              }),
+                              trackOutlineColor: WidgetStateProperty.all(
+                                Colors.transparent,
+                              ),
+                            ),
+                            child: Switch(
+                              value: status,
+                              onChanged: (value) {
+                                setState(() {
+                                  status = value;
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
 
-const SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
-Row(
-  children: [
+                  Row(
+                    children: [
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () => Navigator.pop(context),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: AppColors.textPrimary,
-                            side: const BorderSide(
-                              color: AppColors.border,
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 14,
-                            ),
+                            side: const BorderSide(color: AppColors.border),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -1719,18 +1682,14 @@ Row(
                           style: FilledButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 14,
-                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
                           child: Text(
                             isEditing ? 'Update Item' : 'Save Item',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w700,
-                            ),
+                            style: const TextStyle(fontWeight: FontWeight.w700),
                           ),
                         ),
                       ),
@@ -1745,10 +1704,7 @@ Row(
     );
   }
 
-  Widget _buildLabel(
-    String text, {
-    bool required = false,
-  }) {
+  Widget _buildLabel(String text, {bool required = false}) {
     return RichText(
       text: TextSpan(
         text: text,
@@ -1761,9 +1717,7 @@ Row(
             ? const [
                 TextSpan(
                   text: ' *',
-                  style: TextStyle(
-                    color: AppColors.error,
-                  ),
+                  style: TextStyle(color: AppColors.error),
                 ),
               ]
             : null,
@@ -1771,48 +1725,47 @@ Row(
     );
   }
 
-  InputDecoration _inputDecoration({
-    required String hint,
-  }) {
+  InputDecoration _inputDecoration({required String hint}) {
     return InputDecoration(
       hintText: hint,
       filled: true,
       fillColor: AppColors.inputBackground,
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 14,
-        vertical: 14,
+
+      // Reserve one validation line even when there is no error.
+      // This prevents live validation from changing the dialog height.
+      helperText: ' ',
+      helperStyle: const TextStyle(
+        fontSize: 12,
+        height: 1,
+        color: Colors.transparent,
       ),
+      errorStyle: const TextStyle(
+        fontSize: 12,
+        height: 1,
+        color: AppColors.error,
+      ),
+      errorMaxLines: 1,
+
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: AppColors.border,
-        ),
+        borderSide: const BorderSide(color: AppColors.border),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: AppColors.border,
-        ),
+        borderSide: const BorderSide(color: AppColors.border),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: AppColors.primary,
-          width: 1.4,
-        ),
+        borderSide: const BorderSide(color: AppColors.primary, width: 1.4),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: AppColors.error,
-        ),
+        borderSide: const BorderSide(color: AppColors.error),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: AppColors.error,
-          width: 1.2,
-        ),
+        borderSide: const BorderSide(color: AppColors.error, width: 1.2),
       ),
     );
   }
@@ -1839,9 +1792,7 @@ class _ItemFormResult {
 class _SurfaceCard extends StatelessWidget {
   final Widget child;
 
-  const _SurfaceCard({
-    required this.child,
-  });
+  const _SurfaceCard({required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -1850,9 +1801,7 @@ class _SurfaceCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: AppColors.borderLight,
-        ),
+        border: Border.all(color: AppColors.borderLight),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.025),
@@ -1892,11 +1841,7 @@ class _FilterDropdown<T> extends StatelessWidget {
         labelText: label,
         prefixIcon: icon == null
             ? null
-            : Icon(
-                icon,
-                size: 19,
-                color: AppColors.icon,
-              ),
+            : Icon(icon, size: 19, color: AppColors.icon),
         filled: true,
         fillColor: AppColors.inputBackground,
         contentPadding: const EdgeInsets.symmetric(
@@ -1905,22 +1850,15 @@ class _FilterDropdown<T> extends StatelessWidget {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: AppColors.border,
-          ),
+          borderSide: const BorderSide(color: AppColors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: AppColors.border,
-          ),
+          borderSide: const BorderSide(color: AppColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: AppColors.primary,
-            width: 1.4,
-          ),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.4),
         ),
       ),
       hint: Text(hint),
@@ -1955,16 +1893,12 @@ class _StatusSwitch extends StatelessWidget {
           height: 26,
           padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
-        color: isActive
-    ? AppColors.primary
-    : const Color(0xFFBDBDBD),
+            color: isActive ? AppColors.primary : const Color(0xFFBDBDBD),
             borderRadius: BorderRadius.circular(20),
           ),
           child: AnimatedAlign(
             duration: const Duration(milliseconds: 160),
-            alignment: isActive
-                ? Alignment.centerRight
-                : Alignment.centerLeft,
+            alignment: isActive ? Alignment.centerRight : Alignment.centerLeft,
             child: Container(
               width: 20,
               height: 20,
@@ -1980,14 +1914,14 @@ class _StatusSwitch extends StatelessWidget {
   }
 }
 
-class _MobileItemCard extends StatelessWidget {
+class _ItemCard extends StatelessWidget {
   final ItemModel item;
   final String categoryName;
   final String subCategoryName;
   final VoidCallback? onEdit;
   final VoidCallback? onToggle;
 
-  const _MobileItemCard({
+  const _ItemCard({
     required this.item,
     required this.categoryName,
     required this.subCategoryName,
@@ -1997,104 +1931,108 @@ class _MobileItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    final isMobile = width < 700;
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 14 : 22,
+        vertical: isMobile ? 15 : 18,
+      ),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: AppColors.borderLight,
-        ),
+        border: Border.all(color: AppColors.border),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-                 Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-
-Text(
-  'Price: ₹${item.price.toStringAsFixed(2)}',
-  style: const TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.w700,
-    color: AppColors.textPrimary,
-  ),
-),
-
-const SizedBox(height: 2),
-
-Text(
-  'Category: $categoryName',
-  style: const TextStyle(
-    fontSize: 13,
-    fontWeight: FontWeight.w600,
-    color: Color.fromARGB(255, 112, 100, 92),
-  ),
-),
-const SizedBox(height: 2),
-
-Text(
-  'Sub Category: $subCategoryName',
-  style: const TextStyle(
-    fontSize: 13,
-    fontWeight: FontWeight.w600,
-    color: Color.fromARGB(255, 112, 100, 92),
-  ),
-),
-                  ],
-                ),
-              ),
-
-              const SizedBox(width: 8),
-
-              _StatusSwitch(
-                isActive: item.isActive,
-                enabled: onToggle != null,
-                onChanged: (_) => onToggle?.call(),
-              ),
-
-              const SizedBox(width: 6),
-
-              
-                SizedBox(
-              width: 26,
-             height: 26,
-              child: IconButton(
-              tooltip: 'Edit item',
-               onPressed: onEdit,
-              padding: EdgeInsets.zero,
-              icon: const Icon(
-              Icons.edit_outlined,
-              size: 19,
-                ),
-               color: Colors.black,
-               ),
-               ),
-                
-            ],
+          Expanded(
+            flex: 3,
+            child: _cellText(
+              item.name,
+              align: TextAlign.left,
+              bold: true,
+              isMobile: isMobile,
+            ),
           ),
-
-          
-
-        
+          Expanded(
+            flex: 2,
+            child: _cellText(
+              categoryName,
+              align: TextAlign.center,
+              isMobile: isMobile,
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: _cellText(
+              subCategoryName,
+              align: TextAlign.center,
+              isMobile: isMobile,
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: _cellText(
+              '₹${item.price.toStringAsFixed(2)}',
+              align: TextAlign.center,
+              bold: true,
+              isMobile: isMobile,
+            ),
+          ),
+          SizedBox(
+            width: isMobile ? 108 : 140,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                _StatusSwitch(
+                  isActive: item.isActive,
+                  enabled: onToggle != null,
+                  onChanged: (_) => onToggle?.call(),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: isMobile ? 34 : 40,
+                  height: 36,
+                  child: IconButton(
+                    tooltip: 'Edit item',
+                    onPressed: onEdit,
+                    padding: EdgeInsets.zero,
+                    icon: const Icon(
+                      Icons.edit_outlined,
+                      size: 19,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _cellText(
+    String value, {
+    required TextAlign align,
+    required bool isMobile,
+    bool bold = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Text(
+        value,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        textAlign: align,
+        style: TextStyle(
+          fontSize: isMobile ? 12 : 14,
+          fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
+          color: bold ? AppColors.textPrimary : AppColors.textSecondary,
+        ),
       ),
     );
   }
