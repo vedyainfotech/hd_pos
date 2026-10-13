@@ -1860,13 +1860,14 @@ class _InventoryCategoryScreenState extends State<InventoryCategoryScreen> {
 
 
 
-    return Positioned(
+    final screenWidth = MediaQuery.of(context).size.width;
 
-      top: 12,
-
-      right: 16,
-
-      left: 16,
+return Positioned(
+  top: screenWidth < 600
+      ? MediaQuery.of(context).padding.top + 12
+      : 12,
+  right: 16,
+  left: screenWidth < 600 ? 16 : null,
 
       child: IgnorePointer(
 

@@ -152,10 +152,14 @@ class _UnitsScreenState extends State<UnitsScreen> {
             ? Icons.warning_amber_rounded
             : Icons.check_rounded;
 
-    return Positioned(
-      top: 12,
-      right: 16,
-      left: 16,
+    final screenWidth = MediaQuery.of(context).size.width;
+
+return Positioned(
+  top: screenWidth < 600
+      ? MediaQuery.of(context).padding.top + 12
+      : 12,
+  right: 16,
+  left: screenWidth < 600 ? 16 : null,
       child: IgnorePointer(
         child: Align(
           alignment: Alignment.topRight,

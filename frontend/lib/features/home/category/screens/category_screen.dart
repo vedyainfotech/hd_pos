@@ -1625,84 +1625,88 @@ class _CategoryScreenState extends State<CategoryScreen> {
   }
 
   Widget _buildTopRightMessage() {
-    final message = _message;
-    if (message == null) {
-      return const SizedBox.shrink();
-    }
+  final message = _message;
+  if (message == null) {
+    return const SizedBox.shrink();
+  }
 
-    final backgroundColor = _messageIsError
-        ? const Color(0xFFFFE5E5)
-        : _messageIsWarning
-            ? const Color(0xFFFFF3CD)
-            : const Color(0xFFE5F7E9);
+  final screenWidth = MediaQuery.of(context).size.width;
 
-    final iconColor = _messageIsError
-        ? const Color(0xFFD32F2F)
-        : _messageIsWarning
-            ? const Color(0xFFE59A00)
-            : const Color(0xFF1E9E45);
+  final backgroundColor = _messageIsError
+      ? const Color(0xFFFFE5E5)
+      : _messageIsWarning
+          ? const Color(0xFFFFF3CD)
+          : const Color(0xFFE5F7E9);
 
-    final icon = _messageIsError
-        ? Icons.close_rounded
-        : _messageIsWarning
-            ? Icons.warning_amber_rounded
-            : Icons.check_rounded;
+  final iconColor = _messageIsError
+      ? const Color(0xFFD32F2F)
+      : _messageIsWarning
+          ? const Color(0xFFE59A00)
+          : const Color(0xFF1E9E45);
 
-    return Positioned(
-      top: 12,
-      right: 16,
-      left: 16,
-      child: IgnorePointer(
-        child: Align(
-          alignment: Alignment.topRight,
-          child: Material(
-            color: Colors.transparent,
-            child: Container(
-              constraints: const BoxConstraints(
-                maxWidth: 320,
-              ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 12,
-              ),
-              decoration: BoxDecoration(
-                color: backgroundColor,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.12),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    icon,
-                    size: 22,
-                    color: iconColor,
-                  ),
-                  const SizedBox(width: 10),
-                  Flexible(
-                    child: Text(
-                      message,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: iconColor,
-                      ),
+  final icon = _messageIsError
+      ? Icons.close_rounded
+      : _messageIsWarning
+          ? Icons.warning_amber_rounded
+          : Icons.check_rounded;
+
+  return Positioned(
+    top: screenWidth < 600
+        ? MediaQuery.of(context).padding.top + 12
+        : 12,
+    right: screenWidth < 600 ? 16 : 16,
+    left: screenWidth < 600 ? 16 : null,
+    child: IgnorePointer(
+      child: Align(
+        alignment: Alignment.topRight,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            constraints: BoxConstraints(
+              maxWidth: screenWidth < 600 ? 340 : 320,
+            ),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 12,
+            ),
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.12),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  size: 22,
+                  color: iconColor,
+                ),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: Text(
+                    message,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: iconColor,
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   // ============================================================
   // BUILD
