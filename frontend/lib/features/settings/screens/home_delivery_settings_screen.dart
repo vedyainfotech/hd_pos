@@ -9,6 +9,7 @@ import '../../home/menu_scheduling/screens/menu_scheduling_screen.dart';
 import '../../auth/screens/login_screen.dart';
 import '../../home/customers/screens/customers_screen.dart';
 import '../../home/kot_settings/screens/kot_settings_screen.dart';
+import '../../home/permissions/screens/permissions_screen.dart';
 
 class HomeDeliverySettingsScreen extends StatelessWidget {
   const HomeDeliverySettingsScreen({super.key});
@@ -394,6 +395,22 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                               iconBackground: const Color(0xFFFFF0DA),
                               iconColor: const Color(0xFFD97706),
                             ),
+                            _settingCard(
+                                context,
+                                title: 'Permissions',
+                                subtitle: 'Manage screen access for each role',
+                                icon: Icons.lock_outline,
+                                iconBackground: const Color(0xFFF7E8DE),
+                                iconColor: AppColors.primary,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const PermissionsScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
 
                             _settingCard(
                               context,
@@ -546,7 +563,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
             top: Radius.circular(16),
           ),
           onTap: () {
-            // TODO: Open profile page
+            // 1--TODO: Open profile page
           },
           child: Padding(
             padding: const EdgeInsets.all(12),

@@ -651,14 +651,10 @@ void _showSuccessAlert(String message) {
                   crossAxisAlignment: CrossAxisAlignment.start,
 
                   children: [
-                    _buildHeader(),
-
-                    const SizedBox(height: 24),
-
+                   _buildHeader(),
+                    const SizedBox(height: 14),
                     _buildNumberingCard(),
-
                     const SizedBox(height: 24),
-
                     _buildExistingSequences(),
                   ],
                 ),
@@ -673,25 +669,20 @@ void _showSuccessAlert(String message) {
   // ─────────────────────────────────────────────
   // Header
   // ─────────────────────────────────────────────
-  Widget _buildHeader() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 18),
-      decoration: BoxDecoration(
-        color: AppColors.primarySoft,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.borderLight),
-      ),
-      child: const Text(
+
+Widget _buildHeader() {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const SizedBox(height: 4),
+      Text(
         'Configure numbering sequences for different documents and orders.',
-        style: TextStyle(
-          color: AppColors.textSecondary,
-          fontSize: 14,
-          height: 1.5,
-        ),
+        style: Theme.of(context).textTheme.bodyMedium,
       ),
-    );
-  }
+    ],
+  );
+}
+
 
   // ─────────────────────────────────────────────
   // Main Numbering Card

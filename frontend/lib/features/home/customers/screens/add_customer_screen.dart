@@ -2094,43 +2094,44 @@ _simpleAddressField(
   validator: _validateUrl,
 ),
 const SizedBox(height: _addressFieldGap),
-InkWell(
-  onTap: address.loadingDistricts ||
-          address.districts.isEmpty
-      ? null
-      : () {
-          _showDistrictPicker(address);
-        },
+
+ InkWell(
+  onTap: () {
+    _showCountryPicker(address);
+  },
   borderRadius: BorderRadius.circular(12),
   child: InputDecorator(
-    decoration: InputDecoration(
-      labelText: 'District',
-      prefixIcon: const Icon(
-        Icons.location_city_outlined,
-      ),
-      suffixIcon: address.loadingDistricts
-          ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: Padding(
-                padding: EdgeInsets.all(10),
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                ),
-              ),
-            )
-          : const Icon(
-              Icons.keyboard_arrow_down,
-            ),
-    ),
+  
+decoration: const InputDecoration(
+  labelText: 'Country',
+  prefixIcon: Icon(Icons.public_outlined),
+  suffixIcon: Icon(Icons.keyboard_arrow_down),
+
+  constraints: BoxConstraints(
+    minHeight: 56,
+    maxHeight: 56,
+  ),
+
+  contentPadding: EdgeInsets.symmetric(
+    horizontal: 12,
+    vertical: 12,
+  ),
+),
+
     child: Text(
-      address.selectedDistrict == null ||
-              address.selectedDistrict!.isEmpty
-          ? 'Select district'
-          : address.selectedDistrict!,
+      address.selectedCountry == null ||
+              address.selectedCountry!.isEmpty
+          ? 'Select country'
+          : _countries
+              .firstWhere(
+                (country) =>
+                    country.alpha2Code == address.selectedCountry,
+                orElse: () => _countries.first,
+              )
+              .name,
       style: TextStyle(
-        color: address.selectedDistrict == null ||
-                address.selectedDistrict!.isEmpty
+        color: address.selectedCountry == null ||
+                address.selectedCountry!.isEmpty
             ? AppColors.textSecondary
             : AppColors.textPrimary,
         fontSize: 15,
@@ -2140,8 +2141,7 @@ InkWell(
   ),
 ),
 
-          const SizedBox(height: 14),
-
+const SizedBox(height: _addressFieldGap),
 
 InkWell(
   onTap: address.loadingStates || address.states.isEmpty
@@ -2196,46 +2196,44 @@ child: InputDecorator(
 ),
 
 ),
-
-const SizedBox(height: _addressFieldGap),
-
- InkWell(
-  onTap: () {
-    _showCountryPicker(address);
-  },
+        const SizedBox(height: 14),
+InkWell(
+  onTap: address.loadingDistricts ||
+          address.districts.isEmpty
+      ? null
+      : () {
+          _showDistrictPicker(address);
+        },
   borderRadius: BorderRadius.circular(12),
   child: InputDecorator(
-  
-decoration: const InputDecoration(
-  labelText: 'Country',
-  prefixIcon: Icon(Icons.public_outlined),
-  suffixIcon: Icon(Icons.keyboard_arrow_down),
-
-  constraints: BoxConstraints(
-    minHeight: 56,
-    maxHeight: 56,
-  ),
-
-  contentPadding: EdgeInsets.symmetric(
-    horizontal: 12,
-    vertical: 12,
-  ),
-),
-
+    decoration: InputDecoration(
+      labelText: 'District',
+      prefixIcon: const Icon(
+        Icons.location_city_outlined,
+      ),
+      suffixIcon: address.loadingDistricts
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: Padding(
+                padding: EdgeInsets.all(10),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                ),
+              ),
+            )
+          : const Icon(
+              Icons.keyboard_arrow_down,
+            ),
+    ),
     child: Text(
-      address.selectedCountry == null ||
-              address.selectedCountry!.isEmpty
-          ? 'Select country'
-          : _countries
-              .firstWhere(
-                (country) =>
-                    country.alpha2Code == address.selectedCountry,
-                orElse: () => _countries.first,
-              )
-              .name,
+      address.selectedDistrict == null ||
+              address.selectedDistrict!.isEmpty
+          ? 'Select district'
+          : address.selectedDistrict!,
       style: TextStyle(
-        color: address.selectedCountry == null ||
-                address.selectedCountry!.isEmpty
+        color: address.selectedDistrict == null ||
+                address.selectedDistrict!.isEmpty
             ? AppColors.textSecondary
             : AppColors.textPrimary,
         fontSize: 15,
@@ -2244,6 +2242,15 @@ decoration: const InputDecoration(
     ),
   ),
 ),
+
+  
+
+
+
+
+
+
+
 
 
 
