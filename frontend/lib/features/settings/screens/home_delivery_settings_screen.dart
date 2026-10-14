@@ -10,6 +10,7 @@ import '../../auth/screens/login_screen.dart';
 import '../../home/customers/screens/customers_screen.dart';
 import '../../home/kot_settings/screens/kot_settings_screen.dart';
 import '../../home/permissions/screens/permissions_screen.dart';
+import '../../home/kot_management/screens/kot_management_screen.dart';
 
 class HomeDeliverySettingsScreen extends StatelessWidget {
   const HomeDeliverySettingsScreen({super.key});
@@ -543,6 +544,20 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
             compact: compact,
           ),
 
+      _sidebarItem(
+              icon: Icons.receipt_long_outlined,
+              title: 'KOT Management',
+              compact: compact,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const KotManagementScreen(),
+                  ),
+                );
+              },
+            ),
+
           const Spacer(),
 
          if (!compact)
@@ -678,62 +693,79 @@ InkWell(
   // SIDEBAR ITEM
   // ============================================================
 
-  Widget _sidebarItem({
-    required IconData icon,
-    required String title,
-    bool selected = false,
-    bool compact = false,
-  }) {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: compact ? 8 : 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: selected ? AppColors.primarySoft : Colors.transparent,
+ 
+Widget _sidebarItem({
+  required IconData icon,
+  required String title,
+  bool selected = false,
+  bool compact = false,
+  VoidCallback? onTap,
+}) {
+  return Container(
+    margin: EdgeInsets.symmetric(
+      horizontal: compact ? 8 : 12,
+      vertical: 4,
+    ),
+    decoration: BoxDecoration(
+      color: selected
+          ? AppColors.primarySoft
+          : Colors.transparent,
+      borderRadius: BorderRadius.circular(14),
+    ),
+    child: Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
         borderRadius: BorderRadius.circular(14),
-      ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: compact ? 10 : 14,
-          vertical: 12,
-        ),
-        child: Row(
-          mainAxisAlignment: compact
-              ? MainAxisAlignment.center
-              : MainAxisAlignment.start,
-          children: [
-            Icon(
-              icon,
-              size: 20,
-              color: selected ? AppColors.primary : AppColors.textSecondary,
-            ),
-
-            if (!compact) ...[
-              const SizedBox(width: 12),
-
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    color: selected
-                        ? AppColors.primary
-                        : AppColors.textSecondary,
-                    fontSize: 14,
-                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+        onTap: onTap,
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: compact ? 10 : 14,
+            vertical: 12,
+          ),
+          child: Row(
+            mainAxisAlignment: compact
+                ? MainAxisAlignment.center
+                : MainAxisAlignment.start,
+            children: [
+              Icon(
+                icon,
+                size: 20,
+                color: selected
+                    ? AppColors.primary
+                    : AppColors.textSecondary,
+              ),
+              if (!compact) ...[
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      color: selected
+                          ? AppColors.primary
+                          : AppColors.textSecondary,
+                      fontSize: 14,
+                      fontWeight: selected
+                          ? FontWeight.w700
+                          : FontWeight.w500,
+                    ),
                   ),
                 ),
-              ),
-
-              if (selected)
-                const Icon(
-                  Icons.chevron_right,
-                  color: AppColors.primary,
-                  size: 19,
-                ),
+                if (selected)
+                  const Icon(
+                    Icons.chevron_right,
+                    color: AppColors.primary,
+                    size: 19,
+                  ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
 
 // ============================================================
 // TOP BAR
