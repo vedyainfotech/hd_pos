@@ -1,7 +1,8 @@
+
 import 'package:flutter/material.dart';
 
 import 'core/theme/theme.dart';
-import 'features/settings/screens/home_delivery_settings_screen.dart';
+import 'features/home/dashboard/dashboard_screens.dart';
 
 void main() {
   runApp(const HDPosApp());
@@ -16,7 +17,7 @@ class HDPosApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Home Delivery POS',
       theme: AppTheme.lightTheme,
-      home: const HomeDeliverySettingsScreen(),
+      home: const HomeDeliveryDashboardScreen(),
     );
   }
 }
