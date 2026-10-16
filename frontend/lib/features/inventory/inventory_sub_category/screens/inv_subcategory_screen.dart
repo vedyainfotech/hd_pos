@@ -98,24 +98,128 @@ class _InvSubCategoryScreenState extends State<InvSubCategoryScreen> {
 
   Future<void> _toggleStatus(InvSubCategoryModel item) async {
     final newStatus = !item.status;
+    final confirmed = await _showStatusConfirmation(newStatus);
+    if (!confirmed || !mounted) return;
 
     try {
       final updated = await _subCategoryService.updateSubCategoryStatus(
         item.id,
         newStatus,
       );
-
       if (!mounted) return;
-
       setState(() {
         final index = _subCategories.indexWhere((e) => e.id == item.id);
-        if (index != -1) {
-          _subCategories[index] = updated;
-        }
+        if (index != -1) _subCategories[index] = updated;
       });
+      _showMessage(
+        newStatus
+            ? 'Inventory subcategory activated successfully'
+            : 'Inventory subcategory deactivated successfully',
+      );
     } catch (error) {
+      if (!mounted) return;
       _showMessage('Failed to update status: $error', isError: true);
     }
+  }
+
+  Future<bool> _showStatusConfirmation(bool activate) async {
+    final action = activate ? 'Activate' : 'Deactivate';
+    final actionLower = activate ? 'activate' : 'deactivate';
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 545),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(28, 28, 28, 26),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(22),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 78,
+                  height: 78,
+                  decoration: BoxDecoration(
+                    color: activate
+                        ? const Color(0xFFEAF5E8)
+                        : AppColors.primarySoft,
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(
+                    activate ? Icons.check_rounded : Icons.priority_high_rounded,
+                    size: 42,
+                    color: activate ? const Color(0xFF2E7D32) : AppColors.primary,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  '$action Inventory Subcategory?',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Are you sure you want to $actionLower this inventory subcategory?',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    height: 1.45,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 28),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(dialogContext).pop(false),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size.fromHeight(54),
+                          foregroundColor: AppColors.textPrimary,
+                          side: const BorderSide(color: AppColors.border),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text('Cancel'),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.of(dialogContext).pop(true),
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size.fromHeight(54),
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(action),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    return result ?? false;
   }
 
   Future<void> _openAddPanel() async {
@@ -266,33 +370,27 @@ class _InvSubCategoryScreenState extends State<InvSubCategoryScreen> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isMobile = constraints.maxWidth < 600;
-        final isTablet =
-            constraints.maxWidth >= 600 && constraints.maxWidth < 1200;
-
-        return SingleChildScrollView(
+        final isTablet = constraints.maxWidth >= 600 && constraints.maxWidth < 1200;
+        return Padding(
           padding: EdgeInsets.fromLTRB(
             isMobile ? 16 : 28,
             isMobile ? 16 : 28,
             isMobile ? 16 : 28,
             8,
           ),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: constraints.maxHeight - (isMobile ? 24 : 48),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildPageHeader(
-                  isMobile,
-                  constraints.maxWidth >= 1200,
-                ),
-                const SizedBox(height: 24),
-                _buildFilters(isMobile, isTablet),
-                const SizedBox(height: 20),
-                _buildTable(isMobile),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildPageHeader(isMobile, constraints.maxWidth >= 1200),
+              const SizedBox(height: 24),
+              _buildFilters(isMobile, isTablet),
+              const SizedBox(height: 16),
+              if (!isMobile) ...[
+                _buildListHeading(),
+                const SizedBox(height: 10),
               ],
-            ),
+              Expanded(child: _buildSubCategoryCards(isMobile)),
+            ],
           ),
         );
       },
@@ -301,37 +399,24 @@ class _InvSubCategoryScreenState extends State<InvSubCategoryScreen> {
 
   Widget _buildPageHeader(bool isCompact, bool isDesktop) {
     if (isCompact) {
-      return const Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(height: 6),
-          Text(
-            'Manage your inventory subcategories',
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ],
+      return const Padding(
+        padding: EdgeInsets.only(top: 6),
+        child: Text(
+          'Manage your inventory subcategories',
+          style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+        ),
       );
     }
-
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         const Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 6),
-              Text(
-                'Manage your inventory subcategories',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
+          child: Padding(
+            padding: EdgeInsets.only(top: 6),
+            child: Text(
+              'Manage your inventory subcategories',
+              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+            ),
           ),
         ),
         _buildAddButton(isDesktop),
@@ -379,21 +464,19 @@ class _InvSubCategoryScreenState extends State<InvSubCategoryScreen> {
                       children: [
                         Expanded(child: _buildSearchField()),
                         const SizedBox(width: 10),
-                        SizedBox(
-                          width: 48,
-                          height: 48,
-                          child: ElevatedButton(
-                            onPressed: _openAddPanel,
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: AppColors.textOnPrimary,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
+                        ElevatedButton.icon(
+                          onPressed: _openAddPanel,
+                          icon: const Icon(Icons.add, size: 20),
+                          label: const Text('Add'),
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(96, 48),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: AppColors.textOnPrimary,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                            child: const Icon(Icons.add, size: 20),
                           ),
                         ),
                       ],
@@ -530,120 +613,54 @@ class _InvSubCategoryScreenState extends State<InvSubCategoryScreen> {
     );
   }
 
-  Widget _buildTable(bool isMobile) {
-    final items = _filteredSubCategories;
-
-    return SizedBox(
+  // Fixed heading: stays visible while only the item list scrolls.
+  // Price is intentionally omitted for inventory subcategories.
+  Widget _buildListHeading() {
+    return Container(
       width: double.infinity,
-      child: Card(
-        elevation: 0,
+      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
+      decoration: BoxDecoration(
         color: AppColors.surface,
-        clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-          side: const BorderSide(color: AppColors.border),
-        ),
-        child: items.isEmpty
-            ? _buildEmptyState()
-            : Column(
-                children: [
-                  _buildTableHeader(isMobile),
-                  const Divider(height: 1, color: AppColors.divider),
-                  ...items.map((item) => _buildTableRow(item, isMobile)),
-                ],
-              ),
-      ),
-    );
-  }
-
-  Widget _buildTableHeader(bool isMobile) {
-    if (isMobile) {
-      return const Padding(
-        padding: EdgeInsets.all(16),
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            'Inventory Subcategories',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-      color: AppColors.surfaceSoft,
-      child: const Row(
-        children: [
-          Expanded(
-            child: Text('SUBCATEGORY', style: _headerStyle),
-          ),
-          Expanded(
-            child: Center(
-              child: Text('CATEGORY', style: _headerStyle),
-            ),
-          ),
-          Expanded(
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: Text('ACTION', style: _headerStyle),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTableRow(InvSubCategoryModel item, bool isMobile) {
-    if (isMobile) return _buildCompactRow(item);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: AppColors.divider),
-        ),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
       ),
       child: Row(
         children: [
-          Expanded(child: _buildNameCell(item)),
-          Expanded(
-            child: Center(
-              child: Text(
-                _categoryName(item.categoryId),
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
-                ),
-                overflow: TextOverflow.ellipsis,
+          const Expanded(
+            flex: 3,
+            child: Text(
+              'SUBCATEGORY',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textSecondary,
               ),
             ),
           ),
-          Expanded(
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Switch(
-                    value: item.status,
-                    onChanged: (_) => _toggleStatus(item),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    tooltip: 'Edit',
-                    onPressed: () => _openEditPanel(item),
-                    icon: const Icon(
-                      Icons.edit_outlined,
-                      size: 19,
-                      color: AppColors.icon,
-                    ),
-                  ),
-                ],
+          const Expanded(
+            flex: 3,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                'CATEGORY',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 140,
+            child: Text(
+              'ACTION',
+              textAlign: TextAlign.end,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textSecondary,
               ),
             ),
           ),
@@ -652,79 +669,149 @@ class _InvSubCategoryScreenState extends State<InvSubCategoryScreen> {
     );
   }
 
-  Widget _buildCompactRow(InvSubCategoryModel item) {
-    return InkWell(
-      onTap: () => _openEditPanel(item),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: const BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: AppColors.divider),
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+  Widget _buildSubCategoryCards(bool isMobile) {
+    final items = _filteredSubCategories;
+    if (items.isEmpty) return _buildEmptyState();
+
+    return ListView.builder(
+      padding: const EdgeInsets.only(bottom: 8),
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        final item = items[index];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: _buildSubCategoryCard(item, isMobile: isMobile),
+        );
+      },
+    );
+  }
+
+  Widget _buildSubCategoryCard(
+    InvSubCategoryModel item, {
+    required bool isMobile,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 14 : 22,
+        vertical: isMobile ? 15 : 18,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: isMobile
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(child: _buildNameCell(item)),
                 Row(
-                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Switch(
-                      value: item.status,
-                      onChanged: (_) => _toggleStatus(item),
-                    ),
-                    IconButton(
-                      tooltip: 'Edit',
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(
-                        minWidth: 40,
-                        minHeight: 40,
-                      ),
-                      onPressed: () => _openEditPanel(item),
-                      icon: const Icon(
-                        Icons.edit_outlined,
-                        size: 20,
-                        color: AppColors.icon,
+                    Expanded(
+                      child: Text(
+                        item.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                     ),
+                    _buildStatusSwitch(item),
+                    const SizedBox(width: 4),
+                    _buildEditButton(item),
                   ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  _categoryName(item.categoryId),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            )
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    item.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Text(
+                      _categoryName(item.categoryId),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 140,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      _buildStatusSwitch(item),
+                      const SizedBox(width: 8),
+                      _buildEditButton(item),
+                    ],
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 6),
-            Text(
-              _categoryName(item.categoryId),
-              style: const TextStyle(
-                fontSize: 13,
-                color: AppColors.textSecondary,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
+    );
+  }
+
+  Widget _buildStatusSwitch(InvSubCategoryModel item) {
+    return SwitchTheme(
+      data: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((_) => Colors.white),
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return AppColors.primary;
+          return Colors.grey.withValues(alpha: 0.35);
+        }),
+        trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+      ),
+      child: Switch(
+        value: item.status,
+        onChanged: (_) => _toggleStatus(item),
       ),
     );
   }
 
-  Widget _buildNameCell(InvSubCategoryModel item) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            item.name,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
+  Widget _buildEditButton(InvSubCategoryModel item) {
+    return IconButton(
+      tooltip: 'Edit',
+      onPressed: () => _openEditPanel(item),
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+      icon: const Icon(Icons.edit_outlined, size: 19, color: AppColors.icon),
     );
   }
+
+
 
   Widget _buildEmptyState() {
     return SizedBox(
@@ -763,13 +850,6 @@ class _InvSubCategoryScreenState extends State<InvSubCategoryScreen> {
     );
   }
 }
-
-const TextStyle _headerStyle = TextStyle(
-  fontSize: 11,
-  fontWeight: FontWeight.w700,
-  letterSpacing: 0.6,
-  color: AppColors.textTertiary,
-);
 
 class InvSubCategoryFormResult {
   final int categoryId;
@@ -911,7 +991,7 @@ class _InvSubCategoryFormSheetState
 
   Widget _buildFormBody() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 22, 24, 24),
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -925,7 +1005,7 @@ class _InvSubCategoryFormSheetState
           ),
           const SizedBox(height: 8),
           _buildCategoryField(),
-          const SizedBox(height: 18),
+          const SizedBox(height: 10),
           const Text(
             'Subcategory Name',
             style: TextStyle(
@@ -937,7 +1017,7 @@ class _InvSubCategoryFormSheetState
           const SizedBox(height: 8),
           _buildNameField(),
           if (_isEditing) ...[
-            const SizedBox(height: 18),
+            const SizedBox(height: 10),
             _buildStatusField(),
           ],
         ],
@@ -945,11 +1025,15 @@ class _InvSubCategoryFormSheetState
     );
   }
 
-  Widget _buildCategoryField() {
-    return DropdownButtonFormField<int>(
+ 
+Widget _buildCategoryField() {
+  return SizedBox(
+    height: 72,
+    child: DropdownButtonFormField<int>(
       initialValue: _selectedCategoryId,
       decoration: const InputDecoration(
         hintText: 'Select inventory category',
+        errorMaxLines: 1,
       ),
       items: widget.categories
           .map(
@@ -969,11 +1053,16 @@ class _InvSubCategoryFormSheetState
         if (value == null) return 'Please select a category';
         return null;
       },
-    );
-  }
+    ),
+  );
+}
 
-  Widget _buildNameField() {
-    return TextFormField(
+
+ 
+Widget _buildNameField() {
+  return SizedBox(
+    height: 88,
+    child: TextFormField(
       controller: _nameController,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       textCapitalization: TextCapitalization.words,
@@ -988,6 +1077,7 @@ class _InvSubCategoryFormSheetState
       },
       decoration: const InputDecoration(
         hintText: 'Enter inventory subcategory name',
+        errorMaxLines: 2,
       ),
       validator: (value) {
         final name = value?.trim() ?? '';
@@ -1006,8 +1096,9 @@ class _InvSubCategoryFormSheetState
 
         return null;
       },
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildStatusField() {
     return Container(
