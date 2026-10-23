@@ -1,3 +1,4 @@
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -18,15 +19,25 @@ router = APIRouter(
 )
 
 
+def handle_integrity_error():
+    raise HTTPException(
+        status_code=409,
+        detail=(
+            "The item could not be saved because it conflicts "
+            "with existing data. Check the item name and subcategory."
+        ),
+    )
+
+
 @router.get(
     "/",
     response_model=list[ItemResponse],
 )
 def get_items(
-    include_inactive: bool = Query(True),
-    category_id: int | None = Query(None),
-    sub_category_id: int | None = Query(None),
-    search: str | None = Query(None),
+    include_inactive: bool = Query(False),
+    category_id: int | None = Query(None, gt=0),
+    sub_category_id: int | None = Query(None, gt=0),
+    search: str | None = Query(None, max_length=150),
     db: Session = Depends(get_db),
 ):
     return ItemService.get_items(
@@ -46,10 +57,7 @@ def get_item(
     item_id: int,
     db: Session = Depends(get_db),
 ):
-    item = ItemService.get_item(
-        db,
-        item_id,
-    )
+    item = ItemService.get_item(db, item_id)
 
     if item is None:
         raise HTTPException(
@@ -70,24 +78,23 @@ def create_item(
     db: Session = Depends(get_db),
 ):
     try:
-        return ItemService.create_item(
-            db,
-            data,
-        )
+        return ItemService.create_item(db, data)
 
     except ValueError as exc:
         raise HTTPException(
             status_code=400,
             detail=str(exc),
-        )
+        ) from exc
 
-    except IntegrityError:
+    except IntegrityError as exc:
         db.rollback()
-
         raise HTTPException(
             status_code=409,
-            detail="Item already exists under this sub category",
-        )
+            detail=(
+                "The item name already exists in this category, "
+                "or the submitted data conflicts with a database constraint."
+            ),
+        ) from exc
 
 
 @router.put(
@@ -100,11 +107,7 @@ def update_item(
     db: Session = Depends(get_db),
 ):
     try:
-        item = ItemService.update_item(
-            db,
-            item_id,
-            data,
-        )
+        item = ItemService.update_item(db, item_id, data)
 
         if item is None:
             raise HTTPException(
@@ -118,15 +121,17 @@ def update_item(
         raise HTTPException(
             status_code=400,
             detail=str(exc),
-        )
+        ) from exc
 
-    except IntegrityError:
+    except IntegrityError as exc:
         db.rollback()
-
         raise HTTPException(
             status_code=409,
-            detail="Item already exists under this sub category",
-        )
+            detail=(
+                "The item name already exists in this category, "
+                "or the submitted data conflicts with a database constraint."
+            ),
+        ) from exc
 
 
 @router.patch(
@@ -138,16 +143,20 @@ def update_item_status(
     data: ItemStatusUpdate,
     db: Session = Depends(get_db),
 ):
-    item = ItemService.update_status(
-        db,
-        item_id,
-        data,
-    )
+    try:
+        item = ItemService.update_status(db, item_id, data)
 
-    if item is None:
+        if item is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Item not found",
+            )
+
+        return item
+
+    except IntegrityError as exc:
+        db.rollback()
         raise HTTPException(
-            status_code=404,
-            detail="Item not found",
-        )
-
-    return item
+            status_code=409,
+            detail="Unable to update item status.",
+        ) from exc
