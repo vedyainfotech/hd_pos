@@ -1,7 +1,11 @@
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session
 
-from app.models.item import Item
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session, selectinload
+
+from app.models.item import (
+    FoodDetail,
+    ItemSubCategoryMapping,
+)
 
 
 class ItemRepository:
@@ -13,45 +17,49 @@ class ItemRepository:
         category_id: int | None = None,
         sub_category_id: int | None = None,
         search: str | None = None,
-    ) -> list[Item]:
-        query = select(Item)
+    ) -> list[FoodDetail]:
+        query = select(FoodDetail).options(
+            selectinload(FoodDetail.sub_categories)
+        )
 
         if not include_inactive:
-            query = query.where(Item.status.is_(True))
+            query = query.where(FoodDetail.status.is_(True))
 
         if category_id is not None:
             query = query.where(
-                Item.category_id == category_id
+                FoodDetail.category_id == category_id
             )
 
         if sub_category_id is not None:
             query = query.where(
-                Item.sub_category_id == sub_category_id
+                FoodDetail.sub_categories.any(
+                    ItemSubCategoryMapping.sub_category_id
+                    == sub_category_id
+                )
             )
 
-        if search:
-            search_value = search.strip()
-
-            if search_value:
-                query = query.where(
-                    Item.name.ilike(
-                        f"%{search_value}%"
-                    )
+        if search and search.strip():
+            query = query.where(
+                FoodDetail.item_name.ilike(
+                    f"%{search.strip()}%"
                 )
+            )
 
-        query = query.order_by(Item.id)
+        query = query.order_by(FoodDetail.id)
 
-        return list(
-            db.scalars(query).all()
-        )
+        return list(db.scalars(query).all())
 
     @staticmethod
     def get_by_id(
         db: Session,
         item_id: int,
-    ) -> Item | None:
-        query = select(Item).where(
-            Item.id == item_id
+    ) -> FoodDetail | None:
+        query = (
+            select(FoodDetail)
+            .options(
+                selectinload(FoodDetail.sub_categories)
+            )
+            .where(FoodDetail.id == item_id)
         )
 
         return db.scalar(query)
@@ -59,13 +67,13 @@ class ItemRepository:
     @staticmethod
     def get_by_name(
         db: Session,
-        sub_category_id: int,
+        category_id: int,
         name: str,
         exclude_id: int | None = None,
-    ) -> Item | None:
+    ) -> FoodDetail | None:
         normalized_input = func.lower(
             func.regexp_replace(
-                func.trim(name),
+                name,
                 r"\s+",
                 "",
                 "g",
@@ -74,21 +82,21 @@ class ItemRepository:
 
         normalized_column = func.lower(
             func.regexp_replace(
-                func.trim(Item.name),
+                FoodDetail.item_name,
                 r"\s+",
                 "",
                 "g",
             )
         )
 
-        query = select(Item).where(
-            Item.sub_category_id == sub_category_id,
+        query = select(FoodDetail).where(
+            FoodDetail.category_id == category_id,
             normalized_column == normalized_input,
         )
 
         if exclude_id is not None:
             query = query.where(
-                Item.id != exclude_id
+                FoodDetail.id != exclude_id
             )
 
         return db.scalar(query)
@@ -96,33 +104,70 @@ class ItemRepository:
     @staticmethod
     def create(
         db: Session,
-        item: Item,
-    ) -> Item:
+        item: FoodDetail,
+    ) -> FoodDetail:
         db.add(item)
-        db.commit()
-        db.refresh(item)
-
+        db.flush()
         return item
 
     @staticmethod
     def update(
         db: Session,
-        item: Item,
-    ) -> Item:
-        db.commit()
-        db.refresh(item)
-
+        item: FoodDetail,
+    ) -> FoodDetail:
+        db.flush()
         return item
 
     @staticmethod
     def update_status(
         db: Session,
-        item: Item,
+        item: FoodDetail,
         status: bool,
-    ) -> Item:
+    ) -> FoodDetail:
         item.status = status
-
-        db.commit()
-        db.refresh(item)
-
+        db.flush()
         return item
+
+    @staticmethod
+    def get_mapping(
+        db: Session,
+        item_id: int,
+        sub_category_id: int,
+    ) -> ItemSubCategoryMapping | None:
+        query = select(ItemSubCategoryMapping).where(
+            ItemSubCategoryMapping.item_id == item_id,
+            ItemSubCategoryMapping.sub_category_id
+            == sub_category_id,
+        )
+
+        return db.scalar(query)
+
+    @staticmethod
+    def get_mappings(
+        db: Session,
+        item_id: int,
+    ) -> list[ItemSubCategoryMapping]:
+        query = (
+            select(ItemSubCategoryMapping)
+            .where(ItemSubCategoryMapping.item_id == item_id)
+            .order_by(ItemSubCategoryMapping.id)
+        )
+
+        return list(db.scalars(query).all())
+
+    @staticmethod
+    def create_mapping(
+        db: Session,
+        mapping: ItemSubCategoryMapping,
+    ) -> ItemSubCategoryMapping:
+        db.add(mapping)
+        db.flush()
+        return mapping
+
+    @staticmethod
+    def delete_mapping(
+        db: Session,
+        mapping: ItemSubCategoryMapping,
+    ) -> None:
+        db.delete(mapping)
+        db.flush()
