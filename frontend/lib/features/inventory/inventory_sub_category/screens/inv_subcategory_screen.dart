@@ -1166,48 +1166,57 @@ Widget _buildNameField() {
     );
   }
 
-  Widget _buildFooter() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 22),
-      decoration: const BoxDecoration(
-        border: Border(
-          top: BorderSide(color: AppColors.divider),
+  
+Widget _buildFooter() {
+  return Container(
+    padding: const EdgeInsets.fromLTRB(24, 16, 24, 22),
+    decoration: const BoxDecoration(
+      border: Border(
+        top: BorderSide(color: AppColors.divider),
+      ),
+    ),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        OutlinedButton(
+          onPressed: () => Navigator.of(context).pop(),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size(100, 44),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            foregroundColor: AppColors.textSecondary,
+            side: const BorderSide(color: AppColors.border),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(9),
+            ),
+          ),
+          child: const Text(
+            'Cancel',
+            style: TextStyle(fontSize: 14),
+          ),
         ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () => Navigator.of(context).pop(),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                foregroundColor: AppColors.textSecondary,
-                side: const BorderSide(color: AppColors.border),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child: const Text('Cancel'),
+        const SizedBox(width: 8),
+        ElevatedButton(
+          onPressed: _submit,
+          style: ElevatedButton.styleFrom(
+            minimumSize: Size(_isEditing ? 130 : 100, 44),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            backgroundColor: AppColors.primary,
+            foregroundColor: AppColors.textOnPrimary,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(9),
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: ElevatedButton(
-              onPressed: _submit,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.textOnPrimary,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child: Text(_isEditing ? 'Update' : 'Add'),
+          child: Text(
+            _isEditing ? 'Update' : 'Add',
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
             ),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
 }
+    }

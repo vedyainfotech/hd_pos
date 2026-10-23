@@ -726,7 +726,7 @@ return Positioned(
                     ),
                   ),
                   child: const Text(
-                    'Update Unit',
+                    'Update',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,

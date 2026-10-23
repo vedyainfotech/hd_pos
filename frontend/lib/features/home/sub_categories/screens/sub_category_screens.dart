@@ -666,30 +666,28 @@ class _SubCategoriesScreenState extends State<SubCategoriesScreen> {
                         const SizedBox(width: 10),
 
                         SizedBox(
-                          width: 48,
-
-                          height: 48,
-
-                          child: ElevatedButton(
-                            onPressed: _openAddPanel,
-
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.zero,
-
-                              backgroundColor: AppColors.primary,
-
-                              foregroundColor: AppColors.textOnPrimary,
-
-                              elevation: 0,
-
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-
-                            child: const Icon(Icons.add, size: 20),
-                          ),
-                        ),
+  height: 48,
+  child: ElevatedButton.icon(
+    onPressed: _openAddPanel,
+    icon: const Icon(Icons.add, size: 20),
+    label: const Text(
+      'Add',
+      style: TextStyle(
+        fontWeight: FontWeight.w700,
+        fontSize: 14,
+      ),
+    ),
+    style: ElevatedButton.styleFrom(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      backgroundColor: AppColors.primary,
+      foregroundColor: AppColors.textOnPrimary,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+    ),
+  ),
+),
                       ],
                     ),
 
@@ -961,14 +959,15 @@ class _SubCategoriesScreenState extends State<SubCategoriesScreen> {
               isMobile: isMobile,
             ),
           ),
-          Expanded(
-            flex: 2,
-            child: _buildColumnHeading(
-              'CATEGORY',
-              align: TextAlign.center,
-              isMobile: isMobile,
-            ),
-          ),
+          if (!isMobile)
+  Expanded(
+    flex: 2,
+    child: _buildColumnHeading(
+      'CATEGORY',
+      align: TextAlign.center,
+      isMobile: isMobile,
+    ),
+  ),
           Expanded(
             flex: 2,
             child: _buildColumnHeading(
@@ -1017,6 +1016,52 @@ class _SubCategoriesScreenState extends State<SubCategoriesScreen> {
   }) {
     final categoryName = _categoryName(item.categoryId);
 
+    final nameWidget = Text(
+      item.name,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(
+        fontSize: isMobile ? 13 : 15,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textPrimary,
+      ),
+    );
+
+    final categoryWidget = Text(
+      isMobile ? 'Category: $categoryName' : categoryName,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      textAlign: isMobile ? TextAlign.left : TextAlign.center,
+      style: TextStyle(
+        fontSize: isMobile ? 11 : 14,
+        color: AppColors.textSecondary,
+      ),
+    );
+
+    final priceWidget = Text(
+      '₹${item.price.toStringAsFixed(2)}',
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        fontSize: isMobile ? 12 : 14,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textPrimary,
+      ),
+    );
+
+    final actionWidget = SizedBox(
+      width: isMobile ? 108 : 140,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          _buildStatusSwitch(item),
+          SizedBox(width: isMobile ? 2 : 8),
+          _buildEditButton(item),
+        ],
+      ),
+    );
+
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(
@@ -1030,62 +1075,35 @@ class _SubCategoriesScreenState extends State<SubCategoriesScreen> {
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            flex: 3,
-            child: Text(
-              item.name,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: isMobile ? 13 : 15,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Text(
-                categoryName,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: isMobile ? 12 : 14,
-                  color: AppColors.textSecondary,
+        children: isMobile
+            ? [
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      nameWidget,
+                      const SizedBox(height: 4),
+                      categoryWidget,
+                    ],
+                  ),
                 ),
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              '₹${item.price.toStringAsFixed(2)}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: isMobile ? 12 : 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ),
-          SizedBox(
-            width: isMobile ? 108 : 140,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                _buildStatusSwitch(item),
-                SizedBox(width: isMobile ? 2 : 8),
-                _buildEditButton(item),
+                Expanded(flex: 2, child: priceWidget),
+                actionWidget,
+              ]
+            : [
+                Expanded(flex: 3, child: nameWidget),
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: categoryWidget,
+                  ),
+                ),
+                Expanded(flex: 2, child: priceWidget),
+                actionWidget,
               ],
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -1714,59 +1732,53 @@ class _SubCategoryFormSheetState extends State<_SubCategoryFormSheet> {
 
   // ============================================================
 
+ 
   Widget _buildFooter() {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 22),
-
       decoration: const BoxDecoration(
         border: Border(top: BorderSide(color: AppColors.divider)),
       ),
-
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-
-                foregroundColor: AppColors.textSecondary,
-
-                side: const BorderSide(color: AppColors.border),
-
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
+          OutlinedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(100, 44),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              foregroundColor: AppColors.textSecondary,
+              side: const BorderSide(color: AppColors.border),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(9),
               ),
-
-              child: const Text('Cancel'),
+            ),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(fontSize: 14),
             ),
           ),
-
-          const SizedBox(width: 12),
-
-          Expanded(
-            child: ElevatedButton(
-              onPressed: _submit,
-
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-
-                backgroundColor: AppColors.primary,
-
-                foregroundColor: AppColors.textOnPrimary,
-
-                elevation: 0,
-
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
+          const SizedBox(width: 8),
+          ElevatedButton(
+            onPressed: _submit,
+            style: ElevatedButton.styleFrom(
+              minimumSize: Size(_isEditing ? 130 : 100, 44),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.textOnPrimary,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(9),
               ),
-
-              child: Text(_isEditing ? 'Update' : 'Add'),
+            ),
+            child: Text(
+              _isEditing ? 'Update' : 'Add',
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],

@@ -6,7 +6,7 @@ import '../models/inv_subcategory_model.dart';
 
 class InvSubCategoryApiService {
   static const String baseUrl =
-      'http://192.168.0.17:8000';
+      'http://127.0.0.1:8000';
 
   static const String endpoint =
       '/api/inventory-subcategories/';

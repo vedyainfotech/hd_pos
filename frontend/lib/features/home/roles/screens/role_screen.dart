@@ -1100,7 +1100,7 @@ borderRadius: BorderRadius.circular(9),
 
 child: const Text(
 
-'Update Role',
+'Update',
 
 style: TextStyle(
 

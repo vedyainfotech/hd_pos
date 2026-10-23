@@ -761,7 +761,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                     ),
                   ),
                   child: const Text(
-                    'Update Category',
+                    'Update',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,

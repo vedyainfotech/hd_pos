@@ -1326,7 +1326,7 @@ class _InventoryCategoryScreenState extends State<InventoryCategoryScreen> {
 
                   child: const Text(
 
-                    'Update Category',
+                    'Update',
 
                     style: TextStyle(
 

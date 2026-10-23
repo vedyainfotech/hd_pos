@@ -16,6 +16,7 @@ import '../../home/kot_settings/screens/kot_settings_screen.dart';
 import '../../home/delivery_persons/screens/delivery_person_screens.dart';
 import '../../home/delivery_schedule/screens/delivery_schedule_screen.dart';
 import '../../home/operators_adding/screens/operator_add_screens.dart';
+import '../../inventory/inventory_items/screens/inventory_items_screen.dart';
 import '../../auth/screens/login_Screen.dart';
 
 class HomeDeliverySettingsScreen extends StatelessWidget {
@@ -97,10 +98,9 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                           isTablet: isTablet,
                         ),
 
-                        SizedBox(height: isMobile ? 16 : 24),
+                        
 
-                        _buildPageHeader(isMobile: isMobile),
-
+                        
                         SizedBox(height: isMobile ? 16 : 24),
 
                         // ==================================================
@@ -405,14 +405,21 @@ onTap: () {
                             ),
 
                             _settingCard(
-                              context,
-                              title: 'Inventory Items',
-                              subtitle:
-                                  'Add and manage raw materials and stock items',
-                              icon: Icons.inventory_outlined,
-                              iconBackground: const Color(0xFFFFF0DA),
-                              iconColor: const Color(0xFFD97706),
-                            ),
+  context,
+  title: 'Inventory Items',
+  subtitle: 'Add and manage raw materials and stock items',
+  icon: Icons.inventory_outlined,
+  iconBackground: const Color(0xFFFFF0DA),
+  iconColor: const Color(0xFFD97706),
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const InventoryItemsScreen(),
+      ),
+    );
+  },
+),
 
                             _settingCard(
                               context,
@@ -761,214 +768,120 @@ onTap: () {
   // TOP BAR
   // ============================================================
 
-  Widget _buildTopBar(
-    BuildContext context, {
-    required bool isMobile,
-    required bool isTablet,
-  }) {
-    return Row(
-      children: [
-        // ==========================================================
-        // MOBILE MENU
-        // ==========================================================
-        if (isMobile)
-          Builder(
-            builder: (drawerContext) {
-              return Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.75),
-                  borderRadius: BorderRadius.circular(13),
-                  border: Border.all(color: Colors.white),
-                ),
-                child: IconButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: () {
-                    Scaffold.of(drawerContext).openDrawer();
-                  },
-                  icon: const Icon(
-                    Icons.menu_rounded,
-                    color: AppColors.textPrimary,
-                    size: 22,
-                  ),
-                ),
-              );
+ 
+Widget _buildTopBar(
+  BuildContext context, {
+  required bool isMobile,
+  required bool isTablet,
+}) {
+  return Row(
+    children: [
+      if (isMobile) ...[
+        Builder(
+          builder: (drawerContext) => IconButton(
+            onPressed: () {
+              Scaffold.of(drawerContext).openDrawer();
             },
-          ),
-
-        if (isMobile) const Spacer(),
-
-        // ==========================================================
-        // SEARCH
-        // ==========================================================
-        if (!isMobile && !isTablet)
-          Container(
-            width: 220,
-            height: 42,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.75),
-              borderRadius: BorderRadius.circular(13),
-              border: Border.all(color: Colors.white),
-            ),
-            child: const Row(
-              children: [
-                SizedBox(width: 13),
-                Icon(Icons.search, color: AppColors.textSecondary, size: 19),
-                SizedBox(width: 9),
-                Text(
-                  'Search...',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-        if (!isMobile && !isTablet) const SizedBox(width: 14),
-
-        // ==========================================================
-        // NOTIFICATION
-        // ==========================================================
-        Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.75),
-            borderRadius: BorderRadius.circular(13),
-            border: Border.all(color: Colors.white),
-          ),
-          child: const Icon(
-            Icons.notifications_none_outlined,
+            icon: const Icon(Icons.menu_rounded),
             color: AppColors.textPrimary,
-            size: 21,
           ),
         ),
+        const SizedBox(width: 8),
+      ],
 
-        // ==========================================================
-        // PROFILE
-        // ==========================================================
-        if (!isMobile) ...[
-          const SizedBox(width: 12),
-
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.75),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.white),
-            ),
-            child: const Row(
-              children: [
-                CircleAvatar(
-                  radius: 15,
-                  backgroundColor: AppColors.primary,
-                  child: Text(
-                    'B',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                SizedBox(width: 8),
-                Text(
-                  'Owner',
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                SizedBox(width: 3),
-                Icon(
-                  Icons.keyboard_arrow_down,
-                  size: 17,
-                  color: AppColors.textSecondary,
-                ),
+      Expanded(
+        child: Container(
+          height: 58,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 8,
+          ),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [
+                Color(0xFFEFF4FF),
+                Color(0xFFF8F6FF),
               ],
             ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white),
           ),
-        ],
-      ],
-    );
-  }
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: const Icon(
+                  Icons.settings_outlined,
+                  color: AppColors.primary,
+                  size: 21,
+                ),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Settings',
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    Text(
+                      'Configure your business, products and inventory',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+
+      const SizedBox(width: 12),
+
+      Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.75),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white),
+        ),
+        child: IconButton(
+          tooltip: 'Notifications',
+          onPressed: () {},
+          icon: const Icon(
+            Icons.notifications_none_outlined,
+            color: AppColors.textPrimary,
+            size: 22,
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
 
   // ============================================================
   // PAGE HEADER
   // ============================================================
 
-  Widget _buildPageHeader({required bool isMobile}) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(isMobile ? 16 : 24),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(isMobile ? 18 : 22),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFEFF4FF), Color(0xFFF8F6FF)],
-        ),
-        border: Border.all(color: Colors.white),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF64748B).withValues(alpha: 0.06),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: isMobile ? 46 : 56,
-            height: isMobile ? 46 : 56,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.10),
-              borderRadius: BorderRadius.circular(isMobile ? 14 : 17),
-            ),
-            child: Icon(
-              Icons.settings_outlined,
-              color: AppColors.primary,
-              size: isMobile ? 24 : 29,
-            ),
-          ),
-
-          SizedBox(width: isMobile ? 12 : 16),
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Settings',
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: isMobile ? 24 : 28,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.4,
-                  ),
-                ),
-
-                const SizedBox(height: 5),
-
-                const Text(
-                  'Configure your business, products, customers, deliveries and inventory',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
+  
   // ============================================================
   // SECTION
   // ============================================================

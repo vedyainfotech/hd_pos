@@ -1152,7 +1152,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
                   child: const Text(
 
-                    'Update Payment',
+                    'Update',
 
                     style: TextStyle(
 
