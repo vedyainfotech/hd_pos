@@ -1044,8 +1044,10 @@ return Positioned(
   Widget build(BuildContext context) {
     final units = _filteredUnits;
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
         final width = constraints.maxWidth;
 
         final isSmallMobile = width < 400;
@@ -1063,14 +1065,12 @@ return Positioned(
                 : 72.0;
 
         final contentTopSpacing = isSmallMobile
-            ? 18.0
+            ? 8.0
             : isMobile
                 ? 22.0
                 : 28.0;
 
-        return Scaffold(
-          backgroundColor: AppColors.background,
-          body: Stack(
+          return Stack(
             children: [
               SafeArea(
                 child: Column(
@@ -1380,7 +1380,7 @@ return Positioned(
                               ),
                               SizedBox(
                                 height:
-                                    isSmallMobile ? 10 : 14,
+                                    isSmallMobile ? 4 : 10,
                               ),
                               Container(
                                 padding:
@@ -1421,7 +1421,7 @@ return Positioned(
 
                             SizedBox(
                               height:
-                                  isSmallMobile ? 12 : 16,
+                                  isSmallMobile ? 6 : 12,
                             ),
 
                             // ==================================================
@@ -1466,15 +1466,14 @@ return Positioned(
                   ],
                 ),
               ),
-              if (_message != null)
-                _buildTopRightMessage(),
-            ],
-          ),
-        );
-      },
-    );
+                          if (_message != null) _buildTopRightMessage(),
+          ],
+          
+           );// Stack
+   }
+    ), // LayoutBuilder
+    ); // Scaffold
   }
-
   // ============================================================
   // RESPONSIVE SEARCH + ADD
   // ============================================================

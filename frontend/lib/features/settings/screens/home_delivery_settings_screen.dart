@@ -17,6 +17,7 @@ import '../../home/delivery_persons/screens/delivery_person_screens.dart';
 import '../../home/delivery_schedule/screens/delivery_schedule_screen.dart';
 import '../../home/operators_adding/screens/operator_add_screens.dart';
 import '../../inventory/inventory_items/screens/inventory_items_screen.dart';
+import '../../home/dashboard/dashboard_screens.dart';
 import '../../auth/screens/login_Screen.dart';
 
 class HomeDeliverySettingsScreen extends StatelessWidget {
@@ -591,12 +592,18 @@ onTap: () {
 
           SizedBox(height: compact ? 28 : 32),
 
-          _sidebarItem(
-            icon: Icons.dashboard_outlined,
-            title: 'Dashboard',
-            compact: compact,
-          ),
-
+         _sidebarItem(
+  icon: Icons.dashboard_outlined,
+  title: 'Dashboard',
+  compact: compact,
+  onTap: () {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(
+        builder: (_) => const HomeDeliveryDashboardScreen(),
+      ),
+    );
+  },
+),
           _sidebarItem(
             icon: Icons.settings_outlined,
             title: 'Settings',
@@ -712,6 +719,7 @@ onTap: () {
     required String title,
     bool selected = false,
     bool compact = false,
+    VoidCallback? onTap,
   }) {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: compact ? 8 : 12, vertical: 4),
@@ -719,7 +727,11 @@ onTap: () {
         color: selected ? AppColors.primarySoft : Colors.transparent,
         borderRadius: BorderRadius.circular(14),
       ),
-      child: Padding(
+      child: InkWell(
+  onTap: onTap,
+  borderRadius: BorderRadius.circular(14),
+    hoverColor: const Color.fromARGB(255, 164, 66, 1),
+  child: Padding(
         padding: EdgeInsets.symmetric(
           horizontal: compact ? 10 : 14,
           vertical: 12,
@@ -761,6 +773,7 @@ onTap: () {
           ],
         ),
       ),
+    )
     );
   }
 

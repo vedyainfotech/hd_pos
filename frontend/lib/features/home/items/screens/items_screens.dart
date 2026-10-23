@@ -251,7 +251,9 @@ class _ItemsScreenState extends State<ItemsScreen> {
 
       final matchesSubCategory =
           _selectedSubCategoryFilter == null ||
-          item.subCategoryId == _selectedSubCategoryFilter;
+          item.subCategories.any(
+            (mapping) => mapping.subCategoryId == _selectedSubCategoryFilter,
+          );
 
       final matchesStatus =
           _statusFilter == 'All' ||
@@ -259,9 +261,10 @@ class _ItemsScreenState extends State<ItemsScreen> {
           (_statusFilter == 'Inactive' && !item.isActive);
 
       final categoryName = _categoryName(item.categoryId).toLowerCase();
-      final subCategoryName = _subCategoryName(
-        item.subCategoryId,
-      ).toLowerCase();
+      final subCategoryName = item.subCategories
+          .map((mapping) => _subCategoryName(mapping.subCategoryId))
+          .join(' ')
+          .toLowerCase();
 
       final matchesSearch =
           search.isEmpty ||
@@ -309,6 +312,36 @@ class _ItemsScreenState extends State<ItemsScreen> {
 
     if (result == null) return;
 
+    // The API intentionally reuses an item with the same normalized name
+    // in the same category. Check whether this submission changes anything so
+    // the UI never reports a successful add for a no-op submission.
+    final normalizedName = result.name.toLowerCase().replaceAll(RegExp(r'\s+'), '');
+    final existingByName = item == null
+        ? _items.where((entry) =>
+            entry.categoryId == result.categoryId &&
+            entry.name.toLowerCase().replaceAll(RegExp(r'\s+'), '') == normalizedName,
+          ).firstOrNull
+        : null;
+
+    bool hasChanges = true;
+    if (existingByName != null) {
+      hasChanges = result.subCategories.any((requested) {
+        final oldMapping = existingByName.subCategories
+            .where((mapping) => mapping.subCategoryId == requested.subCategoryId)
+            .firstOrNull;
+        return oldMapping == null ||
+            oldMapping.price != requested.price ||
+            oldMapping.sameAsSubCategory != requested.sameAsSubCategory ||
+            oldMapping.status != requested.status;
+      });
+      if (!hasChanges) {
+        // This is a duplicate submission with no mapping/price changes.
+        // Show it as an error (red), never as a successful add (green).
+        _showError('Already there is item with the same name and sub-category');
+        return;
+      }
+    }
+
     try {
       setState(() {
         _isSaving = true;
@@ -317,21 +350,20 @@ class _ItemsScreenState extends State<ItemsScreen> {
       if (item == null) {
         await _itemService.createItem(
           categoryId: result.categoryId,
-          subCategoryId: result.subCategoryId,
-          name: result.name,
-          price: result.price,
-          sameAsCategory: result.sameAsCategory,
+          itemName: result.name,
+          subCategories: result.subCategories,
+          status: true,
         );
 
-        _showSuccess('Item added successfully');
+        _showSuccess(existingByName == null
+            ? 'Item added successfully'
+            : 'Existing item and subcategory prices updated successfully');
       } else {
         await _itemService.updateItem(
           id: item.id,
           categoryId: result.categoryId,
-          subCategoryId: result.subCategoryId,
-          name: result.name,
-          price: result.price,
-          sameAsCategory: result.sameAsCategory,
+          itemName: result.name,
+          subCategories: result.subCategories,
           status: result.isActive,
         );
 
@@ -568,8 +600,8 @@ class _ItemsScreenState extends State<ItemsScreen> {
   }
 
   Widget _buildDesktopLayout() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(30, 28, 30, 40),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(30, 28, 30, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -577,15 +609,15 @@ class _ItemsScreenState extends State<ItemsScreen> {
           const SizedBox(height: 22),
           _buildFilterCard(),
           const SizedBox(height: 18),
-          _buildItemListCard(),
+          Expanded(child: _buildItemListCard()),
         ],
       ),
     );
   }
 
   Widget _buildTabletLayout() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 22, 20, 32),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 22, 20, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -593,29 +625,30 @@ class _ItemsScreenState extends State<ItemsScreen> {
           const SizedBox(height: 18),
           _buildFilterCard(tablet: true),
           const SizedBox(height: 16),
-          _buildItemListCard(compact: true),
+          Expanded(child: _buildItemListCard(compact: true)),
         ],
       ),
     );
   }
 
   Widget _buildMobileLayout() {
-    return RefreshIndicator(
-      color: AppColors.primary,
-      onRefresh: _refreshItems,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(16, 18, 16, 32),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildPageHeader(mobile: true),
-            const SizedBox(height: 18),
-            _buildFilterCard(mobile: true),
-            const SizedBox(height: 16),
-            _buildItemListCard(mobile: true),
-          ],
-        ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildPageHeader(mobile: true),
+          const SizedBox(height: 14),
+          _buildFilterCard(mobile: true),
+          const SizedBox(height: 14),
+          Expanded(
+            child: RefreshIndicator(
+              color: AppColors.primary,
+              onRefresh: _refreshItems,
+              child: _buildItemListCard(mobile: true),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -928,7 +961,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
         else if (items.isEmpty)
           _buildEmptyState()
         else
-          _buildItemTableWithCards(items, mobile: mobile),
+          Expanded(child: _buildItemTableWithCards(items, mobile: mobile)),
       ],
     );
   }
@@ -937,41 +970,47 @@ class _ItemsScreenState extends State<ItemsScreen> {
     List<ItemModel> items, {
     required bool mobile,
   }) {
-    final content = Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _buildItemColumnHeader(mobile),
-        const SizedBox(height: 10),
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 520),
-          child: ListView.separated(
-            shrinkWrap: true,
-            padding: EdgeInsets.zero,
-            itemCount: items.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              final item = items[index];
-
-              return _ItemCard(
-                item: item,
-                categoryName: _categoryName(item.categoryId),
-                subCategoryName: _subCategoryName(item.subCategoryId),
-                onEdit: _isSaving ? null : () => _openItemForm(item: item),
-                onToggle: _isSaving ? null : () => _toggleStatus(item),
-              );
-            },
-          ),
-        ),
-      ],
+    Widget buildRows() => ListView.separated(
+      padding: EdgeInsets.zero,
+      itemCount: items.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final item = items[index];
+        return _ItemCard(
+          item: item,
+          categoryName: _categoryName(item.categoryId),
+          subCategoryName: item.subCategories
+              .map((mapping) => _subCategoryName(mapping.subCategoryId))
+              .join(', '),
+          onEdit: _isSaving ? null : () => _openItemForm(item: item),
+          onToggle: _isSaving ? null : () => _toggleStatus(item),
+        );
+      },
     );
 
     if (!mobile) {
-      return content;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildItemColumnHeader(false),
+          const SizedBox(height: 10),
+          Expanded(child: buildRows()),
+        ],
+      );
     }
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      child: SizedBox(width: 820, child: content),
+      child: SizedBox(
+        width: 820,
+        child: Column(
+          children: [
+            _buildItemColumnHeader(true),
+            const SizedBox(height: 10),
+            Expanded(child: buildRows()),
+          ],
+        ),
+      ),
     );
   }
 
@@ -1098,12 +1137,12 @@ class _ItemFormDialog extends StatefulWidget {
 class _ItemFormDialogState extends State<_ItemFormDialog> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _priceController = TextEditingController();
+  final Map<int, TextEditingController> _subCategoryPriceControllers = {};
 
   List<SubCategoryModel> _subCategories = [];
 
   int? _selectedCategoryId;
-  int? _selectedSubCategoryId;
+  final Set<int> _selectedSubCategoryIds = <int>{};
   double? _categoryPrice;
   bool status = true;
   bool _sameAsCategory = false;
@@ -1116,17 +1155,25 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
     final existing = widget.existingItem;
 
     if (existing != null) {
-      _nameController.text = existing.name;
-      _priceController.text = existing.price.toStringAsFixed(2);
+      _nameController.text = existing.itemName;
       _selectedCategoryId = existing.categoryId;
-      _selectedSubCategoryId = existing.subCategoryId;
-      _sameAsCategory = existing.sameAsCategory;
-      status = existing.isActive;
+      _selectedSubCategoryIds.addAll(
+        existing.subCategories.map((mapping) => mapping.subCategoryId),
+      );
+      for (final mapping in existing.subCategories) {
+        _priceControllerFor(mapping.subCategoryId).text =
+            mapping.price.toStringAsFixed(2);
+      }
+      _sameAsCategory = existing.subCategories.length == 1 &&
+          existing.subCategories.first.sameAsSubCategory;
+      status = existing.status;
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _loadSubCategories(
           existing.categoryId,
-          initialSubCategoryId: existing.subCategoryId,
+          initialSubCategoryIds: existing.subCategories
+              .map((mapping) => mapping.subCategoryId)
+              .toList(),
         );
       });
     }
@@ -1135,19 +1182,23 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
   @override
   void dispose() {
     _nameController.dispose();
-    _priceController.dispose();
+    for (final controller in _subCategoryPriceControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
   Future<void> _loadSubCategories(
     int categoryId, {
-    int? initialSubCategoryId,
+    List<int> initialSubCategoryIds = const [],
   }) async {
     if (mounted) {
       setState(() {
         _loadingSubCategories = true;
-        if (initialSubCategoryId != null) {
-          _selectedSubCategoryId = initialSubCategoryId;
+        if (initialSubCategoryIds.isNotEmpty) {
+          _selectedSubCategoryIds
+            ..clear()
+            ..addAll(initialSubCategoryIds);
         }
       });
     }
@@ -1163,11 +1214,26 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
       setState(() {
         _subCategories = data;
 
-        if (initialSubCategoryId != null &&
-            data.any((item) => item.id == initialSubCategoryId)) {
-          _selectedSubCategoryId = initialSubCategoryId;
-          _setCategoryPrice(initialSubCategoryId, data, updateItemPrice: false);
+        _selectedSubCategoryIds.removeWhere(
+          (id) => !data.any((subCategory) => subCategory.id == id),
+        );
+        for (final subCategory in data) {
+          final controller = _priceControllerFor(subCategory.id);
+          if (controller.text.isEmpty &&
+              _selectedSubCategoryIds.contains(subCategory.id)) {
+            final existingMapping = widget.existingItem?.subCategories
+                .where((mapping) => mapping.subCategoryId == subCategory.id)
+                .firstOrNull;
+            controller.text = (existingMapping?.price ?? subCategory.price)
+                .toStringAsFixed(2);
+          }
         }
+        final firstSelected = _selectedSubCategoryIds.isNotEmpty
+            ? _selectedSubCategoryIds.first
+            : null;
+        _categoryPrice = firstSelected == null
+            ? null
+            : data.where((entry) => entry.id == firstSelected).firstOrNull?.price;
       });
     } catch (e) {
       if (mounted) {
@@ -1182,6 +1248,13 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
     }
   }
 
+  TextEditingController _priceControllerFor(int subCategoryId) {
+    return _subCategoryPriceControllers.putIfAbsent(
+      subCategoryId,
+      TextEditingController.new,
+    );
+  }
+
   void _setCategoryPrice(
     int subCategoryId,
     List<SubCategoryModel> data, {
@@ -1192,8 +1265,9 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
         setState(() {
           _categoryPrice = subCategory.price;
 
-          if (_sameAsCategory || updateItemPrice) {
-            _priceController.text = subCategory.price.toStringAsFixed(2);
+          final controller = _priceControllerFor(subCategoryId);
+          if (controller.text.isEmpty || _sameAsCategory || updateItemPrice) {
+            controller.text = subCategory.price.toStringAsFixed(2);
           }
         });
 
@@ -1205,10 +1279,13 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
   void _onCategoryChanged(int? categoryId) {
     setState(() {
       _selectedCategoryId = categoryId;
-      _selectedSubCategoryId = null;
+      _selectedSubCategoryIds.clear();
+      _sameAsCategory = false;
       _subCategories = [];
       _categoryPrice = null;
-      _priceController.clear();
+      for (final controller in _subCategoryPriceControllers.values) {
+        controller.clear();
+      }
     });
 
     if (categoryId != null) {
@@ -1216,69 +1293,83 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
     }
   }
 
-  void _onSubCategoryChanged(int? subCategoryId) {
-    if (subCategoryId == null) {
-      setState(() {
-        _selectedSubCategoryId = null;
-        _categoryPrice = null;
-
-        if (_sameAsCategory) {
-          _priceController.clear();
-        }
-      });
-
-      return;
-    }
-
+  void _onSubCategoryToggled(int subCategoryId, bool selected) {
     setState(() {
-      _selectedSubCategoryId = subCategoryId;
+      if (selected) {
+        _selectedSubCategoryIds.add(subCategoryId);
+      } else {
+        _selectedSubCategoryIds.remove(subCategoryId);
+      }
+      if (selected) {
+        final subCategory = _subCategories.where((entry) => entry.id == subCategoryId).firstOrNull;
+        final controller = _priceControllerFor(subCategoryId);
+        if (controller.text.isEmpty && subCategory != null) {
+          controller.text = subCategory.price.toStringAsFixed(2);
+        }
+      } else {
+        _priceControllerFor(subCategoryId).clear();
+      }
+      if (_selectedSubCategoryIds.length != 1) {
+        _sameAsCategory = false;
+      }
+      _categoryPrice = null;
+      if (_selectedSubCategoryIds.length == 1) {
+        _setCategoryPrice(_selectedSubCategoryIds.first, _subCategories, updateItemPrice: _sameAsCategory);
+      }
     });
-
-    _setCategoryPrice(subCategoryId, _subCategories);
   }
 
   void _onSameAsCategoryChanged(bool? value) {
     final checked = value ?? false;
+    if (_selectedSubCategoryIds.length != 1) return;
 
     setState(() {
       _sameAsCategory = checked;
-
-      if (checked && _categoryPrice != null) {
-        _priceController.text = _categoryPrice!.toStringAsFixed(2);
+      if (checked && _categoryPrice != null && _selectedSubCategoryIds.length == 1) {
+        _priceControllerFor(_selectedSubCategoryIds.first).text =
+            _categoryPrice!.toStringAsFixed(2);
       }
     });
   }
 
   void _submit() {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     if (_selectedCategoryId == null) {
       _showError('Please select a category');
       return;
     }
-
-    if (_selectedSubCategoryId == null) {
-      _showError('Please select a sub category');
+    if (_selectedSubCategoryIds.isEmpty) {
+      _showError('Please select at least one sub category');
       return;
     }
 
-    final price = double.tryParse(_priceController.text.trim());
-
-    if (price == null || price < 0) {
-      _showError('Please enter a valid item price');
-      return;
+    for (final id in _selectedSubCategoryIds) {
+      final priceText = _priceControllerFor(id).text.trim();
+      final price = double.tryParse(priceText);
+      if (price == null || price < 0) {
+        final subCategory = _subCategories.where((entry) => entry.id == id).firstOrNull;
+        _showError('Enter a valid price for ${subCategory?.name ?? 'the selected sub category'}');
+        return;
+      }
     }
 
     Navigator.pop(
       context,
       _ItemFormResult(
         categoryId: _selectedCategoryId!,
-        subCategoryId: _selectedSubCategoryId!,
+        subCategories: _selectedSubCategoryIds.map((id) {
+          return ItemSubCategoryRequest(
+            subCategoryId: id,
+            price: _sameAsCategory && _selectedSubCategoryIds.length == 1
+                ? (_categoryPrice ?? double.parse(_priceControllerFor(id).text.trim()))
+                : double.parse(_priceControllerFor(id).text.trim()),
+            sameAsSubCategory:
+                _selectedSubCategoryIds.length == 1 && _sameAsCategory,
+            status: true,
+          );
+        }).toList(),
         name: _nameController.text.trim(),
-        price: price,
-        sameAsCategory: _sameAsCategory,
         isActive: status,
       ),
     );
@@ -1357,22 +1448,25 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.all(14),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: dialogWidth,
-          maxHeight: MediaQuery.sizeOf(context).height * 0.92,
-        ),
+      child: SizedBox(
+        width: dialogWidth,
+        // Keep the dialog's outer height constant before and after
+        // subcategory selection. Overflowing form content scrolls inside it.
+        height: MediaQuery.sizeOf(context).height * 0.82,
         child: Material(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(24),
           clipBehavior: Clip.antiAlias,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                   Row(
                     children: [
                       Expanded(
@@ -1435,54 +1529,145 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
                   const SizedBox(height: 18),
                   _buildLabel('Sub Category', required: true),
                   const SizedBox(height: 7),
-                  DropdownButtonFormField<int>(
-                    initialValue: _selectedSubCategoryId,
-                    decoration: _inputDecoration(
-                      hint: _selectedCategoryId == null
-                          ? 'Select category first'
-                          : _loadingSubCategories
-                          ? 'Loading...'
-                          : 'Select Sub Category',
+                  Container(
+                    width: double.infinity,
+                    constraints: const BoxConstraints(maxHeight: 170),
+                    decoration: BoxDecoration(
+                      color: AppColors.inputBackground,
+                      border: Border.all(color: AppColors.border),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    items: _subCategories
-                        .map(
-                          (subCategory) => DropdownMenuItem<int>(
-                            value: subCategory.id,
-                            child: Text(
-                              subCategory.name,
-                              overflow: TextOverflow.ellipsis,
+                    child: _selectedCategoryId == null
+                        ? const Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 15,
                             ),
+                            child: Text(
+                              'Select category first',
+                              style: TextStyle(color: AppColors.textSecondary),
+                            ),
+                          )
+                        : _loadingSubCategories
+                        ? const Padding(
+                            padding: EdgeInsets.all(14),
+                            child: Center(
+                              child: SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            ),
+                          )
+                        : _subCategories.isEmpty
+                        ? const Padding(
+                            padding: EdgeInsets.all(14),
+                            child: Text(
+                              'No sub categories available',
+                              style: TextStyle(color: AppColors.textSecondary),
+                            ),
+                          )
+                        : ListView(
+                            shrinkWrap: true,
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            children: _subCategories.map((subCategory) {
+                              final selected = _selectedSubCategoryIds
+                                  .contains(subCategory.id);
+                              return CheckboxListTile(
+                                dense: true,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                ),
+                                controlAffinity: ListTileControlAffinity.leading,
+                                activeColor: AppColors.primary,
+                                title: Text(
+                                  subCategory.name,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                                value: selected,
+                                onChanged: (value) => _onSubCategoryToggled(
+                                  subCategory.id,
+                                  value ?? false,
+                                ),
+                              );
+                            }).toList(),
                           ),
-                        )
-                        .toList(),
-                    onChanged:
-                        _selectedCategoryId == null || _loadingSubCategories
-                        ? null
-                        : _onSubCategoryChanged,
-                    validator: (value) {
-                      if (value == null) {
-                        return 'Select a sub category';
-                      }
-                      return null;
-                    },
                   ),
-                  const SizedBox(height: 18),
-                  _buildLabel('Sub Category Price'),
-                  const SizedBox(height: 7),
-                  TextFormField(
-                    readOnly: true,
-                    controller: TextEditingController(
-                      text: _categoryPrice != null
-                          ? '₹ ${_categoryPrice!.toStringAsFixed(2)}'
-                          : '',
+                  if (_selectedSubCategoryIds.isEmpty &&
+                      _selectedCategoryId != null)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 5, left: 12),
+                      child: Text(
+                        'Select at least one sub category',
+                        style: TextStyle(fontSize: 11, color: AppColors.error),
+                      ),
                     ),
-                    decoration: _inputDecoration(
-                      hint: _categoryPrice != null
-                          ? 'Selected sub category price'
-                          : 'Same as Sub Category price',
-                    ),
-                  ),
                   const SizedBox(height: 18),
+                  if (_selectedSubCategoryIds.isNotEmpty) ...[
+                    _buildLabel(
+                      _selectedSubCategoryIds.length == 1
+                          ? 'Sub Category Price'
+                          : 'Sub Category Prices',
+                    ),
+                    const SizedBox(height: 7),
+                    ..._subCategories
+                        .where((subCategory) =>
+                            _selectedSubCategoryIds.contains(subCategory.id))
+                        .map((subCategory) {
+                      final priceController =
+                          _priceControllerFor(subCategory.id);
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              subCategory.name,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            TextFormField(
+                              controller: priceController,
+                              keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true,
+                              ),
+                              readOnly: _sameAsCategory &&
+                                  _selectedSubCategoryIds.length == 1,
+                              decoration: _inputDecoration(
+                                hint: 'Enter price for ${subCategory.name}',
+                              ).copyWith(
+                                fillColor: _sameAsCategory &&
+                                        _selectedSubCategoryIds.length == 1
+                                    ? AppColors.surfaceSoft
+                                    : AppColors.inputBackground,
+                              ),
+                              validator: (value) {
+                                if (!_selectedSubCategoryIds.contains(subCategory.id)) {
+                                  return null;
+                                }
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Enter price';
+                                }
+                                final price = double.tryParse(value.trim());
+                                if (price == null || price < 0) {
+                                  return 'Enter a valid price';
+                                }
+                                return null;
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                  ],
+                  const SizedBox(height: 8),
                   _buildLabel('Item Name', required: true),
                   const SizedBox(height: 7),
                   TextFormField(
@@ -1511,77 +1696,51 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
                     },
                   ),
                   const SizedBox(height: 18),
-                  _buildLabel('Item Price', required: true),
-                  const SizedBox(height: 7),
-                  TextFormField(
-                    controller: _priceController,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    readOnly: _sameAsCategory,
-                    decoration: _inputDecoration(hint: 'Enter Price').copyWith(
-                      fillColor: _sameAsCategory
-                          ? AppColors.surfaceSoft
-                          : AppColors.inputBackground,
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Enter item price';
-                      }
-
-                      final price = double.tryParse(value.trim());
-
-                      if (price == null || price < 0) {
-                        return 'Enter a valid price';
-                      }
-
-                      return null;
-                    },
-                  ),
                   const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceSoft,
-                      border: Border.all(color: AppColors.border),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        Checkbox(
-                          value: _sameAsCategory,
-                          activeColor: AppColors.primary,
-                          onChanged: _onSameAsCategoryChanged,
-                        ),
-                        const SizedBox(width: 4),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Same as Sub Category',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                              SizedBox(height: 2),
-                              Text(
-                                'Use the selected sub category price',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                            ],
+                  if (_selectedSubCategoryIds.length == 1)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceSoft,
+                        border: Border.all(color: AppColors.border),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Checkbox(
+                            value: _sameAsCategory,
+                            activeColor: AppColors.primary,
+                            onChanged: _onSameAsCategoryChanged,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 4),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Same as Sub Category',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                                SizedBox(height: 2),
+                                Text(
+                                  'Use the selected sub category price',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
                   if (isEditing) ...[
                     const SizedBox(height: 18),
 
@@ -1657,47 +1816,50 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
                     ),
                   ],
 
-                  const SizedBox(height: 24),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.pop(context),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.textPrimary,
-                            side: const BorderSide(color: AppColors.border),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: const Text('Cancel'),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: FilledButton(
-                          onPressed: _submit,
-                          style: FilledButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: Text(
-                            isEditing ? 'Update Item' : 'Save Item',
-                            style: const TextStyle(fontWeight: FontWeight.w700),
-                          ),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ],
+                ),
               ),
+              Padding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 14),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                OutlinedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.textSecondary,
+                    side: const BorderSide(color: AppColors.border),
+                    minimumSize: const Size(88, 36),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text('Cancel'),
+                ),
+                const SizedBox(width: 14),
+                FilledButton(
+                  onPressed: _submit,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(100, 36),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: Text(
+                    isEditing ? 'Update Item' : 'Save Item',
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ],
             ),
+              ),
+            ],
           ),
         ),
       ),
@@ -1773,18 +1935,14 @@ class _ItemFormDialogState extends State<_ItemFormDialog> {
 
 class _ItemFormResult {
   final int categoryId;
-  final int subCategoryId;
+  final List<ItemSubCategoryRequest> subCategories;
   final String name;
-  final double price;
-  final bool sameAsCategory;
   final bool isActive;
 
   const _ItemFormResult({
     required this.categoryId,
-    required this.subCategoryId,
+    required this.subCategories,
     required this.name,
-    required this.price,
-    required this.sameAsCategory,
     required this.isActive,
   });
 }
@@ -1976,7 +2134,7 @@ class _ItemCard extends StatelessWidget {
           Expanded(
             flex: 2,
             child: _cellText(
-              '₹${item.price.toStringAsFixed(2)}',
+              '₹${item.subCategories.isNotEmpty ? item.subCategories.first.price.toStringAsFixed(2) : '0.00'}',
               align: TextAlign.center,
               bold: true,
               isMobile: isMobile,

@@ -515,42 +515,42 @@ class _SubCategoriesScreenState extends State<SubCategoriesScreen> {
 
   // ============================================================
 
-  Widget _buildContent() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isMobile = constraints.maxWidth < 600;
-        final isTablet =
-            constraints.maxWidth >= 600 && constraints.maxWidth < 1200;
+ 
+Widget _buildContent() {
+  return LayoutBuilder(
+    builder: (context, constraints) {
+      final isMobile = constraints.maxWidth < 600;
+      final isTablet =
+          constraints.maxWidth >= 600 && constraints.maxWidth < 1200;
 
-        return Padding(
-          padding: EdgeInsets.fromLTRB(
-            isMobile ? 16 : 28,
-            isMobile ? 16 : 28,
-            isMobile ? 16 : 28,
-            8,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildPageHeader(isMobile, constraints.maxWidth >= 1200),
-              const SizedBox(height: 24),
-              _buildFilters(isMobile, isTablet),
-              const SizedBox(height: 20),
-
-              // Fixed column heading.
-              _buildSubCategoryColumnHeader(isMobile),
-              const SizedBox(height: 10),
-
-              // Only the subcategory cards scroll.
-              Expanded(
-                child: _buildSubCategoryCards(isMobile, includeHeader: false),
+      return Padding(
+        padding: EdgeInsets.fromLTRB(
+          isMobile ? 16 : 28,
+          isMobile ? 12 : 28,
+          isMobile ? 16 : 28,
+          8,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildPageHeader(isMobile, constraints.maxWidth >= 1200),
+            SizedBox(height: isMobile ? 12 : 24),
+            _buildFilters(isMobile, isTablet),
+            SizedBox(height: isMobile ? 12 : 20),
+            _buildSubCategoryColumnHeader(isMobile),
+            const SizedBox(height: 10),
+            Expanded(
+              child: _buildSubCategoryCards(
+                isMobile,
+                includeHeader: false,
               ),
-            ],
-          ),
-        );
-      },
-    );
-  }
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
 
   // PAGE HEADER
 
@@ -736,28 +736,33 @@ class _SubCategoriesScreenState extends State<SubCategoriesScreen> {
 
   // ============================================================
 
+  
   Widget _buildCategoryDropdown() {
     return DropdownButtonFormField<int?>(
+      isExpanded: true,
       initialValue: _selectedCategoryId,
-
-      decoration: const InputDecoration(labelText: 'Category'),
-
+      decoration: const InputDecoration(
+        labelText: 'Category',
+      ),
       items: [
         const DropdownMenuItem<int?>(
           value: null,
-
-          child: Text('All Categories'),
+          child: Text(
+            'All Categories',
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
-
         ..._categories.map(
           (category) => DropdownMenuItem<int?>(
             value: category.id,
-
-            child: Text(category.name, overflow: TextOverflow.ellipsis),
+            child: Text(
+              category.name,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
           ),
         ),
       ],
-
       onChanged: (value) {
         setState(() {
           _selectedCategoryId = value;
@@ -859,33 +864,29 @@ class _SubCategoriesScreenState extends State<SubCategoriesScreen> {
                       borderRadius: BorderRadius.circular(22),
                     ),
 
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    
+child: Padding(
+  padding: const EdgeInsets.symmetric(horizontal: 2),
+  child: FittedBox(
+    fit: BoxFit.scaleDown,
+    child: Text(
+      option,
+      maxLines: 1,
+      softWrap: false,
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        fontSize: 13,
+        fontWeight: isSelected
+            ? FontWeight.w700
+            : FontWeight.w600,
+        color: isSelected
+            ? AppColors.primary
+            : AppColors.textPrimary,
+      ),
+    ),
+  ),
+),
 
-                      children: [
-                        Text(
-                          option,
-
-                          maxLines: 1,
-
-                          softWrap: false,
-
-                          textAlign: TextAlign.center,
-
-                          style: TextStyle(
-                            fontSize: 13,
-
-                            fontWeight: isSelected
-                                ? FontWeight.w700
-                                : FontWeight.w600,
-
-                            color: isSelected
-                                ? AppColors.primary
-                                : AppColors.textPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
                 ),
               ),

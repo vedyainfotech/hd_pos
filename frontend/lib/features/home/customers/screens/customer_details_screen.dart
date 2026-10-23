@@ -28,25 +28,96 @@ class _CustomerDetailsScreenState
     _customer = widget.customer;
   }
 
-  Future<void> _editCustomer() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => AddCustomerScreen(
-          customer: _customer,
-        ),
+Future<void> _editCustomer() async {
+  final result = await Navigator.push<bool>(
+    context,
+    MaterialPageRoute(
+      builder: (_) => AddCustomerScreen(
+        customer: _customer,
       ),
-    );
+    ),
+  );
 
-    final updatedCustomer =
-        CustomerStore.getCustomerById(_customer.id);
+  if (!mounted) return;
 
-    if (updatedCustomer != null && mounted) {
-      setState(() {
-        _customer = updatedCustomer;
-      });
-    }
+  // Refresh customer details after returning.
+  final updatedCustomer =
+      CustomerStore.getCustomerById(_customer.id);
+
+  if (updatedCustomer != null) {
+    setState(() {
+      _customer = updatedCustomer;
+    });
   }
+
+  // Show success only after a successful update.
+  if (result == true) {
+    _showSuccessToast('Customer updated successfully');
+  }
+}
+
+void _showSuccessToast(String message) {
+  final overlay = Overlay.of(context);
+  late OverlayEntry overlayEntry;
+
+  overlayEntry = OverlayEntry(
+    builder: (overlayContext) {
+      return Positioned(
+        top: MediaQuery.of(overlayContext).padding.top + 12,
+        right: 16,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 9,
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE8F5E9),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: const Color(0xFFC8E6C9),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.10),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.check_circle,
+                  color: Color(0xFF2E7D32),
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  message,
+                  style: const TextStyle(
+                    color: Color(0xFF1B5E20),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
+
+  overlay.insert(overlayEntry);
+
+  Future.delayed(const Duration(seconds: 3), () {
+    overlayEntry.remove();
+    overlayEntry.dispose();
+  });
+}
 
 
  @override

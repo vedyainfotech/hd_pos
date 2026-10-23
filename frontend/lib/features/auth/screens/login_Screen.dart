@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/theme.dart';
-import '../../settings/screens/home_delivery_settings_screen.dart';
+import '../../home/dashboard/dashboard_screens.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -54,13 +55,11 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-      builder: (_) => HomeDeliverySettingsScreen(
-  userName: _usernameController.text.trim(),
-),
-      ),
-    );
+  context,
+  MaterialPageRoute<void>(
+    builder: (_) => const HomeDeliveryDashboardScreen(),
+  ),
+);
   }
 
   // ============================================================
