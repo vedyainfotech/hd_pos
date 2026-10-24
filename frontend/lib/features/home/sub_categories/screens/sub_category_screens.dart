@@ -394,7 +394,7 @@ class _SubCategoriesScreenState extends State<SubCategoriesScreen> {
         _showSnackBar('Subcategory updated successfully');
       }
     } catch (error) {
-      _showSnackBar('Operation failed: $error', isError: true);
+      _showSnackBar('$error', isError: true);
     }
   }
 
@@ -608,15 +608,13 @@ Widget _buildContent() {
     return ElevatedButton.icon(
       onPressed: _openAddPanel,
 
-      icon: const Icon(Icons.add, size: 19),
-
-      label: const Text('Add'),
+      label: const Text('    +  Add     '),
 
       style: ElevatedButton.styleFrom(
         padding: EdgeInsets.symmetric(
-          horizontal: isDesktop ? 28 : 12,
+          horizontal: isDesktop ? 25 : 12,
 
-          vertical: isDesktop ? 20 : 14,
+          vertical: isDesktop ? 15 : 14,
         ),
 
         backgroundColor: AppColors.primary,
@@ -666,7 +664,7 @@ Widget _buildContent() {
                         const SizedBox(width: 10),
 
                         SizedBox(
-  height: 48,
+  height: 55,
   child: ElevatedButton.icon(
     onPressed: _openAddPanel,
     icon: const Icon(Icons.add, size: 20),
@@ -674,7 +672,7 @@ Widget _buildContent() {
       'Add',
       style: TextStyle(
         fontWeight: FontWeight.w700,
-        fontSize: 14,
+        fontSize: 16,
       ),
     ),
     style: ElevatedButton.styleFrom(

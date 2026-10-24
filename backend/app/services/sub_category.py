@@ -63,7 +63,7 @@ class SubCategoryService:
 
         if existing is not None:
             raise ValueError(
-                "Sub category already exists under this category"
+                "Sub category name"
             )
 
         sub_category = SubCategory(

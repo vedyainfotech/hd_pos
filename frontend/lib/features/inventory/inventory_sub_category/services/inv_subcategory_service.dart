@@ -85,8 +85,7 @@ class InvSubCategoryApiService {
       );
     }
 
-    throw Exception(
-      'Failed to create inventory sub category: '
+    throw (
       '${response.body}',
     );
   }

@@ -84,8 +84,8 @@ class SubCategoryService {
       );
     }
 
-    throw Exception(
-      'Failed to create sub category: ${response.body}',
+    throw (
+      ' ${response.body}',
     );
   }
 

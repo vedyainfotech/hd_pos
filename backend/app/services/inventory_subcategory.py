@@ -53,7 +53,7 @@ class InventorySubCategoryService:
 
         if existing:
             raise ValueError(
-                "Subcategory already exists in this category"
+                "Subcategory name exists"
             )
 
         return InventorySubCategoryRepository.create(
