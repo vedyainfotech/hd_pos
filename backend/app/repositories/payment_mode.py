@@ -1,3 +1,5 @@
+
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.models.payment_mode import PaymentMode
@@ -28,13 +30,50 @@ def get_payment_mode(
     )
 
 
+def get_payment_mode_by_name(
+    db: Session,
+    name: str,
+    exclude_id: int | None = None,
+):
+    # Ignore uppercase/lowercase differences and all whitespace.
+    normalized_input = func.lower(
+        func.regexp_replace(
+            func.trim(name),
+            r'\s+',
+            '',
+            'g',
+        )
+    )
+
+    normalized_column = func.lower(
+        func.regexp_replace(
+            func.trim(PaymentMode.name),
+            r'\s+',
+            '',
+            'g',
+        )
+    )
+
+    query = select(PaymentMode).where(
+        normalized_column == normalized_input
+    )
+
+    if exclude_id is not None:
+        query = query.where(
+            PaymentMode.id != exclude_id
+        )
+
+    return db.scalar(query)
+
+
 def create_payment_mode(
     db: Session,
     name: str,
     status: bool,
 ):
     payment_mode = PaymentMode(
-        name=name
+        name=name,
+        status=status,
     )
 
     db.add(payment_mode)
@@ -48,7 +87,7 @@ def update_payment_mode(
     db: Session,
     payment_mode: PaymentMode,
     name: str,
-   status: bool,
+    status: bool,
 ):
     payment_mode.name = name
     payment_mode.status = status

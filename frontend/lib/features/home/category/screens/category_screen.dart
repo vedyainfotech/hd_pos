@@ -111,6 +111,15 @@ class _CategoryScreenState extends State<CategoryScreen> {
     }).toList();
   }
 
+  // Normalize category names so case and whitespace differences do not
+  // create duplicates. Examples: 'Lunch', ' lunch ', and 'LUNCH' match.
+  
+String _normalizeCategoryName(String value) {
+  // Ignore uppercase/lowercase and all spaces when checking duplicates.
+  return value.toLowerCase().replaceAll(RegExp(r'\s+'), '');
+}
+
+
   // ============================================================
   // ADD CATEGORY
   // ============================================================
@@ -324,16 +333,21 @@ class _CategoryScreenState extends State<CategoryScreen> {
                     }
 
                     if (_categories.any(
-  (category) =>
-      category.name.trim().toLowerCase() ==
-      name.toLowerCase(),
-)) {
-  _showMessage(
-    'Category already exists',
-    isWarning: true,
-  );
-  return;
-}
+                      (category) =>
+                          _normalizeCategoryName(category.name) ==
+                          _normalizeCategoryName(name),
+                    )) {
+                      Navigator.pop(dialogContext);
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (mounted) {
+                          _showMessage(
+                            'Category already exists',
+                            isWarning: true,
+                          );
+                        }
+                      });
+                      return;
+                    }
 
                     Navigator.pop(dialogContext);
 
@@ -403,9 +417,16 @@ class _CategoryScreenState extends State<CategoryScreen> {
     } catch (e) {
       if (!mounted) return;
 
+      final errorText = e.toString().toLowerCase();
+      final isDuplicate = errorText.contains('category already exists') ||
+          errorText.contains('already exists') ||
+          errorText.contains('duplicate') ||
+          errorText.contains('unique constraint');
+
       _showMessage(
-        'Failed to add category',
-        isError: true,
+        isDuplicate ? 'Category already exists' : 'Failed to add category',
+        isError: !isDuplicate,
+        isWarning: isDuplicate,
       );
     }
   }
@@ -726,17 +747,22 @@ class _CategoryScreenState extends State<CategoryScreen> {
                     }
 
                     if (_categories.any(
-  (item) =>
-      item.id != category.id &&
-      item.name.trim().toLowerCase() ==
-          name.toLowerCase(),
-)) {
-  _showMessage(
-    'Category already exists',
-    isWarning: true,
-  );
-  return;
-}
+                      (item) =>
+                          item.id != category.id &&
+                          _normalizeCategoryName(item.name) ==
+                              _normalizeCategoryName(name),
+                    )) {
+                      Navigator.pop(dialogContext);
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (mounted) {
+                          _showMessage(
+                            'Category already exists',
+                            isWarning: true,
+                          );
+                        }
+                      });
+                      return;
+                    }
 
                     Navigator.pop(dialogContext);
 
@@ -817,9 +843,16 @@ class _CategoryScreenState extends State<CategoryScreen> {
     } catch (e) {
       if (!mounted) return;
 
+      final errorText = e.toString().toLowerCase();
+      final isDuplicate = errorText.contains('category already exists') ||
+          errorText.contains('already exists') ||
+          errorText.contains('duplicate') ||
+          errorText.contains('unique constraint');
+
       _showMessage(
-        'Failed to update category',
-        isError: true,
+        isDuplicate ? 'Category already exists' : 'Failed to update category',
+        isError: !isDuplicate,
+        isWarning: isDuplicate,
       );
     }
   }

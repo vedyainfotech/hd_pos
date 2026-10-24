@@ -1,5 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from app.models.inventory_subcategory import InventorySubCategory
 
@@ -56,9 +57,10 @@ class InventorySubCategoryRepository:
         name: str,
         exclude_id: int | None = None,
     ):
+        normalized_name = " ".join(name.split()).casefold()
+
         query = select(InventorySubCategory).where(
             InventorySubCategory.category_id == category_id,
-            InventorySubCategory.name.ilike(name.strip()),
         )
 
         if exclude_id is not None:
@@ -66,7 +68,17 @@ class InventorySubCategoryRepository:
                 InventorySubCategory.id != exclude_id
             )
 
-        return db.scalar(query)
+        subcategories = db.scalars(query).all()
+
+        for subcategory in subcategories:
+            existing_name = " ".join(
+                subcategory.name.split()
+            ).casefold()
+
+            if existing_name == normalized_name:
+                return subcategory
+
+        return None
 
     @staticmethod
     def create(
@@ -82,10 +94,27 @@ class InventorySubCategoryRepository:
         )
 
         db.add(subcategory)
-        db.commit()
-        db.refresh(subcategory)
 
-        return subcategory
+        try:
+            db.commit()
+            db.refresh(subcategory)
+            return subcategory
+
+        except IntegrityError as error:
+            db.rollback()
+
+            # Check whether the database uniqueness rule caused the error.
+            if (
+                getattr(error.orig, "pgcode", None) == "23505"
+                and "uq_inventory_subcategories_category_name"
+                in str(error.orig)
+            ):
+                raise ValueError(
+                    "This subcategory already exists in this category."
+                ) from error
+
+            # Preserve other database errors instead of mislabeling them.
+            raise
 
     @staticmethod
     def update(
@@ -99,10 +128,24 @@ class InventorySubCategoryRepository:
         subcategory.name = name.strip()
         subcategory.status = status
 
-        db.commit()
-        db.refresh(subcategory)
+        try:
+            db.commit()
+            db.refresh(subcategory)
+            return subcategory
 
-        return subcategory
+        except IntegrityError as error:
+            db.rollback()
+
+            if (
+                getattr(error.orig, "pgcode", None) == "23505"
+                and "uq_inventory_subcategories_category_name"
+                in str(error.orig)
+            ):
+                raise ValueError(
+                    "This subcategory already exists in this category."
+                ) from error
+
+            raise
 
     @staticmethod
     def update_status(

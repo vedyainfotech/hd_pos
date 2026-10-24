@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/theme.dart';
@@ -394,8 +396,57 @@ class _SubCategoriesScreenState extends State<SubCategoriesScreen> {
         _showSnackBar('Subcategory updated successfully');
       }
     } catch (error) {
-      _showSnackBar('Operation failed: $error', isError: true);
+      if (!mounted) return;
+
+      final message = _friendlyErrorMessage(error);
+      final isDuplicate = message == 'Subcategory already exists';
+
+      _showSnackBar(
+        message,
+        isError: !isDuplicate,
+        isWarning: isDuplicate,
+      );
     }
+  }
+
+  String _friendlyErrorMessage(Object error) {
+    final raw = error.toString();
+    final lower = raw.toLowerCase();
+
+    // API services may throw either the response body or an Exception
+    // containing a JSON response body. Convert duplicate errors to a
+    // user-friendly message instead of showing raw JSON.
+    if ((lower.contains('subcategor') || lower.contains('sub category')) &&
+        (lower.contains('exists') ||
+            lower.contains('already') ||
+            lower.contains('duplicate'))) {
+      return 'Subcategory already exists';
+    }
+
+    try {
+      final start = raw.indexOf('{');
+      final end = raw.lastIndexOf('}');
+      if (start >= 0 && end > start) {
+        final decoded = jsonDecode(raw.substring(start, end + 1));
+        if (decoded is Map<String, dynamic>) {
+          final detail = decoded['detail']?.toString().toLowerCase() ?? '';
+          if (detail.contains('exists') ||
+              detail.contains('already') ||
+              detail.contains('duplicate') ||
+              detail.trim() == 'sub category name' ||
+              detail.trim() == 'subcategory name') {
+            return 'Subcategory already exists';
+          }
+          if (detail.isNotEmpty) {
+            return detail[0].toUpperCase() + detail.substring(1);
+          }
+        }
+      }
+    } catch (_) {
+      // Fall through to a generic readable message for non-JSON errors.
+    }
+
+    return 'Operation failed. Please try again.';
   }
 
   // ============================================================
@@ -404,20 +455,32 @@ class _SubCategoriesScreenState extends State<SubCategoriesScreen> {
 
   // ============================================================
 
-  void _showSnackBar(String message, {bool isError = false}) {
+  void _showSnackBar(
+    String message, {
+    bool isError = false,
+    bool isWarning = false,
+  }) {
     if (!mounted) return;
 
     final overlay = Overlay.of(context);
 
-    final backgroundColor = isError
-        ? const Color(0xFFFFE5E5)
-        : const Color(0xFFE5F7E9);
+    final backgroundColor = isWarning
+        ? const Color(0xFFFFF2CC)
+        : isError
+            ? const Color(0xFFFFE5E5)
+            : const Color(0xFFE5F7E9);
 
-    final iconColor = isError
-        ? const Color(0xFFD32F2F)
-        : const Color(0xFF1E9E45);
+    final iconColor = isWarning
+        ? const Color(0xFFE69500)
+        : isError
+            ? const Color(0xFFD32F2F)
+            : const Color(0xFF1E9E45);
 
-    final icon = isError ? Icons.close_rounded : Icons.check_rounded;
+    final icon = isWarning
+        ? Icons.warning_amber_rounded
+        : isError
+            ? Icons.close_rounded
+            : Icons.check_rounded;
 
     late OverlayEntry entry;
 
@@ -608,15 +671,13 @@ Widget _buildContent() {
     return ElevatedButton.icon(
       onPressed: _openAddPanel,
 
-      icon: const Icon(Icons.add, size: 19),
-
-      label: const Text('Add'),
+      label: const Text('    +  Add     '),
 
       style: ElevatedButton.styleFrom(
         padding: EdgeInsets.symmetric(
-          horizontal: isDesktop ? 28 : 12,
+          horizontal: isDesktop ? 25 : 12,
 
-          vertical: isDesktop ? 20 : 14,
+          vertical: isDesktop ? 15 : 14,
         ),
 
         backgroundColor: AppColors.primary,
@@ -666,7 +727,7 @@ Widget _buildContent() {
                         const SizedBox(width: 10),
 
                         SizedBox(
-  height: 48,
+  height: 55,
   child: ElevatedButton.icon(
     onPressed: _openAddPanel,
     icon: const Icon(Icons.add, size: 20),
@@ -674,7 +735,7 @@ Widget _buildContent() {
       'Add',
       style: TextStyle(
         fontWeight: FontWeight.w700,
-        fontSize: 14,
+        fontSize: 16,
       ),
     ),
     style: ElevatedButton.styleFrom(

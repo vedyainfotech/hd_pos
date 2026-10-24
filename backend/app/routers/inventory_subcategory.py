@@ -79,7 +79,7 @@ def create_subcategory(
         raise HTTPException(
             status_code=400,
             detail=str(error),
-        )
+        ) from error
 
 
 @router.put(
@@ -103,12 +103,12 @@ def update_subcategory(
         raise HTTPException(
             status_code=404,
             detail=str(error),
-        )
+        ) from error
     except ValueError as error:
         raise HTTPException(
             status_code=400,
             detail=str(error),
-        )
+        ) from error
 
 
 @router.patch(
@@ -130,4 +130,4 @@ def update_subcategory_status(
         raise HTTPException(
             status_code=404,
             detail=str(error),
-        )
+        ) from error

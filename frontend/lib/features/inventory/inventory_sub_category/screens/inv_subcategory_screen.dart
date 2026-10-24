@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/theme.dart';
@@ -118,7 +120,7 @@ class _InvSubCategoryScreenState extends State<InvSubCategoryScreen> {
       );
     } catch (error) {
       if (!mounted) return;
-      _showMessage('Failed to update status: $error', isError: true);
+      _showMessage(_friendlyErrorMessage(error), isError: true);
     }
   }
 
@@ -285,19 +287,82 @@ class _InvSubCategoryScreenState extends State<InvSubCategoryScreen> {
         _showMessage('Inventory subcategory updated successfully');
       }
     } catch (error) {
-      _showMessage('Operation failed: $error', isError: true);
+      if (!mounted) return;
+      final message = _friendlyErrorMessage(error);
+      final isDuplicate = message == 'Subcategory already exists';
+      _showMessage(
+        message,
+        isError: !isDuplicate,
+        isWarning: isDuplicate,
+      );
     }
   }
 
-  void _showMessage(String message, {bool isError = false}) {
+  String _friendlyErrorMessage(Object error) {
+    final raw = error.toString();
+    final lowerRaw = raw.toLowerCase();
+
+    // The API service may wrap the JSON response in Exception/record text.
+    final jsonStart = raw.indexOf('{');
+    final jsonEnd = raw.lastIndexOf('}');
+    String? detail;
+
+    if (jsonStart >= 0 && jsonEnd > jsonStart) {
+      try {
+        final decoded = jsonDecode(raw.substring(jsonStart, jsonEnd + 1));
+        if (decoded is Map<String, dynamic>) {
+          detail = decoded['detail']?.toString();
+        }
+      } catch (_) {
+        // Fall back to the plain error text below.
+      }
+    }
+
+    final candidate = (detail ?? raw).toLowerCase();
+    if (candidate.contains('exists') ||
+        candidate.contains('duplicate') ||
+        candidate.contains('already')) {
+      return 'Subcategory already exists';
+    }
+
+    if (candidate.contains('category') && candidate.contains('select')) {
+      return 'Please select a valid inventory category';
+    }
+
+    if (lowerRaw.contains('socketexception') ||
+        lowerRaw.contains('connection refused') ||
+        lowerRaw.contains('failed host lookup')) {
+      return 'Unable to connect to the server. Please try again.';
+    }
+
+    return detail != null && detail.trim().isNotEmpty
+        ? detail
+        : 'Operation failed. Please try again.';
+  }
+
+  void _showMessage(
+    String message, {
+    bool isError = false,
+    bool isWarning = false,
+  }) {
     if (!mounted) return;
 
     final overlay = Overlay.of(context);
-    final backgroundColor =
-        isError ? const Color(0xFFFFE5E5) : const Color(0xFFE5F7E9);
-    final iconColor =
-        isError ? const Color(0xFFD32F2F) : const Color(0xFF1E9E45);
-    final icon = isError ? Icons.close_rounded : Icons.check_rounded;
+    final backgroundColor = isWarning
+        ? const Color(0xFFFFF3CD)
+        : isError
+            ? const Color(0xFFFFE5E5)
+            : const Color(0xFFE5F7E9);
+    final iconColor = isWarning
+        ? const Color(0xFFE69500)
+        : isError
+            ? const Color(0xFFD32F2F)
+            : const Color(0xFF1E9E45);
+    final icon = isWarning
+        ? Icons.warning_amber_rounded
+        : isError
+            ? Icons.close_rounded
+            : Icons.check_rounded;
 
     late OverlayEntry entry;
 

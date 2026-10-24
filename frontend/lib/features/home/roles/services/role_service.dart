@@ -1,3 +1,4 @@
+
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -8,7 +9,52 @@ class RoleApiService {
   static const String baseUrl = 'http://127.0.0.1:8000';
   static const String endpoint = '/api/roles/';
 
-  // GET ALL ROLES
+  String _getApiErrorMessage(
+    http.Response response,
+    String fallback,
+  ) {
+    try {
+      final dynamic decoded = jsonDecode(response.body);
+
+      if (decoded is Map) {
+        final detail = decoded['detail'];
+
+        if (detail is String && detail.trim().isNotEmpty) {
+          return detail.trim();
+        }
+
+        if (detail is List) {
+          return detail.map((item) {
+            if (item is Map && item['msg'] != null) {
+              return item['msg'].toString();
+            }
+            return item.toString();
+          }).join(', ');
+        }
+      }
+    } catch (_) {
+      // Use fallback when the response is not JSON.
+    }
+
+    return fallback;
+  }
+
+  String _duplicateAwareMessage(
+    http.Response response,
+    String fallback,
+  ) {
+    final message = _getApiErrorMessage(response, fallback);
+    final lower = message.toLowerCase();
+
+    if (lower.contains('already exists') ||
+        lower.contains('duplicate key') ||
+        lower.contains('unique constraint')) {
+      return 'Role already exists';
+    }
+
+    return message;
+  }
+
   Future<List<RoleModel>> getRoles({
     bool includeInactive = true,
   }) async {
@@ -29,11 +75,10 @@ class RoleApiService {
     }
 
     throw Exception(
-      'Failed to load roles: ${response.statusCode}',
+      _getApiErrorMessage(response, 'Failed to load roles'),
     );
   }
 
-  // GET ROLE BY ID
   Future<RoleModel> getRole(int id) async {
     final response = await http.get(
       Uri.parse('$baseUrl$endpoint$id'),
@@ -41,14 +86,12 @@ class RoleApiService {
 
     if (response.statusCode == 200) {
       return RoleModel.fromJson(
-        Map<String, dynamic>.from(
-          jsonDecode(response.body),
-        ),
+        Map<String, dynamic>.from(jsonDecode(response.body)),
       );
     }
 
     throw Exception(
-      'Failed to load role: ${response.body}',
+      _getApiErrorMessage(response, 'Failed to load role'),
     );
   }
 
@@ -68,14 +111,12 @@ class RoleApiService {
 
     if (response.statusCode == 201) {
       return RoleModel.fromJson(
-        Map<String, dynamic>.from(
-          jsonDecode(response.body),
-        ),
+        Map<String, dynamic>.from(jsonDecode(response.body)),
       );
     }
 
     throw Exception(
-      'Failed to create role: ${response.body}',
+      _duplicateAwareMessage(response, 'Failed to add role'),
     );
   }
 
@@ -98,14 +139,12 @@ class RoleApiService {
 
     if (response.statusCode == 200) {
       return RoleModel.fromJson(
-        Map<String, dynamic>.from(
-          jsonDecode(response.body),
-        ),
+        Map<String, dynamic>.from(jsonDecode(response.body)),
       );
     }
 
     throw Exception(
-      'Failed to update role: ${response.body}',
+      _duplicateAwareMessage(response, 'Failed to update role'),
     );
   }
 
@@ -126,7 +165,10 @@ class RoleApiService {
 
     if (response.statusCode != 200) {
       throw Exception(
-        'Failed to update role status: ${response.body}',
+        _getApiErrorMessage(
+          response,
+          'Failed to update role status',
+        ),
       );
     }
   }

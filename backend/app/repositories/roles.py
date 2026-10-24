@@ -1,3 +1,7 @@
+
+import re
+import unicodedata
+
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -5,66 +9,35 @@ from app.models.roles import Role
 
 
 def normalize_role_name(name: str) -> str:
-    """
-    Remove leading/trailing spaces and
-    convert multiple spaces into a single space.
-    """
-    return " ".join(name.strip().split())
+    """Ignore capitalization and all whitespace when comparing names."""
+    name = unicodedata.normalize("NFKC", name or "")
+    return re.sub(r"\s+", "", name).casefold()
 
 
 class RoleRepository:
 
-    # ============================================================
-    # GET ALL ROLES
-    # ============================================================
-
     @staticmethod
-    def get_all(
-        db: Session,
-        include_inactive: bool = False,
-    ):
+    def get_all(db: Session, include_inactive: bool = False):
         query = select(Role)
 
         if not include_inactive:
-            query = query.where(
-                Role.status.is_(True)
-            )
+            query = query.where(Role.status.is_(True))
 
         query = query.order_by(Role.id)
-
         result = db.execute(query)
 
         return result.scalars().all()
 
-    # ============================================================
-    # GET ROLE BY ID
-    # ============================================================
-
     @staticmethod
-    def get_by_id(
-        db: Session,
-        role_id: int,
-    ):
+    def get_by_id(db: Session, role_id: int):
         result = db.execute(
-            select(Role).where(
-                Role.id == role_id
-            )
+            select(Role).where(Role.id == role_id)
         )
-
         return result.scalar_one_or_none()
 
-    # ============================================================
-    # GET ROLE BY NAME
-    # ============================================================
-
     @staticmethod
-    def get_by_name(
-        db: Session,
-        name: str,
-    ):
-        normalized_name = normalize_role_name(
-            name
-        )
+    def get_by_name(db: Session, name: str):
+        normalized_name = normalize_role_name(name)
 
         result = db.execute(
             select(Role).where(
@@ -72,27 +45,19 @@ class RoleRepository:
                     func.regexp_replace(
                         Role.name,
                         r"\s+",
-                        " ",
+                        "",
                         "g",
                     )
-                )
-                == normalized_name.lower()
+                ) == normalized_name.lower()
             )
         )
 
-        return result.scalar_one_or_none()
-
-    # ============================================================
-    # CREATE ROLE
-    # ============================================================
+        return result.scalars().first()
 
     @staticmethod
-    def create(
-        db: Session,
-        name: str,
-    ):
+    def create(db: Session, name: str):
         role = Role(
-            name=normalize_role_name(name),
+            name=" ".join(name.strip().split()),
             status=True,
         )
 
@@ -102,10 +67,6 @@ class RoleRepository:
 
         return role
 
-    # ============================================================
-    # UPDATE ROLE
-    # ============================================================
-
     @staticmethod
     def update(
         db: Session,
@@ -114,9 +75,7 @@ class RoleRepository:
         status: bool | None = None,
     ):
         if name is not None:
-            role.name = normalize_role_name(
-                name
-            )
+            role.name = " ".join(name.strip().split())
 
         if status is not None:
             role.status = status
@@ -125,10 +84,6 @@ class RoleRepository:
         db.refresh(role)
 
         return role
-
-    # ============================================================
-    # UPDATE ROLE STATUS
-    # ============================================================
 
     @staticmethod
     def update_status(

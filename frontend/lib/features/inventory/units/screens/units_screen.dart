@@ -212,6 +212,25 @@ return Positioned(
     );
   }
 
+  String _normalizeUnitName(String value) {
+    return value.toLowerCase().replaceAll(RegExp(r'\\s+'), '');
+  }
+
+  void _closeDialogAndShowDuplicateMessage(
+    BuildContext dialogContext,
+  ) {
+    Navigator.of(dialogContext).pop();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _showMessage(
+          'Unit already exists',
+          isWarning: true,
+        );
+      }
+    });
+  }
+
   // ============================================================
   // ADD UNIT
   // ============================================================
@@ -373,17 +392,16 @@ return Positioned(
                       return;
                     }
 
+                    final normalizedName = _normalizeUnitName(name);
+
                     final duplicate = _units.any(
                       (unit) =>
-                          unit.name.trim().toLowerCase() ==
-                          name.toLowerCase(),
+                          _normalizeUnitName(unit.name) ==
+                          normalizedName,
                     );
 
                     if (duplicate) {
-                      _showMessage(
-                        'Unit already exists',
-                        isWarning: true,
-                      );
+                      _closeDialogAndShowDuplicateMessage(dialogContext);
                       return;
                     }
 
@@ -439,10 +457,20 @@ return Positioned(
     } catch (e) {
       if (!mounted) return;
 
-      _showMessage(
-        'Failed to add unit',
-        isError: true,
-      );
+      final errorMessage = e.toString().toLowerCase();
+
+      if (errorMessage.contains('409') ||
+          errorMessage.contains('unit already exists')) {
+        _showMessage(
+          'Unit already exists',
+          isWarning: true,
+        );
+      } else {
+        _showMessage(
+          'Failed to add unit',
+          isError: true,
+        );
+      }
     }
   }
 
@@ -693,18 +721,17 @@ return Positioned(
                       return;
                     }
 
+                    final normalizedName = _normalizeUnitName(name);
+
                     final duplicate = _units.any(
                       (item) =>
                           item.id != unit.id &&
-                          item.name.trim().toLowerCase() ==
-                              name.toLowerCase(),
+                          _normalizeUnitName(item.name) ==
+                              normalizedName,
                     );
 
                     if (duplicate) {
-                      _showMessage(
-                        'Unit already exists',
-                        isWarning: true,
-                      );
+                      _closeDialogAndShowDuplicateMessage(dialogContext);
                       return;
                     }
 

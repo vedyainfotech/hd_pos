@@ -1,20 +1,32 @@
 
 import re
+import unicodedata
 
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.repositories.roles import (
-    RoleRepository,
-    normalize_role_name,
-)
+from app.repositories.roles import RoleRepository
+
+
+def normalize_role_name(name: str) -> str:
+    """
+    Remove all whitespace and normalize capitalization for
+    duplicate comparisons. Preserve readable spacing separately
+    when validating and storing the name.
+    """
+    name = unicodedata.normalize("NFKC", name or "")
+    return re.sub(r"\s+", "", name).casefold()
 
 
 def validate_role_name(name: str) -> str:
     """Normalize and validate a role name."""
 
-    name = normalize_role_name(name)
+    # Normalize Unicode and clean leading/trailing spaces.
+    name = unicodedata.normalize("NFKC", name or "").strip()
+
+    # Collapse multiple spaces between words for storage.
+    name = " ".join(name.split())
 
     if not name:
         raise HTTPException(
@@ -35,7 +47,7 @@ def validate_role_name(name: str) -> str:
             detail="Role name can contain only letters and spaces",
         )
 
-    # Reject names containing one-letter words.
+    # Reject words containing only one letter.
     if any(len(word) < 2 for word in name.split()):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -78,19 +90,14 @@ class RoleService:
         name: str,
     ):
         name = validate_role_name(name)
+        comparison_name = normalize_role_name(name)
 
-        # Check for existing names without spaces or case.
-        comparison_name = re.sub(r"\s+", "", name).lower()
-
-        for role in RoleRepository.get_all(
+        # Check active and inactive roles.
+        for existing_role in RoleRepository.get_all(
             db,
             include_inactive=True,
         ):
-            existing_name = re.sub(
-                r"\s+", "", role.name
-            ).lower()
-
-            if existing_name == comparison_name:
+            if normalize_role_name(existing_role.name) == comparison_name:
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
                     detail="Role already exists",
@@ -99,13 +106,12 @@ class RoleService:
         try:
             return RoleRepository.create(db, name)
 
-        except IntegrityError:
+        except IntegrityError as exc:
             db.rollback()
-
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Role already exists",
-            )
+            ) from exc
 
     @staticmethod
     def update_role(
@@ -124,23 +130,17 @@ class RoleService:
 
         if name is not None:
             name = validate_role_name(name)
-
-            comparison_name = re.sub(
-                r"\s+", "", name
-            ).lower()
+            comparison_name = normalize_role_name(name)
 
             for existing_role in RoleRepository.get_all(
                 db,
                 include_inactive=True,
             ):
-                existing_name = re.sub(
-                    r"\s+", "", existing_role.name
-                ).lower()
+                # Do not compare the role being updated against itself.
+                if existing_role.id == role_id:
+                    continue
 
-                if (
-                    existing_name == comparison_name
-                    and existing_role.id != role_id
-                ):
+                if normalize_role_name(existing_role.name) == comparison_name:
                     raise HTTPException(
                         status_code=status.HTTP_409_CONFLICT,
                         detail="Role already exists",
@@ -154,13 +154,12 @@ class RoleService:
                 status=status,
             )
 
-        except IntegrityError:
+        except IntegrityError as exc:
             db.rollback()
-
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Role already exists",
-            )
+            ) from exc
 
     @staticmethod
     def update_role_status(

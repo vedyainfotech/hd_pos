@@ -1,3 +1,4 @@
+
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -45,6 +46,17 @@ def create_payment_mode(
             detail="Payment mode name cannot be empty",
         )
 
+    existing = payment_mode_repository.get_payment_mode_by_name(
+        db,
+        name,
+    )
+
+    if existing is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Payment mode already exists",
+        )
+
     return payment_mode_repository.create_payment_mode(
         db,
         name=name,
@@ -69,6 +81,18 @@ def update_payment_mode(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Payment mode name cannot be empty",
+        )
+
+    existing = payment_mode_repository.get_payment_mode_by_name(
+        db,
+        name,
+        exclude_id=payment_mode_id,
+    )
+
+    if existing is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Payment mode already exists",
         )
 
     return payment_mode_repository.update_payment_mode(

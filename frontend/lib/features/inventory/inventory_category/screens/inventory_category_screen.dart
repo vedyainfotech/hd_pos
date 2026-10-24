@@ -709,7 +709,7 @@ class _InventoryCategoryScreenState extends State<InventoryCategoryScreen> {
 
       _showMessage(
 
-        'Failed to add inventory category',
+        'category already exists',
 
         isError: true,
 

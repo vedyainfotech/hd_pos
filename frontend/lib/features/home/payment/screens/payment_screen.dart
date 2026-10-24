@@ -456,11 +456,21 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
                       (payment) =>
 
-                          payment.name.trim().toLowerCase() ==
+                          payment.name
 
-                          name.toLowerCase(),
+                                  .toLowerCase()
+
+                                  .replaceAll(RegExp(r'\s+'), '') ==
+
+                              name
+
+                                  .toLowerCase()
+
+                                  .replaceAll(RegExp(r'\s+'), ''),
 
                     )) {
+
+                      Navigator.pop(dialogContext);
 
                       _showMessage(
 
@@ -1092,11 +1102,21 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
                           item.id != payment.id &&
 
-                          item.name.trim().toLowerCase() ==
+                          item.name
 
-                              name.toLowerCase(),
+                                  .toLowerCase()
+
+                                  .replaceAll(RegExp(r'\s+'), '') ==
+
+                              name
+
+                                  .toLowerCase()
+
+                                  .replaceAll(RegExp(r'\s+'), ''),
 
                     )) {
+
+                      Navigator.pop(dialogContext);
 
                       _showMessage(
 

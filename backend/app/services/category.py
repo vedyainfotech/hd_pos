@@ -1,3 +1,5 @@
+
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.models.category import Category
@@ -36,8 +38,28 @@ class CategoryService:
         db: Session,
         data: CategoryCreate,
     ):
+        name = data.name.strip()
+
+        if not name:
+            raise HTTPException(
+                status_code=400,
+                detail="Category name is required",
+            )
+
+        # Reject duplicate names, ignoring case and all whitespace.
+        existing = CategoryRepository.get_by_name(
+            db,
+            name,
+        )
+
+        if existing is not None:
+            raise HTTPException(
+                status_code=409,
+                detail="Category already exists",
+            )
+
         category = Category(
-            name=data.name.strip(),
+            name=name,
             allotment_time=data.allotment_time,
             status=data.status,
         )
@@ -61,7 +83,28 @@ class CategoryService:
         if category is None:
             return None
 
-        category.name = data.name.strip()
+        name = data.name.strip()
+
+        if not name:
+            raise HTTPException(
+                status_code=400,
+                detail="Category name is required",
+            )
+
+        # Exclude the current category so its existing name is allowed.
+        existing = CategoryRepository.get_by_name(
+            db,
+            name,
+            exclude_id=category_id,
+        )
+
+        if existing is not None:
+            raise HTTPException(
+                status_code=409,
+                detail="Category already exists",
+            )
+
+        category.name = name
         category.allotment_time = data.allotment_time
         category.status = data.status
 

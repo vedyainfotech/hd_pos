@@ -66,7 +66,10 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
         _isLoading = false;
       });
 
-      _showMessage(e.toString().replaceFirst('Exception: ', ''));
+      _showMessage(
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
+      );
     }
   }
 
@@ -134,7 +137,10 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
     } catch (e) {
       if (!mounted) return;
 
-      _showMessage(e.toString().replaceFirst('Exception: ', ''));
+      _showMessage(
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
+      );
     }
   }
 
@@ -180,7 +186,10 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
     } catch (e) {
       if (!mounted) return;
 
-      _showMessage(e.toString().replaceFirst('Exception: ', ''));
+      _showMessage(
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
+      );
     }
   }
 
@@ -192,11 +201,14 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
   }
 
   Future<void> _toggleStatus(DeliveryPersonModel person) async {
+    final activate = !person.isActive;
+    final confirmed = await _showStatusConfirmation(activate);
+    if (!confirmed || !mounted) return;
+
     try {
       final updated = await _service.updateDeliveryPersonStatus(
         person.id,
-
-        !person.isActive,
+        activate,
       );
 
       if (!mounted) return;
@@ -205,22 +217,197 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
         final index = _deliveryPersons.indexWhere(
           (item) => item.id == person.id,
         );
-
         if (index != -1) {
           _deliveryPersons[index] = updated;
         }
       });
+
+      _showMessage(
+        activate
+            ? 'Delivery person activated successfully.'
+            : 'Delivery person deactivated successfully.',
+      );
     } catch (e) {
       if (!mounted) return;
-
-      _showMessage(e.toString().replaceFirst('Exception: ', ''));
+      _showMessage(e.toString().replaceFirst('Exception: ', ''), isError: true);
     }
   }
 
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
+  Future<bool> _showStatusConfirmation(bool activate) async {
+    final action = activate ? 'Activate' : 'Deactivate';
+    final actionLower = activate ? 'activate' : 'deactivate';
+
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 545),
+          child: Container(
+            padding: EdgeInsets.fromLTRB(
+              MediaQuery.sizeOf(dialogContext).width < 560 ? 20 : 28,
+              28,
+              MediaQuery.sizeOf(dialogContext).width < 560 ? 20 : 28,
+              26,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(22),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 78,
+                  height: 78,
+                  decoration: BoxDecoration(
+                    color: activate
+                        ? const Color(0xFFEAF5E8)
+                        : AppColors.primarySoft,
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(
+                    activate ? Icons.check_rounded : Icons.priority_high_rounded,
+                    size: 42,
+                    color: activate ? const Color(0xFF2E7D32) : AppColors.primary,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  '$action Delivery Person?',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Are you sure you want to $actionLower this delivery person?',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    height: 1.45,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 28),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final buttons = [
+                      OutlinedButton(
+                        onPressed: () => Navigator.of(dialogContext).pop(false),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size.fromHeight(50),
+                          foregroundColor: AppColors.textPrimary,
+                          backgroundColor: AppColors.surface,
+                          side: const BorderSide(color: AppColors.border),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w700)),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => Navigator.of(dialogContext).pop(true),
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size.fromHeight(50),
+                          backgroundColor: activate ? const Color(0xFF2E7D32) : AppColors.primary,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(action, style: const TextStyle(fontWeight: FontWeight.w700)),
+                      ),
+                    ];
+                    if (constraints.maxWidth < 400) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [buttons[0], const SizedBox(height: 10), buttons[1]],
+                      );
+                    }
+                    return Row(
+                      children: [
+                        Expanded(child: buttons[0]),
+                        const SizedBox(width: 14),
+                        Expanded(child: buttons[1]),
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
+    return result ?? false;
+  }
+
+  void _showMessage(String message, {bool isError = false}) {
+    if (!mounted) return;
+
+    final overlay = Overlay.of(context);
+    final backgroundColor = isError
+        ? const Color(0xFFFFE5E5)
+        : const Color(0xFFE5F7E9);
+    final iconColor = isError
+        ? const Color(0xFFD32F2F)
+        : const Color(0xFF1E9E45);
+    final icon = isError ? Icons.close_rounded : Icons.check_rounded;
+
+    late OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: MediaQuery.of(context).padding.top + 12,
+        right: 16,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 360),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.12),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 22, color: iconColor),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: Text(
+                    message,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: iconColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    overlay.insert(entry);
+    Future.delayed(const Duration(seconds: 3), () {
+      if (entry.mounted) entry.remove();
+    });
   }
 
   @override
@@ -268,12 +455,9 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
             return Padding(
               padding: EdgeInsets.fromLTRB(
                 horizontalPadding,
-
-                28,
-
+                constraints.maxWidth < 600 ? 16 : 28,
                 horizontalPadding,
-
-                20,
+                constraints.maxWidth < 600 ? 12 : 20,
               ),
 
               child: Column(
@@ -282,11 +466,11 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
                 children: [
                   _buildHeader(constraints.maxWidth),
 
-                  const SizedBox(height: 24),
+                  SizedBox(height: constraints.maxWidth < 600 ? 16 : 24),
 
                   _buildFilters(constraints.maxWidth),
 
-                  const SizedBox(height: 18),
+                  SizedBox(height: constraints.maxWidth < 600 ? 12 : 18),
 
                   Expanded(
                     child: _buildDeliveryPersonsCard(constraints.maxWidth),
@@ -301,51 +485,62 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
   }
 
   Widget _buildHeader(double width) {
+    final isCompact = width < 520;
+
+    final addButton = SizedBox(
+      height: 46,
+      width: width >= 520 ? 135 : double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: _openAddDialog,
+        icon: const Icon(Icons.add, size: 20),
+        label: const Text(
+          'Add',
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      ),
+    );
+
+    if (isCompact) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Manage your delivery persons',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Align(alignment: Alignment.centerRight, child: addButton),
+        ],
+      );
+    }
+
     return Row(
       children: [
         const Expanded(
           child: Text(
             'Manage your delivery persons',
-
             style: TextStyle(
               color: AppColors.textPrimary,
-
               fontSize: 22,
-
               fontWeight: FontWeight.w700,
             ),
           ),
         ),
-
         const SizedBox(width: 16),
-
-        SizedBox(
-          height: 44,
-
-          child: ElevatedButton(
-            onPressed: _openAddDialog,
-
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-
-              foregroundColor: Colors.white,
-
-              elevation: 0,
-
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-
-            child: const Text(
-              '+  Add Delivery Person',
-
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-            ),
-          ),
-        ),
+        addButton,
       ],
     );
   }
@@ -488,10 +683,11 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
 
   Widget _buildDeliveryPersonsCard(double width) {
     final persons = _filteredPersons;
+    final compact = width < 600;
 
     return _CardContainer(
       child: Padding(
-        padding: const EdgeInsets.all(18),
+        padding: EdgeInsets.all(compact ? 12 : 18),
 
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -667,11 +863,17 @@ class _DeliveryPersonsScreenState extends State<DeliveryPersonsScreen> {
 
               _StatusSwitch(
                 value: person.isActive,
-
                 onChanged: (_) => _toggleStatus(person),
               ),
 
-              const SizedBox(width: 10),
+              const SizedBox(width: 4),
+
+              // Keep Preview available on mobile and narrow screens too.
+              _PreviewButton(
+                onPressed: () => _openPreviewDialog(person),
+              ),
+
+              const SizedBox(width: 2),
 
               _EditButton(onPressed: () => _openEditDialog(person)),
             ],
@@ -926,7 +1128,7 @@ class _DeliveryPersonFormDialogState extends State<_DeliveryPersonFormDialog> {
     return Dialog(
       backgroundColor: Colors.transparent,
 
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
 
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 820),
@@ -937,7 +1139,12 @@ class _DeliveryPersonFormDialogState extends State<_DeliveryPersonFormDialog> {
           borderRadius: BorderRadius.circular(20),
 
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(28, 24, 28, 22),
+            padding: EdgeInsets.fromLTRB(
+              MediaQuery.sizeOf(context).width < 560 ? 16 : 28,
+              20,
+              MediaQuery.sizeOf(context).width < 560 ? 16 : 28,
+              18,
+            ),
 
             child: Form(
               key: _formKey,
@@ -1624,7 +1831,7 @@ class _DeliveryPersonPreviewDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 700),
         child: Material(

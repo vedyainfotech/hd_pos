@@ -542,31 +542,20 @@ _showMessage(
 
 );
 
+
 } catch (e) {
+  if (!mounted) return;
 
-if (!mounted) return;
-
-final message = _getErrorMessage(
-
-e,
-
-'Failed to add role',
-
-);
-
-_showMessage(
-
-message,
-
-isError: message != 'Role already exists',
-
-isWarning: message == 'Role already exists',
-
-);
-
+  _showMessage(
+    'Role already exists',
+    isWarning: true,
+  );
 }
 
 }
+
+
+
 
 // ============================================================
 
@@ -2624,31 +2613,20 @@ return 420;
 // ============================================================
 
 String _getErrorMessage(
-
-Object error,
-
-String fallback,
-
+  Object error,
+  String fallback,
 ) {
+  final message = error.toString().toLowerCase();
 
-final message =
+  if (message.contains('role already exists') ||
+      message.contains('already exists') ||
+      message.contains('duplicate key') ||
+      message.contains('unique constraint')) {
+    return 'Role already exists';
+  }
 
-error.toString();
-
-if (message.contains(
-
-'Role already exists',
-
-)) {
-
-return 'Role already exists';
-
+  return fallback;
 }
-
-return fallback;
-
-}
-
 // ============================================================
 
 // SNACKBAR
