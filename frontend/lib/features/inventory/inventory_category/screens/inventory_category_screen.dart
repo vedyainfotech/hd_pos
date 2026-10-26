@@ -566,6 +566,7 @@ class _InventoryCategoryScreenState extends State<InventoryCategoryScreen> {
                           name.toLowerCase(),
 
                     )) {
+                      Navigator.pop(dialogContext);
 
                       _showMessage(
 
@@ -711,7 +712,7 @@ class _InventoryCategoryScreenState extends State<InventoryCategoryScreen> {
 
         'category already exists',
 
-        isError: true,
+        isWarning: true,
 
       );
 
@@ -1267,6 +1268,7 @@ class _InventoryCategoryScreenState extends State<InventoryCategoryScreen> {
                               name.toLowerCase(),
 
                     )) {
+                      Navigator.pop(dialogContext);
 
                       _showMessage(
 
