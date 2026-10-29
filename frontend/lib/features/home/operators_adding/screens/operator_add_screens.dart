@@ -187,70 +187,86 @@ class _OperatorAddScreenState extends State<OperatorAddScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        toolbarHeight: 64,
+        backgroundColor: AppColors.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        titleSpacing: 0,
+        leadingWidth: 64,
+        leading: IconButton(
+          tooltip: 'Back',
+          onPressed: () {
+            final navigator = Navigator.of(context);
+            if (navigator.canPop()) {
+              navigator.pop();
+            } else {
+              _showMessage('No previous page is available.');
+            }
+          },
+          icon: const Icon(
+            Icons.arrow_back,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        title: const Text(
+          'Operators',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            height: 1,
+            color: AppColors.borderLight,
+          ),
+        ),
+      ),
       body: SafeArea(
+        top: false,
         child: LayoutBuilder(
           builder: (context, constraints) {
             final width = constraints.maxWidth;
+            final horizontalPadding = width < 600
+                ? 12.0
+                : width < 1100
+                    ? 20.0
+                    : 26.0;
+            final verticalPadding = width < 600 ? 12.0 : 18.0;
 
-            if (width < 700) {
-              return _buildMobileLayout();
-            }
-
-            if (width < 1100) {
-              return _buildTabletLayout();
-            }
-
-            return _buildDesktopLayout();
+            return Padding(
+              padding: EdgeInsets.fromLTRB(
+                horizontalPadding,
+                verticalPadding,
+                horizontalPadding,
+                verticalPadding,
+              ),
+              child: _buildOperatorsCard(),
+            );
           },
         ),
       ),
     );
   }
 
-  Widget _buildDesktopLayout() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(26, 20, 26, 22),
-      child: SizedBox.expand(child: _buildOperatorsCard()),
-    );
-  }
-
-  Widget _buildTabletLayout() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
-      child: SizedBox.expand(child: _buildOperatorsCard()),
-    );
-  }
-
-  Widget _buildMobileLayout() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-      child: _buildOperatorsCard(),
-    );
-  }
-
   Widget _buildOperatorsCard() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final fillHeight =
-            constraints.hasBoundedHeight &&
-            constraints.maxHeight.isFinite &&
-            constraints.maxHeight > 650;
-
-        return _CardContainer(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildAddOperatorSection(),
-              const SizedBox(height: 20),
-              if (fillHeight)
-                Expanded(child: _buildOperatorsListSection(expandList: true))
-              else
-                _buildOperatorsListSection(),
-            ],
-          ),
-        );
-      },
+    // Keep the page content directly on the screen background, matching
+    // the Categories and Sub Categories pages. The operators list itself
+    // is the only section that scrolls.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildAddOperatorSection(),
+        const SizedBox(height: 20),
+        Expanded(
+          child: _buildOperatorsListSection(expandList: true),
+        ),
+      ],
     );
   }
 
@@ -390,7 +406,7 @@ class _OperatorAddScreenState extends State<OperatorAddScreen> {
             child: LayoutBuilder(
               builder: (context, constraints) {
                 if (constraints.maxWidth < 850) {
-                  return _buildMobileOperatorsList();
+                  return _buildMobileOperatorsList(expandList: true);
                 }
 
                 return _buildDesktopOperatorsList(expandList: true);
@@ -761,26 +777,23 @@ class _OperatorAddScreenState extends State<OperatorAddScreen> {
     );
   }
 
-  Widget _buildMobileOperatorsList() {
+  Widget _buildMobileOperatorsList({bool expandList = false}) {
     final operators = _filteredOperators;
 
-    return SizedBox(
-      height: 500,
+    final list = operators.isEmpty
+        ? _buildEmptyState()
+        : ListView.separated(
+            padding: const EdgeInsets.only(bottom: 4),
+            itemCount: operators.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            itemBuilder: (context, index) {
+              return _buildMobileOperatorCard(operators[index]);
+            },
+          );
 
-      child: operators.isEmpty
-          ? _buildEmptyState()
-          : ListView.separated(
-              itemCount: operators.length,
-
-              separatorBuilder: (_, __) {
-                return const SizedBox(height: 10);
-              },
-
-              itemBuilder: (context, index) {
-                return _buildMobileOperatorCard(operators[index]);
-              },
-            ),
-    );
+    // In the main page layout, only this list scrolls. Keep a bounded fallback
+    // height for any other call site that doesn't provide expanded constraints.
+    return expandList ? list : SizedBox(height: 500, child: list);
   }
 
   Widget _buildMobileOperatorCard(OperatorModel operator) {
@@ -2116,41 +2129,6 @@ class _MobileDetailRow extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _CardContainer extends StatelessWidget {
-  final Widget child;
-
-  const _CardContainer({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-
-      padding: const EdgeInsets.all(18),
-
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-
-        borderRadius: BorderRadius.circular(18),
-
-        border: Border.all(color: AppColors.borderLight),
-
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A000000),
-
-            blurRadius: 18,
-
-            offset: Offset(0, 6),
-          ),
-        ],
-      ),
-
-      child: child,
     );
   }
 }

@@ -25,7 +25,7 @@ def get_categories(
     include_inactive: bool = Query(False),
     db: Session = Depends(get_db),
 ):
-    return CategoryService.get_categories(
+  return CategoryService.get_categories(
         db,
         include_inactive,
     )

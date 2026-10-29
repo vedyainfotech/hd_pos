@@ -167,13 +167,22 @@ class _DeliveryScheduleScreenState extends State<DeliveryScheduleScreen> {
       firstDate: _today,
       lastDate: _today.add(const Duration(days: 3650)),
       builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(
-              context,
-            ).colorScheme.copyWith(primary: AppColors.primary),
+        final media = MediaQuery.of(context);
+        return MediaQuery(
+          data: media.copyWith(
+            size: Size(
+              media.size.width < 500 ? media.size.width : 420,
+              media.size.height < 650 ? media.size.height : 760,
+            ),
           ),
-          child: child!,
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: Theme.of(
+                context,
+              ).colorScheme.copyWith(primary: AppColors.primary),
+            ),
+            child: child!,
+          ),
         );
       },
     );
@@ -388,7 +397,10 @@ class _DeliveryScheduleScreenState extends State<DeliveryScheduleScreen> {
             children: [
               _buildTopSection(constraints.maxWidth, isMobile),
               const SizedBox(height: 18),
-              _buildCategorySection(constraints.maxWidth, isMobile),
+              _buildCategorySection(
+                constraints.maxWidth - (isMobile ? 28 : 72),
+                isMobile,
+              ),
             ],
           ),
         );
@@ -521,45 +533,32 @@ class _DeliveryScheduleScreenState extends State<DeliveryScheduleScreen> {
   }
 
   // ============================================================
-  // CATEGORY HORIZONTAL SCROLL
+  // RESPONSIVE CATEGORY GRID
   // ============================================================
 
   Widget _buildCategorySection(double width, bool isMobile) {
-    final cardWidth = _getCardWidth(width);
+    final columns = width < 600
+        ? 1
+        : width < 900
+            ? 2
+            : width < 1200
+                ? 3
+                : 4;
 
-    return SizedBox(
-      height: isMobile ? 500 : 440,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        itemCount: _categories.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 14),
-        itemBuilder: (context, index) {
-          final category = _categories[index];
-
-          return SizedBox(
-            width: cardWidth,
-            child: _buildCategoryCard(category),
-          );
-        },
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _categories.length,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: columns,
+        crossAxisSpacing: 14,
+        mainAxisSpacing: 14,
+        mainAxisExtent: isMobile ? 480 : 440,
       ),
+      itemBuilder: (context, index) {
+        return _buildCategoryCard(_categories[index]);
+      },
     );
-  }
-
-  double _getCardWidth(double width) {
-    if (width < 600) {
-      return (width - 28).clamp(250.0, 430.0);
-    }
-
-    if (width < 900) {
-      return 330;
-    }
-
-    if (width < 1300) {
-      return 350;
-    }
-
-    return 370;
   }
 
   // ============================================================
@@ -889,15 +888,11 @@ class _HistoryDialogState extends State<_HistoryDialog> {
   void initState() {
     super.initState();
 
-    if (widget.history.isNotEmpty) {
-      _fromDate = widget.history
-          .map((item) => item.date)
-          .reduce((a, b) => a.isBefore(b) ? a : b);
-
-      _toDate = widget.history
-          .map((item) => item.date)
-          .reduce((a, b) => a.isAfter(b) ? a : b);
-    }
+    // Default both history filters to today, regardless of saved history.
+    final today = DateTime.now();
+    final todayDate = DateTime(today.year, today.month, today.day);
+    _fromDate = todayDate;
+    _toDate = todayDate;
   }
 
   List<DeliveryScheduleModel> get _filteredHistory {
@@ -956,89 +951,133 @@ class _HistoryDialogState extends State<_HistoryDialog> {
         .reduce((a, b) => a.isAfter(b) ? a : b);
   }
 
+  DateTime get _minimumSelectableDate => DateTime(2000, 1, 1);
+
+  DateTime get _maximumSelectableDate =>
+      DateTime.now().add(const Duration(days: 3650));
+
+  DateTime _clampDate(DateTime date, DateTime first, DateTime last) {
+    final normalized = DateTime(date.year, date.month, date.day);
+    if (normalized.isBefore(first)) return first;
+    if (normalized.isAfter(last)) return last;
+    return normalized;
+  }
+
   Future<void> _pickFromDate() async {
-    if (widget.history.isEmpty) {
-      return;
-    }
+    final firstDate = _minimumSelectableDate;
+    final lastDate = _toDate ?? _maximumSelectableDate;
+    final initialDate = _clampDate(
+      _fromDate ?? DateTime.now(),
+      firstDate,
+      lastDate,
+    );
 
     final selected = await showDatePicker(
       context: context,
-      initialDate: _fromDate ?? _firstHistoryDate,
-      firstDate: _firstHistoryDate,
-      lastDate: _lastHistoryDate,
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
       builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(
-              context,
-            ).colorScheme.copyWith(primary: AppColors.primary),
+        final media = MediaQuery.of(context);
+        return MediaQuery(
+          data: media.copyWith(
+            size: Size(
+              media.size.width < 500 ? media.size.width : 420,
+              media.size.height < 650 ? media.size.height : 760,
+            ),
           ),
-          child: child!,
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: Theme.of(
+                context,
+              ).colorScheme.copyWith(primary: AppColors.primary),
+            ),
+            child: child!,
+          ),
         );
       },
     );
 
-    if (selected == null) {
-      return;
-    }
+    if (selected == null || !mounted) return;
 
     setState(() {
-      _fromDate = selected;
-
-      if (_toDate != null && _toDate!.isBefore(selected)) {
-        _toDate = selected;
+      _fromDate = DateTime(selected.year, selected.month, selected.day);
+      if (_toDate != null && _toDate!.isBefore(_fromDate!)) {
+        _toDate = _fromDate;
       }
     });
   }
 
   Future<void> _pickToDate() async {
-    if (widget.history.isEmpty) {
-      return;
-    }
+    final firstDate = _fromDate ?? _minimumSelectableDate;
+    final lastDate = _maximumSelectableDate;
+    final initialDate = _clampDate(
+      _toDate ?? DateTime.now(),
+      firstDate,
+      lastDate,
+    );
 
     final selected = await showDatePicker(
       context: context,
-      initialDate: _toDate ?? _lastHistoryDate,
-      firstDate: _firstHistoryDate,
-      lastDate: _lastHistoryDate,
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
       builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(
-              context,
-            ).colorScheme.copyWith(primary: AppColors.primary),
+        final media = MediaQuery.of(context);
+        return MediaQuery(
+          data: media.copyWith(
+            size: Size(
+              media.size.width < 500 ? media.size.width : 420,
+              media.size.height < 650 ? media.size.height : 760,
+            ),
           ),
-          child: child!,
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: Theme.of(
+                context,
+              ).colorScheme.copyWith(primary: AppColors.primary),
+            ),
+            child: child!,
+          ),
         );
       },
     );
 
-    if (selected == null) {
-      return;
-    }
+    if (selected == null || !mounted) return;
 
     setState(() {
-      _toDate = selected;
-
-      if (_fromDate != null && _fromDate!.isAfter(selected)) {
-        _fromDate = selected;
+      _toDate = DateTime(selected.year, selected.month, selected.day);
+      if (_fromDate != null && _fromDate!.isAfter(_toDate!)) {
+        _fromDate = _toDate;
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.sizeOf(context);
+    final compact = screenSize.width < 650;
+    final veryShort = screenSize.height < 520;
+
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.all(16),
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: screenSize.width < 500 ? 8 : 16,
+        vertical: screenSize.height < 600 ? 8 : 16,
+      ),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 900, maxHeight: 720),
-        child: Material(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(14),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
+        constraints: BoxConstraints(
+          maxWidth: 1100,
+          maxHeight: screenSize.height - (screenSize.height < 600 ? 16 : 32),
+        ),
+        child: SizedBox(
+          width: screenSize.width - (screenSize.width < 500 ? 16 : 32),
+          child: Material(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(14),
+            child: Padding(
+              padding: EdgeInsets.all(veryShort ? 8 : compact ? 12 : 20),
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
@@ -1083,6 +1122,7 @@ class _HistoryDialogState extends State<_HistoryDialog> {
                         ),
                 ),
               ],
+              ),
             ),
           ),
         ),
@@ -1097,35 +1137,54 @@ class _HistoryDialogState extends State<_HistoryDialog> {
   Widget _buildHistoryFilters() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final narrow = constraints.maxWidth < 650;
+        final width = constraints.maxWidth;
+        final compact = width < 650;
+        final twoColumns = width >= 650 && width < 900;
+        final gap = 10.0;
+        final fieldWidth = compact
+            ? width
+            : twoColumns
+                ? (width - gap) / 2
+                : null;
 
-        final fields = [
+        final fields = <Widget>[
           _historyDateField(
             label: 'From Date',
             date: _fromDate,
             onTap: _pickFromDate,
+            width: fieldWidth ?? 175,
           ),
           _historyDateField(
             label: 'To Date',
             date: _toDate,
             onTap: _pickToDate,
+            width: fieldWidth ?? 175,
           ),
-          _buildCategoryDropdown(),
-          _buildDeliveryPersonDropdown(),
+          _buildCategoryDropdown(
+            width: fieldWidth ?? 205,
+          ),
+          _buildDeliveryPersonDropdown(
+            width: fieldWidth ?? 210,
+          ),
         ];
 
-        if (narrow) {
+        if (compact) {
           return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              for (final field in fields) ...[
-                field,
-                const SizedBox(height: 10),
+              for (var i = 0; i < fields.length; i++) ...[
+                fields[i],
+                if (i != fields.length - 1) const SizedBox(height: 10),
               ],
             ],
           );
         }
 
-        return Wrap(spacing: 10, runSpacing: 10, children: fields);
+        return Wrap(
+          spacing: gap,
+          runSpacing: gap,
+          children: fields,
+        );
       },
     );
   }
@@ -1134,9 +1193,10 @@ class _HistoryDialogState extends State<_HistoryDialog> {
     required String label,
     required DateTime? date,
     required VoidCallback onTap,
+    required double width,
   }) {
     return SizedBox(
-      width: 175,
+      width: width,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),
@@ -1154,10 +1214,11 @@ class _HistoryDialogState extends State<_HistoryDialog> {
     );
   }
 
-  Widget _buildCategoryDropdown() {
+  Widget _buildCategoryDropdown({required double width}) {
     return SizedBox(
-      width: 205,
+      width: width,
       child: DropdownButtonFormField<int>(
+        isExpanded: true,
         initialValue: _categoryFilter,
         decoration: const InputDecoration(
           labelText: 'Food Type',
@@ -1171,7 +1232,14 @@ class _HistoryDialogState extends State<_HistoryDialog> {
           ...widget.categories.map(
             (category) => DropdownMenuItem<int>(
               value: category.id,
-              child: Text(category.name, overflow: TextOverflow.ellipsis),
+              child: SizedBox(
+                width: 145,
+                child: Text(
+                  category.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ),
           ),
         ],
@@ -1184,10 +1252,11 @@ class _HistoryDialogState extends State<_HistoryDialog> {
     );
   }
 
-  Widget _buildDeliveryPersonDropdown() {
+  Widget _buildDeliveryPersonDropdown({required double width}) {
     return SizedBox(
-      width: 210,
+      width: width,
       child: DropdownButtonFormField<int>(
+        isExpanded: true,
         initialValue: _deliveryPersonFilter,
         decoration: const InputDecoration(
           labelText: 'Delivery Person',
@@ -1201,7 +1270,14 @@ class _HistoryDialogState extends State<_HistoryDialog> {
           ...widget.deliveryPersons.map(
             (person) => DropdownMenuItem<int>(
               value: person.id,
-              child: Text(person.name, overflow: TextOverflow.ellipsis),
+              child: SizedBox(
+                width: 150,
+                child: Text(
+                  person.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ),
           ),
         ],
