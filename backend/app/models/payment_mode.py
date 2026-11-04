@@ -5,7 +5,7 @@ from app.core.database import Base
 
 
 class PaymentMode(Base):
-    __tablename__ = "payment_modes"
+    __tablename__ = "payment_methods"
 
     id: Mapped[int] = mapped_column(
         Integer,

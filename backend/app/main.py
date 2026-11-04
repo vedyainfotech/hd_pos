@@ -3,6 +3,14 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers.category import router as category_router
 from app.routers.payment_modes import router as payment_modes_router
+from app.routers.roles import router as roles_router
+from app.routers.sub_category import router as sub_categories_router
+from app.routers.item import router as items_router
+from app.routers.unit import router as unit_router
+from app.routers.inventory_category import router as inventory_category_router
+from app.routers.inventory_subcategory import router as inventory_subcategory_router
+from app.routers.delivery_person import router as delivery_person_router
+from app.routers.permission import router as permission_router
 
 
 app = FastAPI(
@@ -13,7 +21,14 @@ app = FastAPI(
 
 app.include_router(category_router)
 app.include_router(payment_modes_router)
-
+app.include_router(roles_router)
+app.include_router(sub_categories_router)
+app.include_router(items_router)
+app.include_router(unit_router)
+app.include_router(inventory_category_router)
+app.include_router(inventory_subcategory_router)
+app.include_router(delivery_person_router)
+app.include_router(permission_router)
 
 app.add_middleware(
     CORSMiddleware,
