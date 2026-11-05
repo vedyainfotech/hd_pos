@@ -10,7 +10,7 @@ void main() {
     expect(find.text('Settings'), findsWidgets);
 
     // Settings items
-    expect(find.text('Category'), findsOneWidget);
+    expect(find.text('Category'), findsOneWidget); 
     expect(find.text('Subcategory'), findsOneWidget);
     expect(find.text('Item'), findsOneWidget);
 
