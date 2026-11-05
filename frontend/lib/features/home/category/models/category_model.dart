@@ -7,7 +7,7 @@ class CategoryModel {
   CategoryModel({
     required this.id,
     required this.name,
-    required this.allotmentTime,
+    required this.allotmentTime,  
     required this.isActive,
   });
 
@@ -23,7 +23,7 @@ class CategoryModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'name': name,
+      'name': name,  
       'allotment_time': allotmentTime,
       'status': isActive,
     };

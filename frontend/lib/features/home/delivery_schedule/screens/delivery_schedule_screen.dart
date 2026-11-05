@@ -1130,9 +1130,6 @@ class _HistoryDialogState extends State<_HistoryDialog> {
     );
   }
 
-  // ============================================================
-  // HISTORY FILTERS
-  // ============================================================
 
   Widget _buildHistoryFilters() {
     return LayoutBuilder(

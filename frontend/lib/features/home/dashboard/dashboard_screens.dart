@@ -69,6 +69,39 @@ class _HomeDeliveryDashboardScreenState
     'Special Dishes',
   ];
 
+  // The schedule panel intentionally shows only the three regular meal
+  // categories. The middle ordering panel continues to use _meals unchanged.
+  static const List<String> _scheduleMeals = [
+    'Breakfast',
+    'Lunch',
+    'Dinner',
+  ];
+
+  // Shown inside a category box only when no menu items are scheduled.
+  // Keep these names visible even when there are no orders.
+  static const Map<String, List<String>> _menuSubcategories = {
+    'Breakfast': ['Tiffins'],
+    'Lunch': [
+      'Curd', 'Curry', 'Curryset', 'Fry', 'Meals', 'Meals/NC',
+      'Pachadi', 'Pappu', 'Pulusu', 'Rice', 'Single Meal',
+    ],
+    'Dinner': ['Tiffins'],
+  };
+
+  // Demo quantity breakdowns. Each entry is the number of customers/orders
+  // who selected that many units; quantity x count adds up to the row total.
+  static const Map<String, List<MapEntry<int, int>>> _demoQuantityBreakdowns = {
+    'Breakfast::Tiffins': [
+      MapEntry(1, 20), MapEntry(2, 8), MapEntry(3, 2),
+    ], // 20 + 16 + 6 = 42
+    'Lunch::Curryset': [
+      MapEntry(1, 20), MapEntry(2, 15), MapEntry(3, 2),
+    ], // 20 + 30 + 6 = 56
+    'Lunch::Meals': [MapEntry(1, 6)],
+    'Lunch::Meals/NC': [MapEntry(1, 2), MapEntry(3, 1)],
+    'Lunch::Single Meal': [MapEntry(1, 1)],
+  };
+
   static const Map<String, List<_MenuItem>> _catalog = {
     'Breakfast': [
       _MenuItem('Idly', 30, 'Breakfast'),
@@ -82,6 +115,7 @@ class _HomeDeliveryDashboardScreenState
       _MenuItem('Meals/NC', 200, 'Lunch'),
       _MenuItem('Curry', 50, 'Lunch'),
       _MenuItem('Senagapappu pachadi', 25, 'Lunch'),
+       _MenuItem('Pappu pachadi', 26, 'Lunch'),
       _MenuItem('Goruchikkudu kura', 50, 'Lunch'),
       _MenuItem('Birakaya Pachadi', 25, 'Lunch'),
     ],
@@ -96,11 +130,11 @@ class _HomeDeliveryDashboardScreenState
   };
 
   // Demo-only order counts displayed in the left panel until the API is ready.
+  // Frontend preview data only. These subcategories remain visible even when
+  // their order count is zero. Replace these values with the dashboard API later.
   static const Map<String, List<_SummaryMetric>> _demoOrderSummary = {
     'Breakfast': [
       _SummaryMetric('Tiffins', 42),
-      _SummaryMetric('Special Packing', 1),
-      _SummaryMetric('Total Customers', 34),
     ],
     'Lunch': [
       _SummaryMetric('Curd', 0),
@@ -114,19 +148,16 @@ class _HomeDeliveryDashboardScreenState
       _SummaryMetric('Pulusu', 0),
       _SummaryMetric('Rice', 0),
       _SummaryMetric('Single Meal', 1),
-      _SummaryMetric('Special Packing', 4),
-      _SummaryMetric('Total Customers', 64),
     ],
     'Dinner': [
       _SummaryMetric('Tiffins', 0),
-      _SummaryMetric('Special Packing', 0),
-      _SummaryMetric('Total Customers', 0),
     ],
-    'Special Dishes': [
-      _SummaryMetric('Special Dishes', 3),
-      _SummaryMetric('Special Packing', 0),
-      _SummaryMetric('Total Customers', 3),
-    ],
+  };
+
+  static const Map<String, int> _demoCustomerCounts = {
+    'Breakfast': 34,
+    'Lunch': 64,
+    'Dinner': 0,
   };
 
 
@@ -503,7 +534,8 @@ class _HomeDeliveryDashboardScreenState
           child: ListView(
             padding: const EdgeInsets.all(8),
             children: [
-              for (final meal in _meals) _buildMealSummary(meal),
+              for (final meal in const ['Breakfast', 'Lunch', 'Dinner'])
+                _buildMealSummary(meal),
             ],
           ),
         ),
@@ -513,6 +545,8 @@ class _HomeDeliveryDashboardScreenState
 
   Widget _buildMealSummary(String meal) {
     final metrics = _demoSummaryForDate(meal, _focusedDate);
+    final customerCount = _demoCustomerCountForDate(meal, _focusedDate);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
@@ -539,7 +573,13 @@ class _HomeDeliveryDashboardScreenState
             child: Column(
               children: [
                 for (final metric in metrics)
-                  _summaryRow(metric.label, '${metric.value}'),
+                  _summaryRow(
+                    meal: meal,
+                    label: metric.label,
+                    value: metric.value,
+                  ),
+                const SizedBox(height: 2),
+                _customerCountRow(customerCount),
               ],
             ),
           ),
@@ -550,21 +590,30 @@ class _HomeDeliveryDashboardScreenState
 
   List<_SummaryMetric> _demoSummaryForDate(String meal, DateTime date) {
     final base = _demoOrderSummary[meal] ?? const <_SummaryMetric>[];
-    // Alternate sample totals on even dates to demonstrate date navigation.
+    // Keep every configured subcategory visible, including zero-order rows.
+    // Even dates use reduced demo values only to preview date navigation.
     if (date.day.isOdd) return base;
-    return base.map((metric) {
-      if (metric.value == 0) return metric;
-      final value = metric.label == 'Total Customers'
-          ? (metric.value / 2).round()
-          : (metric.value / 2).ceil();
-      return _SummaryMetric(metric.label, value);
-    }).toList(growable: false);
+    return base
+        .map((metric) => _SummaryMetric(
+              metric.label,
+              metric.value == 0 ? 0 : (metric.value / 2).ceil(),
+            ))
+        .toList(growable: false);
   }
 
-  Widget _summaryRow(String label, String value) {
+  int _demoCustomerCountForDate(String meal, DateTime date) {
+    final count = _demoCustomerCounts[meal] ?? 0;
+    if (date.day.isOdd) return count;
+    return (count / 2).round();
+  }
+
+  Widget _summaryRow({
+    required String meal,
+    required String label,
+    required int value,
+  }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 5),
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 8),
       decoration: BoxDecoration(
         color: AppColors.surface,
         border: Border.all(color: AppColors.border),
@@ -573,18 +622,206 @@ class _HomeDeliveryDashboardScreenState
       child: Row(
         children: [
           Expanded(
+            child: InkWell(
+              onTap: () => _showQuantityBreakdown(
+                meal: meal,
+                subcategory: label,
+                totalQuantity: value,
+              ),
+              borderRadius: BorderRadius.circular(6),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 9),
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 11,
+                    decoration: TextDecoration.underline,
+                    decorationColor: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => _showQuantityBreakdown(
+                meal: meal,
+                subcategory: label,
+                totalQuantity: value,
+              ),
+              borderRadius: BorderRadius.circular(6),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 42, minHeight: 38),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+                  child: Center(
+                    child: Text(
+                      '$value',
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _customerCountRow(int count) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(7, 5, 7, 2),
+      child: Row(
+        children: [
+          const Expanded(
             child: Text(
-              label,
-              style: const TextStyle(color: AppColors.textPrimary, fontSize: 11),
+              'Total Customers',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           Text(
-            value,
+            '$count',
             style: const TextStyle(
               color: AppColors.textPrimary,
               fontWeight: FontWeight.w800,
               fontSize: 12,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showQuantityBreakdown({
+    required String meal,
+    required String subcategory,
+    required int totalQuantity,
+  }) {
+    // Demo data until the order-summary API is connected. The popup is
+    // deliberately opened for both the subcategory name and its number.
+    final breakdown = _demoQuantityBreakdowns['$meal::$subcategory'] ??
+        (totalQuantity == 0
+            ? const <MapEntry<int, int>>[]
+            : <MapEntry<int, int>>[MapEntry(1, totalQuantity)]);
+
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          '$subcategory Quantity Details',
+          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
+        ),
+        content: SizedBox(
+          width: 360,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 420),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  '$meal  •  Total quantity: $totalQuantity',
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.border),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      color: AppColors.primaryDark,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      child: const Row(
+                        children: [
+                          Expanded(child: Text('QUANTITY', style: _tableHeaderStyle)),
+                          SizedBox(
+                            width: 70,
+                            child: Text(
+                              'COUNT',
+                              textAlign: TextAlign.center,
+                              style: _tableHeaderStyle,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (breakdown.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.all(14),
+                        child: Text(
+                          'No orders for this subcategory on this date.',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      )
+                    else
+                      for (final entry in breakdown)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            border: Border(
+                              top: BorderSide(color: AppColors.borderLight),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(child: Text('${entry.key}s Qty')),
+                              SizedBox(
+                                width: 70,
+                                child: Text(
+                                  '${entry.value}',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(fontWeight: FontWeight.w700),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Preview counts only — live quantity details will come from the backend.',
+                style: TextStyle(
+                  color: AppColors.textTertiary,
+                  fontSize: 10,
+                ),
+              ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Close'),
           ),
         ],
       ),
@@ -1109,7 +1346,7 @@ class _HomeDeliveryDashboardScreenState
               borderRadius: BorderRadius.circular(7),
             ),
             child: Text(
-              'Estimated Amount: ₹ ${_money(_foodAmount)}',
+              '₹ ${_money(_foodAmount)}',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
@@ -1145,7 +1382,8 @@ class _HomeDeliveryDashboardScreenState
             children: [
               _smallArrow(
                 Icons.chevron_left,
-                () => setState(() => _focusedDate = _focusedDate.subtract(const Duration(days: 1))),
+                () => setState(() => _focusedDate =
+                    _focusedDate.subtract(const Duration(days: 1))),
               ),
               const Expanded(
                 child: Text(
@@ -1156,7 +1394,8 @@ class _HomeDeliveryDashboardScreenState
               ),
               _smallArrow(
                 Icons.chevron_right,
-                () => setState(() => _focusedDate = _focusedDate.add(const Duration(days: 1))),
+                () => setState(() =>
+                    _focusedDate = _focusedDate.add(const Duration(days: 1))),
               ),
             ],
           ),
@@ -1196,67 +1435,96 @@ class _HomeDeliveryDashboardScreenState
           child: Text(
             '${date.weekday == 1 ? 'Mon' : date.weekday == 2 ? 'Tue' : date.weekday == 3 ? 'Wed' : date.weekday == 4 ? 'Thu' : date.weekday == 5 ? 'Fri' : date.weekday == 6 ? 'Sat' : 'Sun'}, ${date.day} ${_month(date.month)}',
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 11, color: AppColors.primaryDark, fontWeight: FontWeight.w800),
+            style: const TextStyle(
+              fontSize: 11,
+              color: AppColors.primaryDark,
+              fontWeight: FontWeight.w800,
+            ),
           ),
         ),
         const SizedBox(height: 7),
-        for (final meal in _meals)
-          Container(
-            width: double.infinity,
-            margin: const EdgeInsets.only(bottom: 7),
-            padding: const EdgeInsets.all(7),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.borderLight),
-              borderRadius: BorderRadius.circular(7),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Text(
-                    meal.toUpperCase(),
-                    style: const TextStyle(
-                      color: Color(0xFF0788BD),
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-                const Divider(height: 12),
-                ..._scheduledMenuItems(date, meal).map(
-                  (itemName) => Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('• ', style: TextStyle(color: Color(0xFF0788BD))),
-                        Expanded(
-                          child: Text(
-                            itemName,
-                            style: const TextStyle(
-                              color: Color(0xFF0788BD),
-                              fontSize: 11,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                if (_scheduledMenuItems(date, meal).isEmpty)
-                  const Text(
-                    'Not scheduled',
-                    style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
-                  ),
-              ],
+        for (final meal in _scheduleMeals)
+          _menuCategoryBox(date, meal),
+      ],
+    );
+  }
+
+  Widget _menuCategoryBox(DateTime date, String meal) {
+    final scheduledItems = _scheduledMenuItems(date, meal);
+    final displayItems = scheduledItems.isNotEmpty
+        ? scheduledItems
+        : (_menuSubcategories[meal] ?? const <String>[]);
+
+    return Container(
+      height: 174,
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 7),
+      padding: const EdgeInsets.fromLTRB(7, 7, 7, 5),
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.borderLight),
+        borderRadius: BorderRadius.circular(7),
+      ),
+      child: Column(
+        children: [
+          Center(
+            child: Text(
+              meal.toUpperCase(),
+              style: const TextStyle(
+                color: Color(0xFF0788BD),
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ),
-      ],
+          const Divider(height: 12),
+          Expanded(
+            child: displayItems.isEmpty
+                ? const Center(
+                    child: Text(
+                      'No subcategories',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 11,
+                      ),
+                    ),
+                  )
+                : Scrollbar(
+                    child: ListView.builder(
+                      primary: false,
+                      padding: EdgeInsets.zero,
+                      itemCount: displayItems.length,
+                      itemBuilder: (context, index) => Padding(
+                        padding: const EdgeInsets.only(bottom: 5, right: 3),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              '• ',
+                              style: TextStyle(color: Color(0xFF0788BD)),
+                            ),
+                            Expanded(
+                              child: Text(
+                                displayItems[index],
+                                style: const TextStyle(
+                                  color: Color(0xFF0788BD),
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+          ),
+        ],
+      ),
     );
   }
 
   List<String> _scheduledMenuItems(DateTime date, String meal) {
     // Static preview data alternates by date so date navigation can be tested.
+    // An empty list means no menu is scheduled; show subcategory names instead.
     final alternateDay = date.day.isEven;
     switch (meal) {
       case 'Breakfast':
@@ -1264,13 +1532,11 @@ class _HomeDeliveryDashboardScreenState
       case 'Lunch':
         return alternateDay
             ? const ['Curryset', 'Meals/NC', 'Goruchikkudu kura']
-            : const ['Curryset', 'Meals', 'Meals/NC', 'Curry', 'Senagapappu pachadi'];
+            : const [
+                'Curryset', 'Meals', 'Meals/NC', 'Curry', 'Senagapappu pachadi',
+              ];
       case 'Dinner':
         return alternateDay ? const ['Tomato Bath'] : const ['Idly', 'Puri'];
-      case 'Special Dishes':
-        return date.weekday == DateTime.friday
-            ? const ['Special Item']
-            : const <String>[];
       default:
         return const <String>[];
     }

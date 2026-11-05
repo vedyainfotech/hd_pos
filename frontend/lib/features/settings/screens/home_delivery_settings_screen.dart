@@ -19,6 +19,8 @@ import '../../home/operators_adding/screens/operator_add_screens.dart';
 import '../../inventory/inventory_items/screens/inventory_items_screen.dart';
 import '../../home/dashboard/dashboard_screens.dart';
 import '../../auth/screens/login_Screen.dart';
+import '../../home/business_profile/screens/business_profile_screens.dart';
+import '../../home/kot_management/screens/kot_management_screen.dart';
 
 class HomeDeliverySettingsScreen extends StatelessWidget {
   final String userName;
@@ -121,6 +123,15 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                               icon: Icons.storefront_outlined,
                               iconBackground: const Color(0xFFEDE9FE),
                               iconColor: const Color(0xFF7C3AED),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute<void>(
+                                    builder: (_) =>
+                                        const BusinessProfileScreen(),
+                                  ),
+                                );
+                              },
                             ),
                           ],
                         ),
@@ -615,7 +626,16 @@ onTap: () {
             icon: Icons.grid_view_outlined,
             title: 'Management',
             compact: compact,
-          ),
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => const KotManagementScreen(),
+      ),
+    );
+  },
+),
+          
 
           const Spacer(),
 
@@ -972,9 +992,6 @@ Widget _buildTopBar(
 
           const SizedBox(height: 14),
 
-          // ========================================================
-          // RESPONSIVE CARDS
-          // ========================================================
           LayoutBuilder(
             builder: (context, constraints) {
               int columns;
@@ -1004,9 +1021,6 @@ Widget _buildTopBar(
     );
   }
 
-  // ============================================================
-  // SETTING CARD
-  // ============================================================
 
   Widget _settingCard(
     BuildContext context, {
@@ -1049,9 +1063,6 @@ Widget _buildTopBar(
           ),
           child: Row(
             children: [
-              // ======================================================
-              // ICON
-              // ======================================================
               Container(
                 width: 48,
                 height: 48,
