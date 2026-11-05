@@ -14,6 +14,7 @@ from app.routers.hd_items import router as hd_items_router
 from app.routers.delivery_person_schedule import router as delivery_person_schedule_router
 from app.routers.customer import router as customer_router
 from app.routers.menu_schedule import router as menu_schedule_router
+from app.routers.permission import router as permission_router
 
 
 
@@ -36,6 +37,7 @@ app.include_router(hd_items_router)
 app.include_router(delivery_person_schedule_router)
 app.include_router(customer_router)
 app.include_router(menu_schedule_router)
+app.include_router(permission_router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

@@ -1,6 +1,7 @@
-
 import 'package:flutter/material.dart';
-import '../../../../core/theme/theme.dart';
+
+import '../models/permissions_model.dart';
+import '../services/permissions_service.dart';
 
 class PermissionsScreen extends StatefulWidget {
   const PermissionsScreen({super.key});
@@ -10,698 +11,481 @@ class PermissionsScreen extends StatefulWidget {
 }
 
 class _PermissionsScreenState extends State<PermissionsScreen> {
-  final List<String> _roles = [
-    'Admin',
-    'Manager',
-    'Staff',
-    'Delivery Person',
-  ];
+  final PermissionsService _service = PermissionsService();
 
-  final List<String> _screens = [
-    'Dashboard',
-    'Customers',
-    'Customer Delivery Details',
-    'Delivery Schedule',
-    'Delivery Persons',
-    'Assign Deliveries',
-    'Categories',
-    'Sub Categories',
-    'Items',
-    'Prices',
-    'Payment',
-    'Menu Scheduling',
-    'Units',
-    'Inventory Categories',
-    'Inventory Sub Categories',
-    'Inventory Items',
-    'Suppliers',
-    'Reports',
-    'Operators / Users',
-    'Roles',
-    'Permissions',
-    'KOT Settings',
-    'Printer Settings',
-    'System Settings',
-  ];
+  bool _isLoading = true;
+  bool _isSaving = false;
+  String? _errorMessage;
 
-  String _selectedRole = 'Admin';
-
-  late Map<String, Map<String, bool>> _permissions;
-  late Map<String, Map<String, bool>> _savedPermissions;
-
-  bool _hasChanges = false;
+  List<PermissionRole> _roles = [];
+  List<PermissionScreen> _screens = [];
+  List<ScreenPermission> _permissions = [];
+  int? _selectedRoleId;
 
   @override
   void initState() {
     super.initState();
-
-    _permissions = {
-      for (final role in _roles)
-        role: {
-          for (final screen in _screens)
-            screen: role == 'Admin' ||
-                (role == 'Manager' &&
-                    [
-                      'Dashboard',
-                      'Customers',
-                      'Customer Delivery Details',
-                      'Delivery Schedule',
-                      'Delivery Persons',
-                      'Assign Deliveries',
-                      'Categories',
-                      'Sub Categories',
-                      'Items',
-                      'Prices',
-                      'Payment',
-                      'Menu Scheduling',
-                      'Units',
-                      'Inventory Categories',
-                      'Inventory Sub Categories',
-                      'Inventory Items',
-                      'Suppliers',
-                      'Reports',
-                    ].contains(screen)) ||
-                (role == 'Staff' &&
-                    [
-                      'Dashboard',
-                      'Customers',
-                      'Customer Delivery Details',
-                      'Delivery Schedule',
-                    ].contains(screen)) ||
-                (role == 'Delivery Person' &&
-                    [
-                      'Dashboard',
-                      'Delivery Schedule',
-                      'Customer Delivery Details',
-                    ].contains(screen)),
-        },
-    };
-
-    _savedPermissions = _copyPermissions(_permissions);
+    _loadRoles();
   }
 
-  Map<String, Map<String, bool>> _copyPermissions(
-    Map<String, Map<String, bool>> source,
-  ) {
-    return {
-      for (final entry in source.entries)
-        entry.key: Map<String, bool>.from(entry.value),
-    };
+  Future<void> _loadRoles() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final roles = await _service.getRoles();
+      final screens = await _service.getScreens();
+
+      if (!mounted) return;
+
+      setState(() {
+        _roles = roles;
+        _screens = screens;
+        _selectedRoleId ??= roles.isNotEmpty ? roles.first.id : null;
+      });
+
+      if (_selectedRoleId != null) {
+        await _loadRolePermissions(_selectedRoleId!);
+      } else {
+        setState(() => _isLoading = false);
+      }
+    } catch (error) {
+      if (!mounted) return;
+
+      setState(() {
+        _errorMessage = error.toString();
+        _isLoading = false;
+      });
+    }
   }
 
+  Future<void> _selectRole(PermissionRole role) async {
+    setState(() {
+      _selectedRoleId = role.id;
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
-  
-Future<bool> _showConfirmationDialog({
-  required String title,
-  required String message,
-  required String confirmText,
-}) async {
-  final result = await showDialog<bool>(
-    context: context,
-    barrierDismissible: false,
-    builder: (dialogContext) {
-      return AlertDialog(
-        backgroundColor: AppColors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        content: Text(
-          message,
-          style: const TextStyle(
-            fontSize: 14,
-            color: AppColors.textSecondary,
-            height: 1.5,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text(
-              'No',
-              style: TextStyle(color: AppColors.textSecondary),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+    await _loadRolePermissions(role.id);
+  }
+
+  Future<void> _loadRolePermissions(int roleId) async {
+    try {
+      final savedPermissions = await _service.getRolePermissions(roleId);
+
+      final savedByScreenId = {
+        for (final permission in savedPermissions)
+          permission.screenId: permission.canView,
+      };
+
+      if (!mounted) return;
+
+      setState(() {
+        _permissions = _screens
+            .map(
+              (screen) => ScreenPermission(
+                screenId: screen.id,
+                canView: savedByScreenId[screen.id] ?? false,
               ),
-            ),
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(confirmText),
-          ),
-        ],
-      );
-    },
-  );
+            )
+            .toList();
+        _isLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
 
-  return result ?? false;
-}
-
-
- 
-Future<void> _selectRole(String role) async {
-  if (role == _selectedRole) return;
-
-  if (_hasChanges) {
-    final confirmed = await _showConfirmationDialog(
-      title: 'Discard Changes?',
-      message:
-          'You have unsaved changes for $_selectedRole. '
-          'Do you want to discard them and switch to $role?',
-      confirmText: 'Yes, Switch',
-    );
-
-    if (!confirmed || !mounted) return;
-
-    setState(() {
-      _permissions = _copyPermissions(_savedPermissions);
-      _hasChanges = false;
-      _selectedRole = role;
-    });
-
-    return;
+      setState(() {
+        _errorMessage = error.toString();
+        _isLoading = false;
+      });
+    }
   }
 
-  setState(() {
-    _selectedRole = role;
-  });
-}
-
-
-  void _toggleScreen(String screen, bool value) {
+  void _togglePermission(int screenId, bool value) {
     setState(() {
-      _permissions[_selectedRole]![screen] = value;
-      _hasChanges = true;
+      final index = _permissions.indexWhere(
+        (permission) => permission.screenId == screenId,
+      );
+
+      if (index != -1) {
+        _permissions[index].canView = value;
+      }
     });
   }
 
+  Future<void> _savePermissions() async {
+    if (_selectedRoleId == null) return;
 
+    setState(() => _isSaving = true);
 
-Future<void> _saveChanges() async {
-  final confirmed = await _showConfirmationDialog(
-    title: 'Save Changes?',
-    message: 'Do you want to save the updated permissions for $_selectedRole?',
-    confirmText: 'Yes, Save',
-  );
-
-  if (!confirmed || !mounted) return;
-
-  setState(() {
-    _savedPermissions = _copyPermissions(_permissions);
-    _hasChanges = false;
-  });
-
-  _showTopToast(
-    '$_selectedRole permissions saved successfully',
-  );
-}
-
-
-void _showTopToast(String message) {
-  final overlay = Overlay.of(context);
-  late final OverlayEntry entry;
-
-  entry = OverlayEntry(
-    builder: (overlayContext) {
-      final screenWidth = MediaQuery.sizeOf(overlayContext).width;
-
-      return Positioned(
-        top: MediaQuery.paddingOf(overlayContext).top + 16,
-        right: 16,
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            constraints: BoxConstraints(
-              maxWidth: screenWidth < 360 ? screenWidth - 32 : 300,
-            ),
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 10,
-            ),
-            decoration: BoxDecoration(
-              color: AppColors.success,
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x26000000),
-                  blurRadius: 10,
-                  offset: Offset(0, 3),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.check_circle,
-                  color: Colors.white,
-                  size: 17,
-                ),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(
-                    message,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+    try {
+      await _service.saveRolePermissions(
+        _selectedRoleId!,
+        _permissions,
       );
-    },
-  );
 
-  overlay.insert(entry);
+      if (!mounted) return;
 
-  Future.delayed(const Duration(seconds: 3), () {
-    entry.remove();
-  });
-}
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Permissions saved successfully')),
+      );
+    } catch (error) {
+      if (!mounted) return;
 
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not save permissions: $error')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
+  }
 
-Future<void> _cancelChanges() async {
-  final confirmed = await _showConfirmationDialog(
-    title: 'Discard Changes?',
-    message: 'Are you sure you want to discard your unsaved changes?',
-    confirmText: 'Yes, Discard',
-  );
+  Future<void> _resetPermissions() async {
+    if (_selectedRoleId != null) {
+      await _loadRolePermissions(_selectedRoleId!);
+    }
+  }
 
-  if (!confirmed || !mounted) return;
+  String _headingFor(String screenName) {
+    final name = screenName.toLowerCase();
 
-  setState(() {
-    _permissions = _copyPermissions(_savedPermissions);
-    _hasChanges = false;
-  });
+    if (name.contains('dashboard')) return 'Dashboard';
 
-  _showTopToast('Changes discarded');
-}
+    if (name.contains('categor') ||
+        name.contains('item') ||
+        name.contains('menu')) {
+      return 'Menu Management';
+    }
 
+    if (name.contains('customer') ||
+        name.contains('delivery') ||
+        name.contains('kot')) {
+      return 'Operations';
+    }
 
+    return 'Administration';
+  }
+
+  IconData _iconFor(String screenName) {
+    final name = screenName.toLowerCase();
+
+    if (name.contains('dashboard')) return Icons.dashboard_outlined;
+    if (name.contains('categor')) return Icons.grid_view_rounded;
+    if (name.contains('item')) return Icons.inventory_2_outlined;
+    if (name.contains('schedule')) return Icons.calendar_month_outlined;
+    if (name.contains('customer')) return Icons.people_outline;
+    if (name.contains('delivery')) return Icons.delivery_dining_outlined;
+    if (name.contains('kot')) return Icons.print_outlined;
+    if (name.contains('payment')) return Icons.payment_outlined;
+    if (name.contains('operator')) return Icons.person_outline;
+    if (name.contains('role')) return Icons.groups_outlined;
+    if (name.contains('permission')) return Icons.shield_outlined;
+
+    return Icons.circle_outlined;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final isMobile = width < 600;
-        final isTablet = width >= 600 && width < 1000;
-
-      
-
-return PopScope<Object?>(
-  canPop: !_hasChanges,
-  onPopInvokedWithResult: (didPop, result) async {
-    if (didPop || !_hasChanges) return;
-
-    final confirmed = await _showConfirmationDialog(
-      title: 'Discard Changes?',
-      message:
-          'You have unsaved changes. '
-          'Do you want to leave without saving?',
-      confirmText: 'Yes, Leave',
-    );
-
-    if (!confirmed || !mounted) return;
-
-    setState(() {
-      _permissions = _copyPermissions(_savedPermissions);
-      _hasChanges = false;
-    });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        Navigator.of(context).pop();
-      }
-    });
-  },
-  child: Scaffold(
-    backgroundColor: AppColors.background,
-
-
-  appBar: AppBar(
-    backgroundColor: AppColors.white,
-    foregroundColor: AppColors.textPrimary,
-    elevation: 0,
-    surfaceTintColor: Colors.transparent,
-    leading: IconButton(
-      icon: const Icon(Icons.arrow_back),
-      onPressed: () => Navigator.maybePop(context),
-    ),
-    title: const Text(
-      'Permissions',
-      style: TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.w600,
-      ),
-    ),
-  ),
-
-  body: SafeArea(
-    child: Column(
-      children: [
-        Expanded(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(
-              isMobile ? 12 : 24,
-              24,
-              isMobile ? 12 : 24,
-              24,
-            ),
-            child: Center(
-              child: SizedBox(
-                width: double.infinity,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(isMobile),
-
-                    const SizedBox(height: 24),
-
-                    _buildRoleSection(isMobile),
-
-                    const SizedBox(height: 24),
-
-                    _buildScreenSection(
-                      isMobile: isMobile,
-                      isTablet: isTablet,
-                    ),
-                  ],
-                ),
-              ),
-            ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Permissions'),
+        actions: [
+          IconButton(
+            tooltip: 'Refresh',
+            onPressed: _loadRoles,
+            icon: const Icon(Icons.refresh),
           ),
-        ),
-
-        _buildBottomActions(isMobile),
-      ],
-    ),
-    ),
-  ), // Closes Scaffold
-); // Closes PopScope
-      },
+        ],
+      ),
+      body: _buildBody(),
     );
   }
 
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-Widget _buildHeader(bool isMobile) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const SizedBox(height: 4),
-      Text(
-        'Manage screen access for each role.',
-        style: Theme.of(context).textTheme.bodyMedium,
-      ),
-    ],
-  );
-}
-
-
-
-  Widget _buildRoleSection(bool isMobile) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: _cardDecoration(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Select Role',
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-            ),
+    if (_errorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_errorMessage!, textAlign: TextAlign.center),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: _loadRoles,
+                child: const Text('Try again'),
+              ),
+            ],
           ),
-          const SizedBox(height: 14),
+        ),
+      );
+    }
 
-          // Fixed-height section with its own horizontal scroll.
-          SizedBox(
-            height: isMobile ? 105 : 120,
-            child: Scrollbar(
-              thumbVisibility: _roles.length > 4,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
+    if (_roles.isEmpty) {
+      return const Center(child: Text('No roles found.'));
+    }
+
+    final selectedRole = _roles.firstWhere(
+      (role) => role.id == _selectedRoleId,
+      orElse: () => _roles.first,
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Fixed roles section
+              Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Roles',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  // Optional Add Role button can be connected later.
+                ],
+              ),
+              const SizedBox(height: 10),
+
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
                 itemCount: _roles.length,
-                separatorBuilder: (_, _) =>
-                    const SizedBox(width: 12),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: isMobile ? 1 : 2,
+                  mainAxisExtent: 78,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 10,
+                ),
                 itemBuilder: (context, index) {
                   final role = _roles[index];
-                  final selected = role == _selectedRole;
+                  final isSelected = role.id == _selectedRoleId;
 
-                  return SizedBox(
-                    width: isMobile ? 145 : 180,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(14),
+                  return Card(
+                    margin: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(
+                      side: BorderSide(
+                        color: isSelected
+                            ? Colors.brown
+                            : Colors.brown.shade100,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: ListTile(
                       onTap: () => _selectRole(role),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 180),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: selected
-                              ? AppColors.primarySoft
-                              : AppColors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: selected
-                                ? AppColors.primary
-                                : AppColors.borderLight,
-                            width: selected ? 1.5 : 1,
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              role,
-                              textAlign: TextAlign.center,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: AppColors.textPrimary,
-                                fontWeight: FontWeight.w700,
-                                fontSize: isMobile ? 13 : 15,
-                              ),
-                            ),
-                            const SizedBox(height: 7),
-                            Text(
-                              _roleDescription(role),
-                              textAlign: TextAlign.center,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
-                        ),
+                      leading: const CircleAvatar(
+                        child: Icon(Icons.people_outline),
+                      ),
+                      title: Text(
+                        role.name,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      subtitle: Text(
+                        role.name.toLowerCase() == 'admin'
+                            ? 'Full access to all modules'
+                            : 'Role access',
+                      ),
+                      trailing: Icon(
+                        isSelected
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_unchecked,
+                        color: isSelected ? Colors.brown : Colors.grey,
                       ),
                     ),
                   );
                 },
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  String _roleDescription(String role) {
-    switch (role) {
-      case 'Admin':
-        return 'Full application access';
-      case 'Manager':
-        return 'Manage operations and staff';
-      case 'Staff':
-        return 'Daily operational tasks';
-      case 'Delivery Person':
-        return 'Assigned deliveries only';
-      default:
-        return 'Configure screen access';
-    }
-  }
+              const SizedBox(height: 16),
 
-  Widget _buildScreenSection({
-    required bool isMobile,
-    required bool isTablet,
-  }) {
-    final columns = isMobile ? 1 : (isTablet ? 2 : 3);
+              // Center permissions panel: only this section scrolls.
+              Expanded(
+                child: Card(
+                  clipBehavior: Clip.antiAlias,
+                  margin: EdgeInsets.zero,
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.shield_outlined,
+                              color: Colors.brown,
+                            ),
+                            const SizedBox(width: 10),
+                            const Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Role Permissions',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    'Manage screen access for the selected role',
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Chip(label: Text('Role: ${selectedRole.name}')),
+                          ],
+                        ),
+                      ),
+                      const Divider(height: 1),
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: _cardDecoration(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Screen Access',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 5),
-          const Text(
-            'Enable the screens this role can access',
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 12,
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          LayoutBuilder(
-            builder: (context, constraints) {
-              const spacing = 12.0;
-              final cardWidth =
-                  (constraints.maxWidth - (spacing * (columns - 1))) /
-                      columns;
-
-              return Wrap(
-                spacing: spacing,
-                runSpacing: spacing,
-                children: _screens.map((screen) {
-                  final enabled =
-                      _permissions[_selectedRole]![screen] ?? false;
-
-                  return SizedBox(
-                    width: cardWidth,
-                    child: _buildScreenCard(
-                      screen: screen,
-                      enabled: enabled,
-                    ),
-                  );
-                }).toList(),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildScreenCard({
-    required String screen,
-    required bool enabled,
-  }) {
-    return Container(
-      constraints: const BoxConstraints(minHeight: 68),
-      padding: const EdgeInsets.symmetric(
-        horizontal: 14,
-        vertical: 10,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(13),
-        border: Border.all(color: AppColors.borderLight),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadow,
-            blurRadius: 8,
-            offset: Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              screen,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
+                      Expanded(
+                        child: _screens.isEmpty
+                            ? const Center(child: Text('No screens found.'))
+                            : SingleChildScrollView(
+                                padding: const EdgeInsets.all(12),
+                                child: _buildPermissionGroups(isMobile),
+                              ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
+
+              const SizedBox(height: 12),
+
+              // Fixed action buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: _resetPermissions,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Reset'),
+                  ),
+                  const SizedBox(width: 10),
+                  ElevatedButton.icon(
+                    onPressed: _isSaving ? null : _savePermissions,
+                    icon: const Icon(Icons.save_outlined),
+                    label: Text(_isSaving ? 'Saving...' : 'Save Changes'),
+                  ),
+                ],
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-          Switch(
-            value: enabled,
-            onChanged: (value) => _toggleScreen(screen, value),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildBottomActions(bool isMobile) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-        isMobile ? 16 : 24,
-        12,
-        isMobile ? 16 : 24,
-        12,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        border: const Border(
-          top: BorderSide(color: AppColors.borderLight),
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadow,
-            blurRadius: 12,
-            offset: Offset(0, -3),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: _hasChanges ? _cancelChanges : null,
-                child: const Text('Cancel'),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              flex: 2,
-              child: ElevatedButton(
-                onPressed: _hasChanges ? _saveChanges : null,
-                child: const Text('Save Changes'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget _buildPermissionGroups(bool isMobile) {
+    const headings = [
+      'Dashboard',
+      'Menu Management',
+      'Operations',
+      'Administration',
+    ];
 
-  BoxDecoration _cardDecoration() {
-    return BoxDecoration(
-      color: AppColors.white.withValues(alpha: 0.88),
-      borderRadius: BorderRadius.circular(18),
-      border: Border.all(color: AppColors.white),
-      boxShadow: const [
-        BoxShadow(
-          color: AppColors.shadow,
-          blurRadius: 16,
-          offset: Offset(0, 5),
-        ),
-      ],
+    return Column(
+      children: headings.map((heading) {
+        final groupScreens = _screens
+            .where((screen) => _headingFor(screen.name) == heading)
+            .toList();
+
+        if (groupScreens.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return Container(
+          width: double.infinity,
+          margin: const EdgeInsets.only(bottom: 14),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.brown.shade100),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                color: Colors.brown.shade50,
+                child: Text(
+                  heading,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: groupScreens.length,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: isMobile ? 1 : 2,
+                    mainAxisExtent: 54,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                  ),
+                  itemBuilder: (context, index) {
+                    final screen = groupScreens[index];
+
+                    final permissionIndex = _permissions.indexWhere(
+                      (item) => item.screenId == screen.id,
+                    );
+
+                    final canView = permissionIndex == -1
+                        ? false
+                        : _permissions[permissionIndex].canView;
+
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.brown.shade100),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(_iconFor(screen.name), color: Colors.brown),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              screen.name,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Switch(
+                            value: canView,
+                            activeColor: Colors.brown,
+                            onChanged: (value) =>
+                                _togglePermission(screen.id, value),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 }
