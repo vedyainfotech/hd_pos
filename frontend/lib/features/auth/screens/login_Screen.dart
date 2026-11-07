@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/theme.dart';
-import '../../home/dashboard/dashboard_screens.dart';
+import '../../home/dashboard/screens/dashboard_screens.dart';
 
 
 class LoginScreen extends StatefulWidget {

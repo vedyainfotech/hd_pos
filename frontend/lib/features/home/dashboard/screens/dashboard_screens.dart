@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/theme.dart';
-import '../../settings/screens/home_delivery_settings_screen.dart';
+import '../../../../core/theme/theme.dart';
+import '../../../settings/screens/home_delivery_settings_screen.dart';
+import '../../menu_scheduling/models/menu_schedule_model.dart';
+import '../../menu_scheduling/services/menu_schedule_service.dart';
 
 class HomeDeliveryDashboardScreen extends StatefulWidget {
   const HomeDeliveryDashboardScreen({super.key});
@@ -68,25 +72,6 @@ class _HomeDeliveryDashboardScreenState
     'Dinner',
     'Special Dishes',
   ];
-
-  // The schedule panel intentionally shows only the three regular meal
-  // categories. The middle ordering panel continues to use _meals unchanged.
-  static const List<String> _scheduleMeals = [
-    'Breakfast',
-    'Lunch',
-    'Dinner',
-  ];
-
-  // Shown inside a category box only when no menu items are scheduled.
-  // Keep these names visible even when there are no orders.
-  static const Map<String, List<String>> _menuSubcategories = {
-    'Breakfast': ['Tiffins'],
-    'Lunch': [
-      'Curd', 'Curry', 'Curryset', 'Fry', 'Meals', 'Meals/NC',
-      'Pachadi', 'Pappu', 'Pulusu', 'Rice', 'Single Meal',
-    ],
-    'Dinner': ['Tiffins'],
-  };
 
   // Demo quantity breakdowns. Each entry is the number of customers/orders
   // who selected that many units; quantity x count adds up to the row total.
@@ -170,8 +155,20 @@ class _HomeDeliveryDashboardScreenState
   int _compactTab = 1;
   bool _saving = false;
 
+  // Menu Schedule panel only: API-backed data for the two visible dates.
+  final MenuScheduleApiService _menuScheduleService = MenuScheduleApiService();
+  final Map<String, MenuScheduleDateResponse> _menuSchedulesByDate = {};
+  final Set<String> _loadingMenuDates = {};
+  final Map<String, String> _menuScheduleErrors = {};
+
   // Quantities are retained independently for every meal when switching tabs.
   final Map<String, int> _quantities = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMenuScheduleWindow();
+  }
 
   @override
   void dispose() {
@@ -229,6 +226,57 @@ class _HomeDeliveryDashboardScreenState
   String _dateKey(DateTime date) =>
       '${date.year}-${date.month.toString().padLeft(2, '0')}-'
       '${date.day.toString().padLeft(2, '0')}';
+
+  void _setFocusedDate(DateTime date) {
+    final normalized = DateUtils.dateOnly(date);
+    setState(() => _focusedDate = normalized);
+    _loadMenuScheduleWindow();
+  }
+
+  void _loadMenuScheduleWindow({bool force = false}) {
+    final firstDate = DateUtils.dateOnly(_focusedDate);
+    final secondDate = firstDate.add(const Duration(days: 1));
+    unawaited(_loadMenuScheduleDate(firstDate, force: force));
+    unawaited(_loadMenuScheduleDate(secondDate, force: force));
+  }
+
+  Future<void> _loadMenuScheduleDate(
+    DateTime date, {
+    bool force = false,
+  }) async {
+    final normalized = DateUtils.dateOnly(date);
+    final key = _dateKey(normalized);
+
+    if (!force &&
+        (_menuSchedulesByDate.containsKey(key) ||
+            _loadingMenuDates.contains(key))) {
+      return;
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _loadingMenuDates.add(key);
+      _menuScheduleErrors.remove(key);
+    });
+
+    try {
+      final response = await _menuScheduleService.getMenuByDate(
+        deliveryDate: normalized,
+      );
+      if (!mounted) return;
+      setState(() {
+        _menuSchedulesByDate[key] = response;
+        _loadingMenuDates.remove(key);
+        _menuScheduleErrors.remove(key);
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _loadingMenuDates.remove(key);
+        _menuScheduleErrors[key] = error.toString();
+      });
+    }
+  }
 
   Future<void> _pickDate({
     required DateTime initial,
@@ -489,16 +537,16 @@ class _HomeDeliveryDashboardScreenState
             children: [
               _smallArrow(
                 Icons.chevron_left,
-                () => setState(() {
-                  _focusedDate = _focusedDate.subtract(const Duration(days: 1));
-                }),
+                () => _setFocusedDate(
+                  _focusedDate.subtract(const Duration(days: 1)),
+                ),
               ),
               const SizedBox(width: 5),
               Expanded(
                 child: InkWell(
                   onTap: () => _pickDate(
                     initial: _focusedDate,
-                    onSelected: (date) => setState(() => _focusedDate = date),
+                    onSelected: _setFocusedDate,
                   ),
                   child: Column(
                     children: [
@@ -523,9 +571,9 @@ class _HomeDeliveryDashboardScreenState
               const SizedBox(width: 5),
               _smallArrow(
                 Icons.chevron_right,
-                () => setState(() {
-                  _focusedDate = _focusedDate.add(const Duration(days: 1));
-                }),
+                () => _setFocusedDate(
+                  _focusedDate.add(const Duration(days: 1)),
+                ),
               ),
             ],
           ),
@@ -1024,13 +1072,17 @@ class _HomeDeliveryDashboardScreenState
                   date: _fromDate,
                   onTap: () => _pickDate(
                     initial: _fromDate,
-                    onSelected: (date) => setState(() {
-                      _fromDate = date;
-                      if (_toDate.isBefore(date)) _toDate = date;
-                      if (_focusedDate.isBefore(_fromDate) || _focusedDate.isAfter(_toDate)) {
-                        _focusedDate = date;
-                      }
-                    }),
+                    onSelected: (date) {
+                      setState(() {
+                        _fromDate = date;
+                        if (_toDate.isBefore(date)) _toDate = date;
+                        if (_focusedDate.isBefore(_fromDate) ||
+                            _focusedDate.isAfter(_toDate)) {
+                          _focusedDate = date;
+                        }
+                      });
+                      _loadMenuScheduleWindow();
+                    },
                   ),
                 ),
               ),
@@ -1041,12 +1093,16 @@ class _HomeDeliveryDashboardScreenState
                   date: _toDate,
                   onTap: () => _pickDate(
                     initial: _toDate,
-                    onSelected: (date) => setState(() {
-                      _toDate = date.isBefore(_fromDate) ? _fromDate : date;
-                      if (_focusedDate.isBefore(_fromDate) || _focusedDate.isAfter(_toDate)) {
-                        _focusedDate = _fromDate;
-                      }
-                    }),
+                    onSelected: (date) {
+                      setState(() {
+                        _toDate = date.isBefore(_fromDate) ? _fromDate : date;
+                        if (_focusedDate.isBefore(_fromDate) ||
+                            _focusedDate.isAfter(_toDate)) {
+                          _focusedDate = _fromDate;
+                        }
+                      });
+                      _loadMenuScheduleWindow();
+                    },
                   ),
                 ),
               ),
@@ -1139,11 +1195,13 @@ class _HomeDeliveryDashboardScreenState
         children: [
           _smallArrow(
             Icons.chevron_left,
-            () => setState(() {
+            () {
               if (_focusedDate.isAfter(_fromDate)) {
-                _focusedDate = _focusedDate.subtract(const Duration(days: 1));
+                _setFocusedDate(
+                  _focusedDate.subtract(const Duration(days: 1)),
+                );
               }
-            }),
+            },
           ),
           const SizedBox(width: 5),
           Expanded(
@@ -1156,7 +1214,7 @@ class _HomeDeliveryDashboardScreenState
                 final selected = _dateKey(date) == _dateKey(_focusedDate);
                 final bookedItems = _demoBookedItems(date, _selectedMeal);
                 return InkWell(
-                  onTap: () => setState(() => _focusedDate = date),
+                  onTap: () => _setFocusedDate(date),
                   borderRadius: BorderRadius.circular(8),
                   child: Container(
                     width: 112,
@@ -1197,11 +1255,11 @@ class _HomeDeliveryDashboardScreenState
           const SizedBox(width: 5),
           _smallArrow(
             Icons.chevron_right,
-            () => setState(() {
+            () {
               if (_focusedDate.isBefore(_toDate)) {
-                _focusedDate = _focusedDate.add(const Duration(days: 1));
+                _setFocusedDate(_focusedDate.add(const Duration(days: 1)));
               }
-            }),
+            },
           ),
         ],
       ),
@@ -1382,8 +1440,9 @@ class _HomeDeliveryDashboardScreenState
             children: [
               _smallArrow(
                 Icons.chevron_left,
-                () => setState(() => _focusedDate =
-                    _focusedDate.subtract(const Duration(days: 1))),
+                () => _setFocusedDate(
+                  _focusedDate.subtract(const Duration(days: 1)),
+                ),
               ),
               const Expanded(
                 child: Text(
@@ -1394,8 +1453,9 @@ class _HomeDeliveryDashboardScreenState
               ),
               _smallArrow(
                 Icons.chevron_right,
-                () => setState(() =>
-                    _focusedDate = _focusedDate.add(const Duration(days: 1))),
+                () => _setFocusedDate(
+                  _focusedDate.add(const Duration(days: 1)),
+                ),
               ),
             ],
           ),
@@ -1423,7 +1483,64 @@ class _HomeDeliveryDashboardScreenState
   }
 
   Widget _menuDayColumn(DateTime date) {
+    final dateKey = _dateKey(date);
+    final isLoading = _loadingMenuDates.contains(dateKey);
+    final error = _menuScheduleErrors[dateKey];
+    final response = _menuSchedulesByDate[dateKey];
+
+    Widget body;
+    if (isLoading) {
+      body = const Padding(
+        padding: EdgeInsets.symmetric(vertical: 28),
+        child: Center(
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    } else if (error != null) {
+      body = Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Unable to load menu schedule',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 11,
+              ),
+            ),
+            TextButton(
+              onPressed: () => _loadMenuScheduleDate(date, force: true),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    } else if (response == null || response.schedules.isEmpty) {
+      body = const Padding(
+        padding: EdgeInsets.symmetric(vertical: 28, horizontal: 8),
+        child: Center(
+          child: Text(
+            'No menu scheduled',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 11,
+            ),
+          ),
+        ),
+      );
+    } else {
+      body = Column(
+        children: response.schedules
+            .map((schedule) => _menuCategoryBox(schedule))
+            .toList(growable: false),
+      );
+    }
+
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Container(
           width: double.infinity,
@@ -1443,17 +1560,54 @@ class _HomeDeliveryDashboardScreenState
           ),
         ),
         const SizedBox(height: 7),
-        for (final meal in _scheduleMeals)
-          _menuCategoryBox(date, meal),
+        body,
       ],
     );
   }
 
-  Widget _menuCategoryBox(DateTime date, String meal) {
-    final scheduledItems = _scheduledMenuItems(date, meal);
-    final displayItems = scheduledItems.isNotEmpty
-        ? scheduledItems
-        : (_menuSubcategories[meal] ?? const <String>[]);
+  Widget _menuCategoryBox(MenuSchedule schedule) {
+    final categoryName = schedule.categoryName.trim();
+    final itemNames = schedule.items
+        .map((item) => item.itemName.trim())
+        .where((name) => name.isNotEmpty)
+        .toList(growable: false);
+
+    final Widget content = itemNames.isEmpty
+        ? const Center(
+            child: Text(
+              'No items scheduled',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 11,
+              ),
+            ),
+          )
+        : ListView.builder(
+            primary: false,
+            padding: EdgeInsets.zero,
+            itemCount: itemNames.length,
+            itemBuilder: (context, index) => Padding(
+              padding: const EdgeInsets.only(bottom: 5, right: 3),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    '• ',
+                    style: TextStyle(color: Color(0xFF0788BD)),
+                  ),
+                  Expanded(
+                    child: Text(
+                      itemNames[index],
+                      style: const TextStyle(
+                        color: Color(0xFF0788BD),
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
 
     return Container(
       height: 174,
@@ -1468,7 +1622,10 @@ class _HomeDeliveryDashboardScreenState
         children: [
           Center(
             child: Text(
-              meal.toUpperCase(),
+              categoryName.toUpperCase(),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: Color(0xFF0788BD),
                 fontSize: 10,
@@ -1477,69 +1634,10 @@ class _HomeDeliveryDashboardScreenState
             ),
           ),
           const Divider(height: 12),
-          Expanded(
-            child: displayItems.isEmpty
-                ? const Center(
-                    child: Text(
-                      'No subcategories',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 11,
-                      ),
-                    ),
-                  )
-                : Scrollbar(
-                    child: ListView.builder(
-                      primary: false,
-                      padding: EdgeInsets.zero,
-                      itemCount: displayItems.length,
-                      itemBuilder: (context, index) => Padding(
-                        padding: const EdgeInsets.only(bottom: 5, right: 3),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              '• ',
-                              style: TextStyle(color: Color(0xFF0788BD)),
-                            ),
-                            Expanded(
-                              child: Text(
-                                displayItems[index],
-                                style: const TextStyle(
-                                  color: Color(0xFF0788BD),
-                                  fontSize: 11,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-          ),
+          Expanded(child: content),
         ],
       ),
     );
-  }
-
-  List<String> _scheduledMenuItems(DateTime date, String meal) {
-    // Static preview data alternates by date so date navigation can be tested.
-    // An empty list means no menu is scheduled; show subcategory names instead.
-    final alternateDay = date.day.isEven;
-    switch (meal) {
-      case 'Breakfast':
-        return alternateDay ? const ['Pesarattu Upma'] : const ['Idly', 'Upma'];
-      case 'Lunch':
-        return alternateDay
-            ? const ['Curryset', 'Meals/NC', 'Goruchikkudu kura']
-            : const [
-                'Curryset', 'Meals', 'Meals/NC', 'Curry', 'Senagapappu pachadi',
-              ];
-      case 'Dinner':
-        return alternateDay ? const ['Tomato Bath'] : const ['Idly', 'Puri'];
-      default:
-        return const <String>[];
-    }
   }
 
   String _month(int month) => const [

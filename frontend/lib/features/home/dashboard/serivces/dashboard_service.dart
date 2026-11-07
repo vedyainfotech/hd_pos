@@ -1,6 +1,6 @@
-import '../category/models/category_model.dart';
-import '../category/services/category_api_service.dart';
-import 'dashboard_models.dart';
+import '../../category/models/category_model.dart';
+import '../../category/services/category_api_service.dart';
+import '../models/dashboard_models.dart';
 class HomeDeliveryDashboardService {
   final CategoryApiService _categoryService = CategoryApiService();
 

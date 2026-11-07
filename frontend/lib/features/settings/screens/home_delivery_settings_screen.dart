@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/theme.dart';
 import '../../home/category/screens/category_screen.dart';
 import '../../home/payment/screens/payment_screen.dart';
+
 import '../../home/roles/screens/role_screen.dart';
 import '../../home/sub_categories/screens/sub_category_screens.dart';
 import '../../home/menu_scheduling/screens/menu_scheduling_screen.dart';
-import '../../home/items/screens/items_screens.dart';
+import '../../home/item/screens/item_screen.dart';
 import '../../home/customers/screens/customers_screen.dart';
 import '../../inventory/units/screens/units_screen.dart';
 import '../../inventory/inventory_category/screens/inventory_category_screen.dart';
@@ -17,7 +18,7 @@ import '../../home/delivery_persons/screens/delivery_person_screens.dart';
 import '../../home/delivery_schedule/screens/delivery_schedule_screen.dart';
 import '../../home/operators_adding/screens/operator_add_screens.dart';
 import '../../inventory/inventory_items/screens/inventory_items_screen.dart';
-import '../../home/dashboard/dashboard_screens.dart';
+import '../../home/dashboard/screens/dashboard_screens.dart';
 import '../../auth/screens/login_Screen.dart';
 import '../../home/business_profile/screens/business_profile_screens.dart';
 import '../../home/kot_management/screens/kot_management_screen.dart';
@@ -191,7 +192,7 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => const ItemsScreen(),
+                                    builder: (_) => const ItemScreen(),
                                   ),
                                 );
                               },
