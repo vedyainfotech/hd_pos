@@ -5,7 +5,8 @@ from app.routers.category import router as category_router
 from app.routers.payment_modes import router as payment_modes_router
 from app.routers.roles import router as roles_router
 from app.routers.sub_category import router as sub_categories_router
-from app.routers.item import router as items_router
+from app.routers.hd_items import router as hd_items_router
+from app.routers.menu_schedule import router as menu_schedule_router
 from app.routers.unit import router as unit_router
 from app.routers.inventory_category import router as inventory_category_router
 from app.routers.inventory_subcategory import router as inventory_subcategory_router
@@ -24,7 +25,8 @@ app.include_router(category_router)
 app.include_router(payment_modes_router)
 app.include_router(roles_router)
 app.include_router(sub_categories_router)
-app.include_router(items_router)
+app.include_router(hd_items_router)
+app.include_router(menu_schedule_router)    
 app.include_router(unit_router)
 app.include_router(inventory_category_router)
 app.include_router(inventory_subcategory_router)
