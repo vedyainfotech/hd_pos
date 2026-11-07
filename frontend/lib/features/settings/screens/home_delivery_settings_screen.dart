@@ -17,8 +17,9 @@ import '../../home/delivery_persons/screens/delivery_person_screens.dart';
 import '../../home/delivery_schedule/screens/delivery_schedule_screen.dart';
 import '../../home/operators_adding/screens/operator_add_screens.dart';
 import '../../inventory/inventory_items/screens/inventory_items_screen.dart';
-import '../../home/dashboard/dashboard_screens.dart';
+import '../../home/dashboard/screens/dashboard_screens.dart';
 import '../../home/item/screens/item_screen.dart';
+import '../../home/order_selection/screens/order_selection_screen.dart';
 import '../../auth/screens/login_Screen.dart';
 
 class HomeDeliverySettingsScreen extends StatelessWidget {
@@ -294,6 +295,22 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                               iconBackground: const Color(0xFFFFE8EE),
                               iconColor: const Color(0xFFE11D48),
                             ),
+                            _settingCard(
+  context,
+  title: 'Order Selection',
+  subtitle: 'Select customers and create monthly orders',
+  icon: Icons.receipt_long_outlined,
+  iconBackground: const Color(0xFFFFF0DA),
+  iconColor: const Color(0xFFD97706),
+   onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const OrderSelectionScreen(),
+      ),
+    );
+  },
+),
                           ],
                         ),
 
