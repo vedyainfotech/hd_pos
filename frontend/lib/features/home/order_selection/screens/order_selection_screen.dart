@@ -12,42 +12,42 @@ class OrderSelectionScreen extends StatefulWidget {
 }
 
 class _OrderSelectionScreenState extends State<OrderSelectionScreen> {
-  final OrderSelectionService _service = OrderSelectionService();
+  late final OrderSelectionService _service;
   final TextEditingController _searchController = TextEditingController();
 
-  DateTime _selectedDate = DateTime(2026, 11, 7);
+  DateTime _selectedDate = DateTime.now();
   int _currentPage = 0;
 
   PendingOrderAssignmentModel? _selectedAssignment;
   OrderCustomerModel? _selectedCustomer;
   OrderAddressModel? _selectedAddress;
-  String? _selectedSubCategory;
+  int? _selectedSubCategoryId;
   int? _selectedItemId;
+
+  List<PendingOrderAssignmentModel> _dateAssignments = [];
+  List<OrderSubCategoryModel> _subCategoryList = [];
+  List<OrderItemModel> _availableItems = [];
+
+  final Map<int, OrderCustomerModel> _customerCache = {};
+
+  bool _isLoading = false;
+  bool _isLoadingDetails = false;
+  bool _isSaving = false;
+  String? _errorMessage;
 
   Color get _brown => AppColors.primary;
 
-  List<PendingOrderAssignmentModel> get _dateAssignments =>
-      _service.getPendingAssignments(_selectedDate);
-
   List<PendingOrderAssignmentModel> get _filteredAssignments {
     final query = _searchController.text.trim().toLowerCase();
+
     return _dateAssignments.where((assignment) {
-      final customer = _service.getCustomer(assignment.customerId);
+      final customer = _customerCache[assignment.id];
       if (customer == null) return false;
+
       return query.isEmpty ||
           customer.name.toLowerCase().contains(query) ||
           customer.mobileNumber.toLowerCase().contains(query);
     }).toList();
-  }
-
-  List<OrderItemModel> get _availableItems {
-    if (_selectedAssignment == null || _selectedSubCategory == null) {
-      return [];
-    }
-    return _service.getItems(
-      _selectedAssignment!.mealCategory,
-      _selectedSubCategory!,
-    );
   }
 
   String get _displayDate {
@@ -58,8 +58,51 @@ class _OrderSelectionScreenState extends State<OrderSelectionScreen> {
     return '${_selectedDate.day} ${months[_selectedDate.month - 1]} ${_selectedDate.year}';
   }
 
-  String get _formattedDate =>
-      '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}';
+  
+
+  @override
+  void initState() {
+    super.initState();
+
+    _service = OrderSelectionService(
+      baseUrl: 'http://localhost:8000',
+    );
+
+    _loadPendingAssignments();
+  }
+
+  Future<void> _loadPendingAssignments() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+      _dateAssignments = [];
+      _customerCache.clear();
+    });
+
+    try {
+      final assignments =
+          await _service.getPendingAssignments(_selectedDate);
+
+      _dateAssignments = assignments;
+
+      await Future.wait(
+        assignments.map((assignment) async {
+          final customer =
+              await _service.getCustomerForAssignment(assignment.id);
+
+          _customerCache[assignment.id] = customer;
+        }),
+      );
+    } catch (e) {
+      _errorMessage = e.toString();
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -71,6 +114,8 @@ class _OrderSelectionScreenState extends State<OrderSelectionScreen> {
     setState(() {
       _selectedDate = _selectedDate.add(Duration(days: days));
     });
+
+    _loadPendingAssignments();
   }
 
   Future<void> _selectDate() async {
@@ -80,16 +125,28 @@ class _OrderSelectionScreenState extends State<OrderSelectionScreen> {
       firstDate: DateTime(2000),
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
+
     if (picked != null) {
-      setState(() => _selectedDate = picked);
+      setState(() {
+        _selectedDate = picked;
+      });
+
+      _loadPendingAssignments();
     }
   }
 
-  void _selectAssignment(PendingOrderAssignmentModel assignment) {
-    final customer = _service.getCustomer(assignment.customerId);
+  Future<void> _selectAssignment(
+    PendingOrderAssignmentModel assignment,
+  ) async {
+    final customer = _customerCache[assignment.id];
+
     if (customer == null) return;
 
-    final address = _service.getAddress(customer, assignment.addressId);
+    final address = _service.getAddress(
+      customer,
+      assignment.addressId,
+    );
+
     if (address == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -104,17 +161,87 @@ class _OrderSelectionScreenState extends State<OrderSelectionScreen> {
       _selectedAssignment = assignment;
       _selectedCustomer = customer;
       _selectedAddress = address;
-      _selectedSubCategory = assignment.subCategory;
+      _selectedSubCategoryId = null;
       _selectedItemId = null;
+      _subCategoryList = [];
+      _availableItems = [];
+      _isLoadingDetails = true;
       _currentPage = 1;
     });
+
+    try {
+      final subcategories =
+          await _service.getSubCategories(assignment.id);
+
+      final matchingSubcategories = subcategories.where(
+        (subcategory) => subcategory.name == assignment.subCategory,
+      );
+
+      if (matchingSubcategories.isEmpty) {
+        throw Exception('Assigned subcategory was not found.');
+      }
+
+      final selectedSubcategoryId = matchingSubcategories.first.id;
+
+      final items = await _service.getItems(
+        assignment.id,
+        selectedSubcategoryId,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _subCategoryList = subcategories;
+        _selectedSubCategoryId = selectedSubcategoryId;
+        _availableItems = items;
+        _isLoadingDetails = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoadingDetails = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    }
   }
 
-  void _changeSubCategory(String? value) {
+  Future<void> _changeSubCategory(int? value) async {
+    if (value == null || _selectedAssignment == null) return;
+
     setState(() {
-      _selectedSubCategory = value;
+      _selectedSubCategoryId = value;
       _selectedItemId = null;
+      _availableItems = [];
+      _isLoadingDetails = true;
     });
+
+    try {
+      final items = await _service.getItems(
+        _selectedAssignment!.id,
+        value,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _availableItems = items;
+        _isLoadingDetails = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoadingDetails = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    }
   }
 
   void _selectItem(int itemId) {
@@ -129,8 +256,11 @@ class _OrderSelectionScreenState extends State<OrderSelectionScreen> {
       _selectedAssignment = null;
       _selectedCustomer = null;
       _selectedAddress = null;
-      _selectedSubCategory = null;
+      _selectedSubCategoryId = null;
       _selectedItemId = null;
+      _subCategoryList = [];
+      _availableItems = [];
+      _isLoadingDetails = false;
     });
   }
 
@@ -138,7 +268,7 @@ class _OrderSelectionScreenState extends State<OrderSelectionScreen> {
     if (_selectedAssignment == null ||
         _selectedCustomer == null ||
         _selectedAddress == null ||
-        _selectedSubCategory == null ||
+        _selectedSubCategoryId == null ||
         _selectedItemId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -151,6 +281,10 @@ class _OrderSelectionScreenState extends State<OrderSelectionScreen> {
 
     final selectedItem = _availableItems.firstWhere(
       (item) => item.id == _selectedItemId,
+    );
+
+    final selectedSubcategory = _subCategoryList.firstWhere(
+      (subcategory) => subcategory.id == _selectedSubCategoryId,
     );
 
     final orderItem = OrderItemQuantityModel(
@@ -166,34 +300,55 @@ class _OrderSelectionScreenState extends State<OrderSelectionScreen> {
         customer: _selectedCustomer!,
         address: _selectedAddress!,
         mealCategory: _selectedAssignment!.mealCategory,
-        subCategory: _selectedSubCategory!,
+        subCategory: selectedSubcategory.name,
         items: [orderItem],
+        isSaving: _isSaving,
         onBack: () => Navigator.pop(dialogContext),
-        onSave: () {
-          final order = OrderSelectionModel(
-            assignmentId: _selectedAssignment!.id,
-            customerId: _selectedCustomer!.id,
-            customerName: _selectedCustomer!.name,
-            mobileNumber: _selectedCustomer!.mobileNumber,
-            address: _selectedAddress!.address,
-            deliveryDate: _formattedDate,
-            mealCategory: _selectedAssignment!.mealCategory,
-            subCategory: _selectedSubCategory!,
-            items: [orderItem],
-          );
+        onSave: () async {
+          if (_isSaving) return;
 
-          _service.saveOrder(order);
-          Navigator.pop(dialogContext);
+          setState(() {
+            _isSaving = true;
+          });
 
-          _cancelAssignment();
+          try {
+            await _service.saveOrderSelection(
+              assignmentId: _selectedAssignment!.id,
+              selectedSubCategoryId: _selectedSubCategoryId!,
+              selectedItemId: _selectedItemId!,
+            );
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Order saved successfully!'),
-              behavior: SnackBarBehavior.floating,
-              backgroundColor: Color(0xFF287A50),
-            ),
-          );
+            if (!mounted) return;
+
+            Navigator.pop(dialogContext);
+            _cancelAssignment();
+            await _loadPendingAssignments();
+
+            if (!mounted) return;
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Selection saved successfully!'),
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: Color(0xFF287A50),
+              ),
+            );
+          } catch (e) {
+            if (!mounted) return;
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Unable to save selection: $e'),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          } finally {
+            if (mounted) {
+              setState(() {
+                _isSaving = false;
+              });
+            }
+          }
         },
       ),
     );
@@ -353,7 +508,14 @@ class _OrderSelectionScreenState extends State<OrderSelectionScreen> {
                 ),
               ),
              const SizedBox(height: 18),
-              if (assignments.isEmpty)
+              if (_isLoading)
+                const Padding(
+                  padding: EdgeInsets.all(30),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (_errorMessage != null)
+                _emptyState(_errorMessage!)
+              else if (assignments.isEmpty)
                 _emptyState('No pending assignments for this date')
               else
                 LayoutBuilder(
@@ -367,8 +529,7 @@ class _OrderSelectionScreenState extends State<OrderSelectionScreen> {
                       spacing: spacing,
                       runSpacing: spacing,
                       children: assignments.map((assignment) {
-                        final customer =
-                            _service.getCustomer(assignment.customerId);
+                        final customer = _customerCache[assignment.id];
                         if (customer == null) return const SizedBox.shrink();
                         return SizedBox(
                           width: cardWidth,
@@ -595,15 +756,17 @@ class _OrderSelectionScreenState extends State<OrderSelectionScreen> {
                 const SizedBox(height: 17),
                 _assignSectionTitle('Sub Category', Icons.layers_outlined),
                 const SizedBox(height: 8),
-                DropdownButtonFormField<String>(
-                  initialValue: _selectedSubCategory,
+                DropdownButtonFormField<int>(
+                  initialValue: _selectedSubCategoryId,
                   isExpanded: true,
                   decoration: InputDecoration(
                     hintText: 'Select subcategory',
                     filled: true,
                     fillColor: Colors.white,
                     contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 12),
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(color: AppColors.border),
@@ -613,18 +776,19 @@ class _OrderSelectionScreenState extends State<OrderSelectionScreen> {
                       borderSide: BorderSide(color: AppColors.border),
                     ),
                   ),
-                  items: _service
-                      .getSubCategories(assignment.mealCategory)
-                      .map((subcategory) => DropdownMenuItem(
-                            value: subcategory,
-                            child: Text(subcategory),
-                          ))
-                      .toList(),
-                  onChanged: _changeSubCategory,
+                  items: _subCategoryList.map((subcategory) {
+                    return DropdownMenuItem<int>(
+                      value: subcategory.id,
+                      child: Text(subcategory.name),
+                    );
+                  }).toList(),
+                  onChanged: _isLoadingDetails ? null : _changeSubCategory,
                 ),
                 const SizedBox(height: 17),
-                _assignSectionTitle('Select Curry',
-                    Icons.shopping_basket_outlined),
+                _assignSectionTitle(
+                  'Select Curry',
+                  Icons.shopping_basket_outlined,
+                ),
                 const SizedBox(height: 8),
                 Container(
                   width: double.infinity,
@@ -634,52 +798,74 @@ class _OrderSelectionScreenState extends State<OrderSelectionScreen> {
                     borderRadius: BorderRadius.circular(13),
                     border: Border.all(color: AppColors.border),
                   ),
-                  child: _selectedSubCategory == null
-                      ? _itemsMessage('Select a subcategory to view items')
-                      : _availableItems.isEmpty
-                          ? _itemsMessage('No scheduled items available')
-                          : Column(
-                              children: _availableItems.map((item) {
-                                final selected = _selectedItemId == item.id;
-                                return InkWell(
-                                  onTap: () => _selectItem(item.id),
-                                  borderRadius: BorderRadius.circular(9),
-                                  child: Container(
-                                    margin: const EdgeInsets.only(bottom: 5),
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 9, vertical: 10),
-                                    decoration: BoxDecoration(
-                                      color: selected
-                                          ? AppColors.primarySoft
-                                          : Colors.white,
+                  child: _isLoadingDetails
+                      ? const Padding(
+                          padding: EdgeInsets.all(15),
+                          child: Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        )
+                      : _selectedSubCategoryId == null
+                          ? _itemsMessage(
+                              'Select a subcategory to view items',
+                            )
+                          : _availableItems.isEmpty
+                              ? _itemsMessage(
+                                  'No scheduled items available',
+                                )
+                              : Column(
+                                  children: _availableItems.map((item) {
+                                    final selected =
+                                        _selectedItemId == item.id;
+
+                                    return InkWell(
+                                      onTap: () => _selectItem(item.id),
                                       borderRadius: BorderRadius.circular(9),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Checkbox(
-                                          value: selected,
-                                          activeColor: AppColors.primary,
-                                          visualDensity:
-                                              VisualDensity.compact,
-                                          onChanged: (_) =>
-                                              _selectItem(item.id),
+                                      child: Container(
+                                        margin: const EdgeInsets.only(
+                                          bottom: 5,
                                         ),
-                                        Expanded(
-                                          child: Text(
-                                            item.name,
-                                            style: TextStyle(
-                                              color: AppColors.textPrimary,
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w700,
+                                        padding:
+                                            const EdgeInsets.symmetric(
+                                          horizontal: 9,
+                                          vertical: 10,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: selected
+                                              ? AppColors.primarySoft
+                                              : Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(9),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Checkbox(
+                                              value: selected,
+                                              activeColor:
+                                                  AppColors.primary,
+                                              visualDensity:
+                                                  VisualDensity.compact,
+                                              onChanged: (_) =>
+                                                  _selectItem(item.id),
                                             ),
-                                          ),
+                                            Expanded(
+                                              child: Text(
+                                                item.name,
+                                                style: TextStyle(
+                                                  color:
+                                                      AppColors.textPrimary,
+                                                  fontSize: 13,
+                                                  fontWeight:
+                                                      FontWeight.w700,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                            ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
                 ),
                 const SizedBox(height: 8),
               ],
@@ -911,7 +1097,8 @@ class _OrderPreviewDialog extends StatelessWidget {
   final String subCategory;
   final List<OrderItemQuantityModel> items;
   final VoidCallback onBack;
-  final VoidCallback onSave;
+  final Future<void> Function() onSave;
+  final bool isSaving;
 
   const _OrderPreviewDialog({
     required this.customer,
@@ -921,6 +1108,7 @@ class _OrderPreviewDialog extends StatelessWidget {
     required this.items,
     required this.onBack,
     required this.onSave,
+    required this.isSaving,
   });
 
   @override
@@ -1067,9 +1255,18 @@ class _OrderPreviewDialog extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton.icon(
-                        onPressed: onSave,
-                        icon: const Icon(Icons.save_outlined, size: 18),
-                        label: const Text('Save Order'),
+                        onPressed: isSaving ? null : onSave,
+                        icon: isSaving
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(Icons.save_outlined, size: 18),
+                        label: Text(isSaving ? 'Saving...' : 'Save Selection'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: brown,
                           foregroundColor: Colors.white,

@@ -1785,6 +1785,7 @@ String _normalizeCategoryName(String value) {
                     : 28.0;
 
         return Scaffold(
+          resizeToAvoidBottomInset: false,
           backgroundColor:
               AppColors.background,
           body: Stack(
@@ -2251,7 +2252,11 @@ SizedBox(
     );
 
     final addButton = SizedBox(
-  width: isMobile ? 70 : isTablet ? 140 : 180,
+  width: isMobile
+    ? (isSmallMobile ? 90 : 100)
+    : isTablet
+        ? 140
+        : 180,
   height: isMobile ? 40 : 46,
   child: isMobile
       ? ElevatedButton.icon(
@@ -2272,12 +2277,14 @@ SizedBox(
             size: 18,
           ),
           label: const Text(
-            'Add',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+  'Add',
+  maxLines: 1,
+  softWrap: false,
+  style: TextStyle(
+    fontSize: 13,
+    fontWeight: FontWeight.w600,
+  ),
+),
         )
           : ElevatedButton.icon(
               onPressed: _openAddDialog,

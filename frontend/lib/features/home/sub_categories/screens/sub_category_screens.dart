@@ -1363,58 +1363,66 @@ class _SubCategoryFormSheetState extends State<_SubCategoryFormSheet> {
   // ============================================================
 
   @override
-  Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.sizeOf(context).width;
+Widget build(BuildContext context) {
+  final screenWidth = MediaQuery.sizeOf(context).width;
+  final screenHeight = MediaQuery.sizeOf(context).height;
+  final keyboardHeight = MediaQuery.viewInsetsOf(context).bottom;
 
-    final dialogWidth = screenWidth < 560 ? screenWidth - 32 : 500.0;
+  final dialogWidth = screenWidth < 560
+      ? screenWidth - 32
+      : 500.0;
 
-    return Material(
-      color: Colors.transparent,
+  final availableHeight = screenHeight - keyboardHeight - 48;
 
+  return Material(
+    color: Colors.transparent,
+    child: ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: 500,
+        maxHeight: availableHeight,
+      ),
       child: Container(
         width: dialogWidth,
-
-        constraints: const BoxConstraints(maxWidth: 500),
-
         decoration: BoxDecoration(
           color: AppColors.surface,
-
           borderRadius: BorderRadius.circular(22),
-
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.14),
-
               blurRadius: 30,
-
               offset: const Offset(0, 12),
             ),
           ],
         ),
-
         child: Form(
           key: _formKey,
-
           child: Column(
             mainAxisSize: MainAxisSize.min,
-
             crossAxisAlignment: CrossAxisAlignment.start,
-
             children: [
               _buildHeader(),
 
-              const Divider(height: 1, color: AppColors.divider),
+              const Divider(
+                height: 1,
+                color: AppColors.divider,
+              ),
 
-              _buildFormBody(),
+              Flexible(
+                child: SingleChildScrollView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  child: _buildFormBody(),
+                ),
+              ),
 
               _buildFooter(),
             ],
           ),
         ),
       ),
-    );
-  }
-
+    ),
+  );
+}
   // ============================================================
 
   // FORM HEADER

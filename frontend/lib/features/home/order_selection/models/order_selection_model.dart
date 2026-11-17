@@ -1,3 +1,4 @@
+
 class OrderAddressModel {
   final int id;
   final String label;
@@ -14,8 +15,8 @@ class OrderAddressModel {
   factory OrderAddressModel.fromJson(Map<String, dynamic> json) {
     return OrderAddressModel(
       id: json['id'] as int,
-      label: json['label'] as String,
-      address: json['address'] as String,
+      label: json['label']?.toString() ?? '',
+      address: json['address']?.toString() ?? '',
       isDefault: json['is_default'] as bool? ?? false,
     );
   }
@@ -46,12 +47,14 @@ class OrderCustomerModel {
   factory OrderCustomerModel.fromJson(Map<String, dynamic> json) {
     return OrderCustomerModel(
       id: json['id'] as int,
-      name: json['name'] as String,
-      mobileNumber: json['mobile_number'] as String,
+      name: json['name']?.toString() ?? '',
+      mobileNumber: json['mobile_number']?.toString() ?? '',
       addresses: (json['addresses'] as List<dynamic>? ?? [])
-          .map((address) => OrderAddressModel.fromJson(
-                address as Map<String, dynamic>,
-              ))
+          .map(
+            (address) => OrderAddressModel.fromJson(
+              address as Map<String, dynamic>,
+            ),
+          )
           .toList(),
       isActive: json['status'] as bool? ?? true,
     );
@@ -66,7 +69,6 @@ class OrderCustomerModel {
       };
 }
 
-/// One pending subscription assignment for one customer, date and meal.
 class PendingOrderAssignmentModel {
   final int id;
   final int customerId;
@@ -85,6 +87,37 @@ class PendingOrderAssignmentModel {
     required this.subCategory,
     required this.quantity,
   });
+
+  factory PendingOrderAssignmentModel.fromJson(
+    Map<String, dynamic> json,
+  ) {
+    return PendingOrderAssignmentModel(
+      id: json['id'] as int,
+      customerId: json['customer_id'] as int,
+      addressId: json['address_id'] as int,
+      deliveryDate: DateTime.parse(json['delivery_date'].toString()),
+      mealCategory: json['meal_category']?.toString() ?? '',
+      subCategory: json['sub_category']?.toString() ?? '',
+      quantity: json['quantity'] as int,
+    );
+  }
+}
+
+class OrderSubCategoryModel {
+  final int id;
+  final String name;
+
+  const OrderSubCategoryModel({
+    required this.id,
+    required this.name,
+  });
+
+  factory OrderSubCategoryModel.fromJson(Map<String, dynamic> json) {
+    return OrderSubCategoryModel(
+      id: json['id'] as int,
+      name: json['name']?.toString() ?? '',
+    );
+  }
 }
 
 class OrderItemModel {
@@ -107,9 +140,9 @@ class OrderItemModel {
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
     return OrderItemModel(
       id: json['id'] as int,
-      name: json['name'] as String,
-      category: json['category'] as String,
-      subCategory: json['sub_category'] as String,
+      name: json['name']?.toString() ?? '',
+      category: json['category']?.toString() ?? '',
+      subCategory: json['sub_category']?.toString() ?? '',
       price: (json['price'] as num).toDouble(),
       isActive: json['status'] as bool? ?? true,
     );
@@ -134,6 +167,8 @@ class OrderSelectionModel {
   final String deliveryDate;
   final String mealCategory;
   final String subCategory;
+  final int selectedSubCategoryId;
+  final int selectedItemId;
   final List<OrderItemQuantityModel> items;
 
   OrderSelectionModel({
@@ -145,6 +180,8 @@ class OrderSelectionModel {
     required this.deliveryDate,
     required this.mealCategory,
     required this.subCategory,
+    required this.selectedSubCategoryId,
+    required this.selectedItemId,
     required this.items,
   });
 }

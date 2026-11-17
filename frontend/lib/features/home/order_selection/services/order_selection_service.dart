@@ -1,215 +1,205 @@
+
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+
 import '../models/order_selection_model.dart';
 
 class OrderSelectionService {
-  // TEMPORARY FRONTEND DEMO DATA.
-  // Replace these lists with API responses when backend integration is done.
-  final List<OrderCustomerModel> _customers = [
-    OrderCustomerModel(
-      id: 1,
-      name: 'Abdul Mujahid',
-      mobileNumber: '9876543210',
-      isActive: true,
-      addresses: [
-        OrderAddressModel(
-          id: 1,
-          label: 'Home',
-          address: 'MVP Colony, Visakhapatnam',
-          isDefault: true,
-        ),
-        OrderAddressModel(
-          id: 2,
-          label: 'Office',
-          address: 'Dwaraka Nagar, Visakhapatnam',
-          isDefault: false,
-        ),
-      ],
-    ),
-    OrderCustomerModel(
-      id: 2,
-      name: 'Rahul Kumar',
-      mobileNumber: '9876543211',
-      isActive: true,
-      addresses: [
-        OrderAddressModel(
-          id: 3,
-          label: 'Home',
-          address: 'Seethammadhara, Visakhapatnam',
-          isDefault: true,
-        ),
-        OrderAddressModel(
-          id: 4,
-          label: 'Other',
-          address: 'Madhurawada, Visakhapatnam',
-          isDefault: false,
-        ),
-      ],
-    ),
-    OrderCustomerModel(
-      id: 3,
-      name: 'Mohammed Sameer',
-      mobileNumber: '9876543212',
-      isActive: true,
-      addresses: [
-        OrderAddressModel(
-          id: 5,
-          label: 'Home',
-          address: 'Gajuwaka, Visakhapatnam',
-          isDefault: true,
-        ),
-      ],
-    ),
-  ];
+  final String baseUrl;
 
-  final List<PendingOrderAssignmentModel> _pendingAssignments = [
-    PendingOrderAssignmentModel(
-      id: 101,
-      customerId: 1,
-      addressId: 1,
-      deliveryDate: DateTime(2026, 11, 7),
-      mealCategory: 'Lunch',
-      subCategory: 'Tiffins',
-      quantity: 3,
-    ),
-    PendingOrderAssignmentModel(
-      id: 102,
-      customerId: 2,
-      addressId: 3,
-      deliveryDate: DateTime(2026, 11, 7),
-      mealCategory: 'Breakfast',
-      subCategory: 'Tiffins',
-      quantity: 1,
-    ),
-    PendingOrderAssignmentModel(
-      id: 103,
-      customerId: 3,
-      addressId: 5,
-      deliveryDate: DateTime(2026, 11, 7),
-      mealCategory: 'Lunch',
-      subCategory: 'Tiffins',
-      quantity: 2,
-    ),
-  ];
+  OrderSelectionService({
+    required this.baseUrl,
+  });
 
-  final Map<String, List<String>> _subCategories = {
-    'Breakfast': ['Tiffins', 'Breakfast Combos'],
-    'Lunch': ['Tiffins', 'Meals', 'Biryani', 'Lunch Combos'],
-    'Dinner': ['Tiffins', 'Meals', 'Dinner Combos'],
-  };
+  final Map<int, OrderCustomerModel> _customers = {};
+  final Map<int, List<OrderSubCategoryModel>> _subCategories = {};
 
-  // Sample items representing the owner's scheduled items for demo.
-  final List<OrderItemModel> _items = [
-    OrderItemModel(
-      id: 11,
-      name: 'Idli',
-      category: 'Breakfast',
-      subCategory: 'Tiffins',
-      price: 30,
-      isActive: true,
-    ),
-    OrderItemModel(
-      id: 12,
-      name: 'Dosa',
-      category: 'Breakfast',
-      subCategory: 'Tiffins',
-      price: 40,
-      isActive: true,
-    ),
-    OrderItemModel(
-      id: 13,
-      name: 'Poori',
-      category: 'Breakfast',
-      subCategory: 'Tiffins',
-      price: 45,
-      isActive: true,
-    ),
-    OrderItemModel(
-      id: 21,
-      name: 'Chicken Curry',
-      category: 'Lunch',
-      subCategory: 'Tiffins',
-      price: 120,
-      isActive: true,
-    ),
-    OrderItemModel(
-      id: 22,
-      name: 'Mutton Curry',
-      category: 'Lunch',
-      subCategory: 'Tiffins',
-      price: 180,
-      isActive: true,
-    ),
-    OrderItemModel(
-      id: 23,
-      name: 'Paneer Curry',
-      category: 'Lunch',
-      subCategory: 'Tiffins',
-      price: 130,
-      isActive: true,
-    ),
-    OrderItemModel(
-      id: 24,
-      name: 'Mixed Veg Curry',
-      category: 'Lunch',
-      subCategory: 'Tiffins',
-      price: 100,
-      isActive: true,
-    ),
-  ];
+  // Convert date to YYYY-MM-DD.
+  String _formatDate(DateTime date) {
+    final year = date.year.toString();
+    final month = date.month.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
 
-  final List<OrderSelectionModel> _savedOrders = [];
-
-  DateTime _dateOnly(DateTime date) =>
-      DateTime(date.year, date.month, date.day);
-
-  List<PendingOrderAssignmentModel> getPendingAssignments(DateTime date) {
-    final selectedDate = _dateOnly(date);
-    return _pendingAssignments.where((assignment) {
-      return _dateOnly(assignment.deliveryDate) == selectedDate &&
-          _customers.any(
-            (customer) =>
-                customer.id == assignment.customerId && customer.isActive,
-          );
-    }).toList();
+    return '$year-$month-$day';
   }
 
-  OrderCustomerModel? getCustomer(int customerId) {
-    for (final customer in _customers) {
-      if (customer.id == customerId && customer.isActive) return customer;
+  // Handle API errors.
+  void _checkResponse(http.Response response) {
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return;
     }
-    return null;
+
+    String message = 'Something went wrong';
+
+    try {
+      final body = jsonDecode(response.body);
+
+      if (body is Map<String, dynamic>) {
+        message = body['detail']?.toString() ?? message;
+      }
+    } catch (_) {
+      message = response.body.isNotEmpty ? response.body : message;
+    }
+
+    throw Exception(message);
   }
 
+  // 1. Fetch pending assignments for selected date.
+  Future<List<PendingOrderAssignmentModel>> getPendingAssignments(
+    DateTime date,
+  ) async {
+    final uri = Uri.parse('$baseUrl/order-selection/pending').replace(
+      queryParameters: {
+        'delivery_date': _formatDate(date),
+      },
+    );
+
+    final response = await http.get(uri);
+
+    _checkResponse(response);
+
+    final List<dynamic> data = jsonDecode(response.body);
+
+    return data
+        .map(
+          (json) => PendingOrderAssignmentModel.fromJson(
+            json as Map<String, dynamic>,
+          ),
+        )
+        .toList();
+  }
+
+  // 2. Fetch customer details and addresses.
+  Future<OrderCustomerModel?> getCustomer(int customerId) async {
+    final cachedCustomer = _customers[customerId];
+
+    if (cachedCustomer != null) {
+      return cachedCustomer;
+    }
+
+    // Find an assignment belonging to this customer first.
+    // The customer endpoint requires an assignment ID.
+    throw Exception(
+      'Use getCustomerForAssignment() to fetch customer details.',
+    );
+  }
+
+  Future<OrderCustomerModel> getCustomerForAssignment(
+    int assignmentId,
+  ) async {
+    final uri = Uri.parse(
+      '$baseUrl/order-selection/assignments/$assignmentId/customer',
+    );
+
+    final response = await http.get(uri);
+
+    _checkResponse(response);
+
+    final customer = OrderCustomerModel.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+
+    _customers[customer.id] = customer;
+
+    return customer;
+  }
+
+  // 3. Get address from the already fetched customer.
   OrderAddressModel? getAddress(
     OrderCustomerModel customer,
     int addressId,
   ) {
     for (final address in customer.addresses) {
-      if (address.id == addressId) return address;
+      if (address.id == addressId) {
+        return address;
+      }
     }
+
     return null;
   }
 
-  List<String> getSubCategories(String mealCategory) =>
-      _subCategories[mealCategory] ?? [];
-
-  List<OrderItemModel> getItems(
-    String mealCategory,
-    String subCategory,
-  ) {
-    return _items.where((item) {
-      return item.isActive &&
-          item.category == mealCategory &&
-          item.subCategory == subCategory;
-    }).toList();
-  }
-
-  void saveOrder(OrderSelectionModel order) {
-    _savedOrders.add(order);
-    _pendingAssignments.removeWhere(
-      (assignment) => assignment.id == order.assignmentId,
+  // 4. Fetch subcategories for an assignment.
+  Future<List<OrderSubCategoryModel>> getSubCategories(
+    int assignmentId,
+  ) async {
+    final uri = Uri.parse(
+      '$baseUrl/order-selection/assignments/$assignmentId/subcategories',
     );
+
+    final response = await http.get(uri);
+
+    _checkResponse(response);
+
+    final List<dynamic> data = jsonDecode(response.body);
+
+    final subCategories = data
+        .map(
+          (json) => OrderSubCategoryModel.fromJson(
+            json as Map<String, dynamic>,
+          ),
+        )
+        .toList();
+
+    _subCategories[assignmentId] = subCategories;
+
+    return subCategories;
   }
 
-  List<OrderSelectionModel> getSavedOrders() =>
-      List.unmodifiable(_savedOrders);
+  // 5. Fetch daily menu items for selected subcategory.
+  Future<List<OrderItemModel>> getItems(
+    int assignmentId,
+    int subCategoryId,
+  ) async {
+    final uri = Uri.parse(
+      '$baseUrl/order-selection/assignments/$assignmentId/items',
+    ).replace(
+      queryParameters: {
+        'sub_category_id': subCategoryId.toString(),
+      },
+    );
+
+    final response = await http.get(uri);
+
+    _checkResponse(response);
+
+    final List<dynamic> data = jsonDecode(response.body);
+
+    return data
+        .map(
+          (json) => OrderItemModel.fromJson(
+            json as Map<String, dynamic>,
+          ),
+        )
+        .toList();
+  }
+
+  // 6. Save selected item and resolve the assignment.
+  // This does not create a restaurant order.
+  Future<void> saveOrderSelection({
+    required int assignmentId,
+    required int selectedSubCategoryId,
+    required int selectedItemId,
+  }) async {
+    final uri = Uri.parse(
+      '$baseUrl/order-selection/assignments/$assignmentId/resolve',
+    );
+
+    final response = await http.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'selected_sub_category_id': selectedSubCategoryId,
+        'selected_item_id': selectedItemId,
+      }),
+    );
+
+    _checkResponse(response);
+
+    // Remove cached customer/subcategory data for this assignment
+    // only after the backend confirms that it was saved.
+    _subCategories.remove(assignmentId);
+  }
 }
