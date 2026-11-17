@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/theme.dart';
 import '../models/customer_model.dart';
 import '../services/customer_store.dart';
+import '../services/customer_api_service.dart';
+import 'customer_details_screen.dart';
 import 'package:countrify/countrify.dart';
 import '../services/location_service.dart';
 import 'package:flutter/services.dart';
@@ -23,6 +25,18 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
   ];
   final List<_AddressFormData> _addresses = [];
 
+  // Search and edit an existing customer from the same form.
+  final TextEditingController _customerSearchController =
+      TextEditingController();
+  Customer? _editingCustomer;
+  List<Customer> _matchingCustomers = [];
+  bool _showCustomerResults = false;
+  bool _isLoadingCustomers = false;
+  String? _message;
+  bool _messageIsError = false;
+  bool _messageIsWarning = false;
+  int _messageVersion = 0;
+
   static const double _addressInputHeight = 56;
 static const double _addressLabelGap = 7;
 static const double _addressFieldGap = 10;
@@ -36,7 +50,9 @@ List<Country> _countries = [];
   void initState() {
     super.initState();
     _loadCountries();
+    _loadCustomersFromApi();
 
+    _editingCustomer = widget.customer;
     final customer = widget.customer;
 
     if (customer == null) {
@@ -57,7 +73,10 @@ List<Country> _countries = [];
       _emailController.text = customer.email;
 
       for (final address in customer.addresses) {
-        _addresses.add(_AddressFormData.fromModel(address));
+        final addressData = _AddressFormData.fromModel(address);
+        // Keep the saved contact name independent from the customer name.
+        // "Same as Customer Name" stays unchecked unless the user selects it.
+        _addresses.add(addressData);
       }
 
       if (_addresses.isEmpty) {
@@ -72,6 +91,80 @@ List<Country> _countries = [];
     }
     
   }
+  Future<void> _loadCustomersFromApi() async {
+    if (mounted) {
+      setState(() => _isLoadingCustomers = true);
+    }
+
+    try {
+      final customers = await CustomerApiService.getCustomers();
+      CustomerStore.customers.value = customers;
+
+      if (!mounted) return;
+      setState(() {
+        _isLoadingCustomers = false;
+        if (_customerSearchController.text.trim().isNotEmpty) {
+          _filterCustomers(_customerSearchController.text);
+        }
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoadingCustomers = false);
+      _showMessage('Unable to load customers: $e');
+    }
+  }
+
+  void _searchExistingCustomers(String value) {
+    setState(() => _filterCustomers(value));
+  }
+
+  void _filterCustomers(String value) {
+    final query = value.trim().toLowerCase();
+    final normalizedQuery = query.replaceAll(RegExp(r'[^a-z0-9]'), '');
+    final phoneQuery = query.replaceAll(RegExp(r'[^0-9]'), '');
+
+    if (query.isEmpty) {
+      _matchingCustomers = [];
+      _showCustomerResults = false;
+      return;
+    }
+
+    _matchingCustomers = CustomerStore.customers.value.where((customer) {
+      final customerId = customer.id.trim().toLowerCase();
+      final customerName = customer.name.trim().toLowerCase();
+      final normalizedName = customerName.replaceAll(RegExp(r'[^a-z0-9]'), '');
+
+      final idMatches = customerId.startsWith(query);
+      final nameMatches = normalizedQuery.isNotEmpty &&
+          normalizedName.contains(normalizedQuery);
+      final phoneMatches = phoneQuery.isNotEmpty &&
+          customer.phoneNumbers.any((phone) {
+            final normalizedPhone = phone.replaceAll(RegExp(r'[^0-9]'), '');
+            return normalizedPhone.contains(phoneQuery);
+          });
+
+      return idMatches || nameMatches || phoneMatches;
+    }).toList();
+    _showCustomerResults = true;
+  }
+
+  Future<void> _openCustomerDetails(Customer customer) async {
+    await Navigator.push<void>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CustomerDetailsScreen(customer: customer),
+      ),
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _customerSearchController.clear();
+      _matchingCustomers = [];
+      _showCustomerResults = false;
+    });
+  }
+
   void _loadCountries() {
   setState(() {
     _countries = CountryUtils.getAllCountries();
@@ -181,11 +274,10 @@ void _showDistrictPicker(_AddressFormData address) {
                                     address.selectedDistrict =
                                         district;
 
-                                    // Clear area because the
-                                    // district has changed.
-                                    address.selectedArea = null;
-                                    address.areas = [];
-                                    address.areaController.clear();
+                                    // Area is manually entered, so keep its text
+                                    // when the district selection changes.
+                                    
+                                
                                   });
 
                                   Navigator.pop(dialogContext);
@@ -441,11 +533,8 @@ Future<void> _loadDistrictsForAddress(
   setState(() {
     address.loadingDistricts = true;
     address.districts = [];
-    address.areas = [];
 
     address.selectedDistrict = null;
-    address.selectedArea = null;
-    address.areaController.clear();
   });
 
   try {
@@ -496,8 +585,6 @@ Future<void> _loadStatesForAddress(
     address.states = [];
     address.selectedState = null;
     address.selectedDistrict = null;
-    address.selectedArea = null;
-    address.areaController.clear();
   });
 
   final states = await GeoRepository.instance.statesOf(countryIso2);
@@ -516,6 +603,7 @@ Future<void> _loadStatesForAddress(
     _nameController.dispose();
 
     _emailController.dispose();
+    _customerSearchController.dispose();
 
     for (final controller in _phoneControllers) {
       controller.removeListener(_syncPhoneToAddresses);
@@ -571,9 +659,36 @@ Future<void> _loadStatesForAddress(
   }
 
   void _addAddress() {
+    final address = _AddressFormData();
+
     setState(() {
-      _addresses.add(_AddressFormData());
+      _addresses.add(address);
     });
+  }
+
+  void _removeAddress(int index) {
+    if (index <= 0 || index >= _addresses.length) return;
+
+    final address = _addresses[index];
+
+    // Remove address controllers from the touched-field set before disposal.
+    _touchedControllers.removeAll({
+      address.contactNameController,
+      address.contactNumberController,
+      address.houseNameController,
+      address.houseController,
+      address.streetController,
+      address.areaController,
+      address.landmarkController,
+      address.pincodeController,
+      address.locationController,
+    });
+
+    setState(() {
+      _addresses.removeAt(index);
+    });
+
+    address.dispose();
   }
 
   void _editAddress(int index) {
@@ -718,7 +833,7 @@ String? _validateRequired(
  
 Future<void> _registerCustomer() async {
   // Ask for confirmation only when updating an existing customer.
-  if (widget.customer != null) {
+  if (_editingCustomer != null) {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -753,13 +868,28 @@ Future<void> _registerCustomer() async {
       .where((phone) => phone.isNotEmpty)
       .toList();
 
-  if (name.isEmpty) {
-    _showMessage('Customer name is required.');
+  final nameError = _validateName(name, fieldName: 'Customer name');
+  if (nameError != null) {
+    _showMessage(nameError);
     return;
   }
 
   if (phones.isEmpty) {
-    _showMessage('Phone number is required.');
+    _showMessage('At least one phone number is required.');
+    return;
+  }
+
+  for (var i = 0; i < phones.length; i++) {
+    final phoneError = _validateIndianPhone(phones[i]);
+    if (phoneError != null) {
+      _showMessage('Phone ${i + 1}: $phoneError');
+      return;
+    }
+  }
+
+  final emailError = _validateEmail(_emailController.text);
+  if (emailError != null) {
+    _showMessage(emailError);
     return;
   }
 
@@ -768,7 +898,66 @@ Future<void> _registerCustomer() async {
     return;
   }
 
-  // Find the first address that has not been reviewed/saved.
+  // Validate every address before opening the preview or sending the API
+  // request. The preview's Save Address button is a confirmation step only.
+  for (var i = 0; i < _addresses.length; i++) {
+    final address = _addresses[i];
+    final label = 'Address ${i + 1}: ';
+    final requiredChecks = <MapEntry<String, String>>[
+      MapEntry('Delivery contact name', address.contactNameController.text),
+      MapEntry('Delivery contact number', address.contactNumberController.text),
+      MapEntry('House / Flat No.', address.houseController.text),
+      MapEntry('Street', address.streetController.text),
+      MapEntry('Pincode', address.pincodeController.text),
+    ];
+    for (final check in requiredChecks) {
+      if (check.value.trim().isEmpty) {
+        _showMessage('$label${check.key} is required.');
+        return;
+      }
+    }
+
+    final contactPhoneError = _validateIndianPhone(address.contactNumberController.text);
+    if (contactPhoneError != null) {
+      _showMessage('$label$contactPhoneError');
+      return;
+    }
+
+    final pincodeError = _validatePincode(address.pincodeController.text);
+    if (pincodeError != null) {
+      _showMessage('$label$pincodeError');
+      return;
+    }
+
+    if ((address.selectedCountry ?? '').trim().isEmpty) {
+      _showMessage('${label}Please select a country.');
+      return;
+    }
+
+    if ((address.selectedState ?? '').trim().isEmpty) {
+      _showMessage('${label}Please select a state.');
+      return;
+    }
+
+    if ((address.selectedDistrict ?? '').trim().isEmpty) {
+      _showMessage('${label}Please select a district.');
+      return;
+    }
+
+    if (address.areaController.text.trim().isEmpty) {
+      _showMessage('${label}Please enter the area.');
+      return;
+    }
+
+    final locationError = _validateUrl(address.locationController.text);
+    if (locationError != null) {
+      _showMessage('$label$locationError');
+      return;
+    }
+  }
+
+  // Open the address preview before saving the customer.
+  // The customer is saved only after the user confirms all addresses.
   final firstUnsavedIndex = _addresses.indexWhere(
     (address) => !address.isSaved,
   );
@@ -778,12 +967,12 @@ Future<void> _registerCustomer() async {
     return;
   }
 
-  // All addresses are already saved.
-  _saveCustomer();
+  // All addresses have already been reviewed.
+  await _saveCustomer();
 }
 
 
-void _saveCustomer() {
+Future<void> _saveCustomer() async {
   final name = _nameController.text.trim();
 
   final phones = _phoneControllers
@@ -791,74 +980,225 @@ void _saveCustomer() {
       .where((phone) => phone.isNotEmpty)
       .toList();
 
+  final isEditing = _editingCustomer != null;
+
   final customer = Customer(
-    id: widget.customer?.id ??
-        DateTime.now().microsecondsSinceEpoch.toString(),
+    id: _editingCustomer?.id ?? '',
+    customerCode: _editingCustomer?.customerCode ?? '',
     name: name,
     phoneNumbers: phones,
     email: _emailController.text.trim(),
-    addresses: _addresses.map((address) {
+    addresses: _addresses.asMap().entries.map((entry) {
+      final index = entry.key;
+      final address = entry.value;
+
+      // Generate once and retain the ID/code on this address form.
+      final addressId = address.id ??
+          '${DateTime.now().microsecondsSinceEpoch}-$index';
+      final addressCode = address.addressCode ?? 'ADDR-$addressId';
+
+      address.id = addressId;
+      address.addressCode = addressCode;
+
       return CustomerAddress(
-        id: address.id ??
-            DateTime.now().microsecondsSinceEpoch.toString(),
-
-        contactName:
-            address.contactNameController.text.trim(),
-
-        contactNumber:
-            address.contactNumberController.text.trim(),
-
-        houseName:
-            address.houseNameController.text.trim(),
-
-        houseFlatNumber:
-            address.houseController.text.trim(),
-
+        id: addressId,
+        addressCode: addressCode,
+        contactName: address.contactNameController.text.trim(),
+        contactNumber: address.contactNumberController.text.trim(),
+        houseName: address.houseNameController.text.trim(),
+        houseFlatNumber: address.houseController.text.trim(),
         addressType: address.addressType,
-
-        country:
-            address.selectedCountry ?? '',
-
-        state:
-            address.selectedState ?? '',
-
-        district:
-            address.selectedDistrict ?? '',
-
-        street:
-            address.streetController.text.trim(),
-
-        area:
-            address.areaController.text.trim(),
-
-        landmark:
-            address.landmarkController.text.trim(),
-
-        pincode:
-            address.pincodeController.text.trim(),
-
-        locationLink:
-            address.locationController.text.trim(),
-
-        monthlyFoodOrder:
-            address.monthlyFoodOrder,
+        country: address.selectedCountry ?? '',
+        state: address.selectedState ?? '',
+        district: address.selectedDistrict ?? '',
+        street: address.streetController.text.trim(),
+        area: address.areaController.text.trim(),
+        landmark: address.landmarkController.text.trim(),
+        pincode: address.pincodeController.text.trim(),
+        locationLink: address.locationController.text.trim(),
+        monthlyFoodOrder: address.monthlyFoodOrder,
       );
     }).toList(),
   );
 
-  if (widget.customer == null) {
-    CustomerStore.addCustomer(customer);
-  } else {
-    CustomerStore.updateCustomer(customer);
+  try {
+    final Customer savedCustomer = isEditing
+        ? await CustomerApiService.updateCustomer(customer)
+        : await CustomerApiService.createCustomer(customer);
+
+    final customers = List<Customer>.from(CustomerStore.customers.value);
+    final existingIndex = customers.indexWhere(
+      (item) => item.id == savedCustomer.id,
+    );
+    if (existingIndex >= 0) {
+      customers[existingIndex] = savedCustomer;
+    } else {
+      customers.add(savedCustomer);
+    }
+    CustomerStore.customers.value = customers;
+
+    if (!mounted) return;
+
+    if (isEditing) {
+      _editingCustomer = savedCustomer;
+      _showMessage('Customer updated successfully!');
+      Navigator.pop(context, savedCustomer);
+      return;
+    }
+
+    _resetForNextCustomer(savedCustomer);
+    _showMessage('Customer added successfully!');
+  } catch (e) {
+    if (!mounted) return;
+    _showMessage('Failed to ${isEditing ? 'update' : 'save'} customer: $e');
+  }
+}
+
+void _resetForNextCustomer(Customer savedCustomer) {
+  // Dispose the previous address controllers before creating a fresh form.
+  for (final address in _addresses) {
+    address.dispose();
   }
 
-  Navigator.pop(context, true);
+  _addresses
+    ..clear()
+    ..add(_AddressFormData());
+
+  // Keep one empty phone field for the next customer.
+  for (final controller in _phoneControllers) {
+    controller.removeListener(_syncPhoneToAddresses);
+    controller.dispose();
+  }
+
+  _phoneControllers
+    ..clear()
+    ..add(TextEditingController());
+
+  _phoneControllers.first.addListener(_syncPhoneToAddresses);
+
+  _nameController.clear();
+  _emailController.clear();
+  _touchedControllers.clear();
+
+  // Show the newly registered customer as a result on this same page.
+ // Clear search after successful customer registration.
+_customerSearchController.clear();
+_matchingCustomers = [];
+_showCustomerResults = false;
+_editingCustomer = null;
+
+  if (mounted) {
+    setState(() {});
+  }
 }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    if (!mounted) return;
+
+    final lowerMessage = message.toLowerCase();
+
+    final isSuccess = lowerMessage.contains('successfully');
+    final isWarning = lowerMessage.contains('already exists') ||
+        lowerMessage.contains('duplicate');
+
+    final version = ++_messageVersion;
+
+    setState(() {
+      _message = message;
+      _messageIsError = !isSuccess && !isWarning;
+      _messageIsWarning = isWarning;
+    });
+
+    Future.delayed(const Duration(seconds: 3), () {
+      if (!mounted || version != _messageVersion) return;
+
+      setState(() {
+        _message = null;
+      });
+    });
+  }
+
+  Widget _buildTopRightMessage() {
+    final message = _message;
+
+    if (message == null) {
+      return const SizedBox.shrink();
+    }
+
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    final backgroundColor = _messageIsError
+        ? const Color(0xFFFFE5E5)
+        : _messageIsWarning
+            ? const Color(0xFFFFF3CD)
+            : const Color(0xFFE5F7E9);
+
+    final iconColor = _messageIsError
+        ? const Color(0xFFD32F2F)
+        : _messageIsWarning
+            ? const Color(0xFFE59A00)
+            : const Color(0xFF1E9E45);
+
+    final icon = _messageIsError
+        ? Icons.close_rounded
+        : _messageIsWarning
+            ? Icons.warning_amber_rounded
+            : Icons.check_rounded;
+
+    return Positioned(
+      top: MediaQuery.of(context).padding.top + 8,
+      right: 16,
+      left: screenWidth < 600 ? 16 : null,
+      child: IgnorePointer(
+        child: Align(
+          alignment: Alignment.topRight,
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              constraints: BoxConstraints(
+                maxWidth: screenWidth < 600 ? 340 : 320,
+              ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 12,
+              ),
+              decoration: BoxDecoration(
+                color: backgroundColor,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    icon,
+                    size: 22,
+                    color: iconColor,
+                  ),
+                  const SizedBox(width: 10),
+                  Flexible(
+                    child: Text(
+                      message,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: iconColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
     Widget _buildPreviewHeader({
@@ -977,6 +1317,22 @@ void _saveCustomer() {
           Column(
             children: [
               _previewInfoCard(
+                icon: Icons.home_work_outlined,
+                label: 'Address Type',
+                value: address.addressType,
+              ),
+              const SizedBox(height: 10),
+              _previewInfoCard(
+                icon: Icons.badge_outlined,
+                label: address.addressType == 'Office'
+                    ? 'Office Name'
+                    : address.addressType == 'Other'
+                        ? 'Address Name'
+                        : 'Home Name',
+                value: address.houseNameController.text,
+              ),
+              const SizedBox(height: 10),
+              _previewInfoCard(
                 icon: Icons.home_outlined,
                 label: 'House / Flat No.',
                 value: address.houseController.text,
@@ -1016,6 +1372,34 @@ void _saveCustomer() {
         else
           Column(
             children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: _previewInfoCard(
+                      icon: Icons.home_work_outlined,
+                      label: 'Address Type',
+                      value: address.addressType,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _previewInfoCard(
+                      icon: address.addressType == 'Office'
+                          ? Icons.business_outlined
+                          : Icons.badge_outlined,
+                      label: address.addressType == 'Office'
+                          ? 'Office Name'
+                          : address.addressType == 'Other'
+                              ? 'Address Name'
+                              : 'Home Name',
+                      value: address.houseNameController.text,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 10),
+
               Row(
                 children: [
                   Expanded(
@@ -1236,28 +1620,33 @@ void _saveCustomer() {
         final isMobile = width < 600;
         final isTablet = width >= 600 && width < 1000;
 
-        return Scaffold(
-          backgroundColor: AppColors.background,
-          appBar: AppBar(
-            title: Text(
-              widget.customer == null ? 'Add Customer' : 'Edit Customer',
-            ),
-          ),
-          body: SafeArea(
-            child: Padding(
-              padding: EdgeInsets.all(
-                isMobile
-                    ? 14
-                    : isTablet
-                    ? 20
-                    : 28,
+        return Stack(
+          children: [
+            Scaffold(
+              backgroundColor: AppColors.background,
+              appBar: AppBar(
+                title: Text(
+                  _editingCustomer == null ? 'Add Customer' : 'Edit Customer',
+                ),
               ),
-              child: _buildResponsiveContent(
-                isMobile: isMobile,
-                isTablet: isTablet,
+              body: SafeArea(
+                child: Padding(
+                  padding: EdgeInsets.all(
+                    isMobile
+                        ? 14
+                        : isTablet
+                            ? 20
+                            : 28,
+                  ),
+                  child: _buildResponsiveContent(
+                    isMobile: isMobile,
+                    isTablet: isTablet,
+                  ),
+                ),
               ),
             ),
-          ),
+            if (_message != null) _buildTopRightMessage(),
+          ],
         );
       },
     );
@@ -1267,11 +1656,12 @@ void _saveCustomer() {
     required bool isMobile,
     required bool isTablet,
   }) {
-    if (isMobile) {
+    // Stack the panels on mobile and tablet; keep desktop side-by-side.
+    if (isMobile || isTablet) {
       return _buildMobileLayout();
     }
 
-    return _buildLargeLayout(isTablet: isTablet);
+    return _buildLargeLayout(isTablet: false);
   }
 
   // ============================================================
@@ -1279,23 +1669,28 @@ void _saveCustomer() {
   // ============================================================
 
   Widget _buildMobileLayout() {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildCustomerInfoSection(isMobile: true),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Both panels move together inside this single scroll area.
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildCustomerInfoSection(isMobile: true),
+                const SizedBox(height: 16),
+                _buildAddressSection(isMobile: true),
+              ],
+            ),
+          ),
+        ),
 
-          const SizedBox(height: 16),
-
-          SizedBox(height: 560, child: _buildAddressSection(isMobile: true)),
-
-          const SizedBox(height: 20),
-
-          _buildBottomButtons(isMobile: true),
-
-          const SizedBox(height: 20),
-        ],
-      ),
+        // Fixed footer: these buttons stay visible while the panels scroll.
+        const SizedBox(height: 12),
+        _buildBottomButtons(isMobile: true),
+      ],
     );
   }
   // ============================================================
@@ -1336,16 +1731,167 @@ void _saveCustomer() {
   // ============================================================
 
 Widget _buildCustomerInfoSection({required bool isMobile}) {
-  return _sectionContainer(
-    child: SingleChildScrollView(
-      padding: const EdgeInsets.all(18),
-      child: Column(
+  final customerInfoContent = Padding(
+    padding: const EdgeInsets.all(18),
+    child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sectionTitle(
             icon: Icons.person_outline,
             title: 'Customer Info',
           ),
+
+          const SizedBox(height: 16),
+
+          
+          TextField(
+            controller: _customerSearchController,
+            onChanged: _searchExistingCustomers,
+            decoration: InputDecoration(
+              hintText: 'Search by name, phone number or customer ID',
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: _customerSearchController.text.isNotEmpty
+                  ? IconButton(
+                      tooltip: 'Clear search',
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        _customerSearchController.clear();
+                        setState(() {
+                          _matchingCustomers = [];
+                          _showCustomerResults = false;
+                        });
+                      },
+                    )
+                  : null,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 14,
+              ),
+            ),
+          ),
+          if (_showCustomerResults) ...[
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: FractionallySizedBox(
+                widthFactor: 0.85,
+                child: Container(
+                  constraints: const BoxConstraints(maxHeight: 220),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                border: Border.all(color: AppColors.border),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: _isLoadingCustomers && _matchingCustomers.isEmpty
+                  ? const Padding(
+                      padding: EdgeInsets.all(14),
+                      child: Center(
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    )
+                  : _matchingCustomers.isEmpty
+                      ? const Padding(
+                          padding: EdgeInsets.all(14),
+                          child: Text('No matching customers found.'),
+                        )
+                      : ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: _matchingCustomers.length,
+                      separatorBuilder: (_, _) =>
+                          const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final customer = _matchingCustomers[index];
+                        final phoneNumbers = customer.phoneNumbers
+                            .map((phone) => phone.trim())
+                            .where((phone) => phone.isNotEmpty)
+                            .toSet()
+                            .toList();
+
+                        return InkWell(
+                          onTap: () => _openCustomerDetails(customer),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 12,
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                const CircleAvatar(
+                                  radius: 20,
+                                  child: Icon(
+                                    Icons.person_outline,
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        customer.name,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          height: 1.05,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Text(
+                                        phoneNumbers.isEmpty
+                                            ? 'No phone number'
+                                            : phoneNumbers.join(', '),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          height: 1.05,
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Text(
+                                        'ID: ${customer.id}',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          height: 1.1,
+                                          color: AppColors.textSecondary,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons.chevron_right,
+                                  size: 18,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                ),
+              ),
+            ),
+          ],
 
           const SizedBox(height: 20),
 
@@ -1451,7 +1997,12 @@ Widget _buildCustomerInfoSection({required bool isMobile}) {
           const SizedBox(height: 28),
         ],
       ),
-    ),
+    );
+
+  return _sectionContainer(
+    child: isMobile
+        ? customerInfoContent
+        : SingleChildScrollView(child: customerInfoContent),
   );
 }
 
@@ -1586,16 +2137,29 @@ Widget _buildFixedValidationField({
 
           const Divider(),
 
-          Expanded(
-            child: ListView.separated(
+          if (isMobile)
+            Padding(
               padding: const EdgeInsets.fromLTRB(12, 12, 12, 20),
-              itemCount: _addresses.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                return _buildAddressCard(index: index);
-              },
+              child: Column(
+                children: [
+                  for (int index = 0; index < _addresses.length; index++) ...[
+                    if (index > 0) const SizedBox(height: 12),
+                    _buildAddressCard(index: index),
+                  ],
+                ],
+              ),
+            )
+          else
+            Expanded(
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 20),
+                itemCount: _addresses.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  return _buildAddressCard(index: index);
+                },
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -1637,6 +2201,22 @@ Widget _buildFixedValidationField({
                   ),
                 ),
               ),
+              if (index > 0)
+                IconButton(
+                  onPressed: () => _removeAddress(index),
+                  tooltip: 'Remove address',
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                  constraints: const BoxConstraints(
+                    minWidth: 30,
+                    minHeight: 30,
+                  ),
+                  icon: const Icon(
+                    Icons.close_rounded,
+                    size: 19,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
             ],
           ),
 
@@ -1796,6 +2376,10 @@ const SizedBox(height: _addressFieldGap),
 _simpleAddressField(
   label: 'Area',
   controller: address.areaController,
+  validator: (value) => _validateRequired(
+    value,
+    fieldName: 'Area',
+  ),
 ),
 
          const SizedBox(height: _addressFieldGap),
@@ -1974,19 +2558,6 @@ InkWell(
     ),
   ),
 ),
-
-  
-
-
-
-
-
-
-
-
-
-
-
          const SizedBox(height: _addressFieldGap),
 
           Container(
@@ -2050,6 +2621,22 @@ InkWell(
                   ),
                 ),
               ),
+              if (index > 0)
+                IconButton(
+                  onPressed: () => _removeAddress(index),
+                  tooltip: 'Remove address',
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                  constraints: const BoxConstraints(
+                    minWidth: 30,
+                    minHeight: 30,
+                  ),
+                  icon: const Icon(
+                    Icons.close_rounded,
+                    size: 19,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
             ],
           ),
 
@@ -2066,6 +2653,23 @@ InkWell(
             label: 'Phone',
             value: address.contactNumberController.text,
           ),
+
+          _savedAddressRow(
+            icon: Icons.home_work_outlined,
+            label: 'Address Type',
+            value: address.addressType,
+          ),
+
+          if (address.houseNameController.text.trim().isNotEmpty)
+            _savedAddressRow(
+              icon: Icons.badge_outlined,
+              label: address.addressType == 'Office'
+                  ? 'Office Name'
+                  : address.addressType == 'Other'
+                      ? 'Address Name'
+                      : 'Home Name',
+              value: address.houseNameController.text,
+            ),
 
           _savedAddressRow(
             icon: Icons.location_on_outlined,
@@ -2167,15 +2771,14 @@ InkWell(
   }
 
 void _showAddressPreview(int index) {
-  final address = _addresses[index];
+  if (_addresses.isEmpty) return;
 
   showDialog(
     context: context,
-    barrierDismissible: false,  
+    barrierDismissible: false,
     builder: (dialogContext) {
       final screenWidth = MediaQuery.of(dialogContext).size.width;
       final screenHeight = MediaQuery.of(dialogContext).size.height;
-
       final isMobile = screenWidth < 700;
 
       return Dialog(
@@ -2189,78 +2792,80 @@ void _showAddressPreview(int index) {
         ),
         child: ConstrainedBox(
           constraints: BoxConstraints(
-            maxWidth: 700,
+            maxWidth: 850,
             maxHeight: screenHeight * 0.88,
           ),
           child: Column(
             children: [
               _buildPreviewHeader(
-                title: 'Address ${index + 1} Preview',
-                address: address,
+                title: 'Delivery Addresses Preview',
+                address: _addresses.first,
               ),
-
               const Divider(height: 1),
-
               Expanded(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.all(
-                    isMobile ? 18 : 24,
-                  ),
-                  child: _buildAddressPreviewContent(
-                    address,
-                    isMobile: isMobile,
-                  ),
+                child: ListView.separated(
+                  padding: EdgeInsets.all(isMobile ? 16 : 24),
+                  itemCount: _addresses.length,
+                  separatorBuilder: (context, addressIndex) =>
+                      const SizedBox(height: 20),
+                  itemBuilder: (context, addressIndex) {
+                    final address = _addresses[addressIndex];
+
+                    return Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Address ${addressIndex + 1}',
+                            style: const TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          _buildAddressPreviewContent(
+                            address,
+                            isMobile: isMobile,
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
               ),
-
               const Divider(height: 1),
-
               Padding(
-                padding: EdgeInsets.all(
-                  isMobile ? 14 : 18,
-                ),
+                padding: EdgeInsets.all(isMobile ? 14 : 18),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    // BACK
                     TextButton(
                       onPressed: () {
                         Navigator.pop(dialogContext);
                       },
                       child: const Text('Back'),
                     ),
-
                     const SizedBox(width: 10),
-
-                    // SAVE ADDRESS
                     ElevatedButton.icon(
-                      onPressed: () {
+                      onPressed: () async {
                         setState(() {
-                          address.isSaved = true;
+                          for (final address in _addresses) {
+                            address.isSaved = true;
+                          }
                         });
 
                         Navigator.pop(dialogContext);
-
-                        // Check if there are more unsaved addresses.
-                        final nextUnsavedIndex =
-                            _addresses.indexWhere(
-                          (address) => !address.isSaved,
-                        );
-
-                        if (nextUnsavedIndex != -1) {
-                          _showAddressPreview(
-                            nextUnsavedIndex,
-                          );
-                        } else {
-                          // All addresses are reviewed.
-                          _saveCustomer();
-                        }
+                        await _saveCustomer();
                       },
-                      icon: const Icon(
-                        Icons.check,
-                        size: 18,
-                      ),
-                      label: const Text('Save Address'),
+                      icon: const Icon(Icons.check, size: 18),
+                      label: const Text('Confirm & Save All'),
                     ),
                   ],
                 ),
@@ -2476,7 +3081,7 @@ Widget _simpleAddressField({
 
         ElevatedButton(
           onPressed: _registerCustomer,
-          child: Text(widget.customer == null ? 'Register' : 'Update Customer'),
+          child: Text(_editingCustomer == null ? 'Register' : 'Update Customer'),
         ),
       ],
     );
@@ -2530,11 +3135,13 @@ Widget _simpleAddressField({
 
 class _AddressFormData {
   String? id;
+  String? addressCode;
 
   _AddressFormData();
 
   _AddressFormData.fromModel(CustomerAddress address) {
     id = address.id;
+    addressCode = address.addressCode;
 
     contactNameController.text = address.contactName;
     contactNumberController.text = address.contactNumber;

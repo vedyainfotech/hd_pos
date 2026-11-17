@@ -73,6 +73,15 @@ class _HomeDeliveryDashboardScreenState
     'Special Dishes',
   ];
 
+  // The schedule panel intentionally shows only the three regular meal
+  // categories. The middle ordering panel continues to use _meals unchanged.
+  static const List<String> _scheduleMeals = [
+    'Breakfast',
+    'Lunch',
+    'Dinner',
+  ];
+
+
   // Demo quantity breakdowns. Each entry is the number of customers/orders
   // who selected that many units; quantity x count adds up to the row total.
   static const Map<String, List<MapEntry<int, int>>> _demoQuantityBreakdowns = {
@@ -276,6 +285,20 @@ class _HomeDeliveryDashboardScreenState
         _menuScheduleErrors[key] = error.toString();
       });
     }
+  }
+
+  List<String> _scheduledMenuItems(DateTime date, String meal) {
+    final response = _menuSchedulesByDate[_dateKey(date)];
+    if (response == null) return const <String>[];
+
+    return response.schedules
+        .where((schedule) =>
+            schedule.categoryName.trim().toLowerCase() ==
+            meal.trim().toLowerCase())
+        .expand((schedule) => schedule.items)
+        .map((item) => item.itemName.trim())
+        .where((name) => name.isNotEmpty)
+        .toList(growable: false);
   }
 
   Future<void> _pickDate({
@@ -1483,64 +1506,7 @@ class _HomeDeliveryDashboardScreenState
   }
 
   Widget _menuDayColumn(DateTime date) {
-    final dateKey = _dateKey(date);
-    final isLoading = _loadingMenuDates.contains(dateKey);
-    final error = _menuScheduleErrors[dateKey];
-    final response = _menuSchedulesByDate[dateKey];
-
-    Widget body;
-    if (isLoading) {
-      body = const Padding(
-        padding: EdgeInsets.symmetric(vertical: 28),
-        child: Center(
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
-      );
-    } else if (error != null) {
-      body = Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Unable to load menu schedule',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 11,
-              ),
-            ),
-            TextButton(
-              onPressed: () => _loadMenuScheduleDate(date, force: true),
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
-      );
-    } else if (response == null || response.schedules.isEmpty) {
-      body = const Padding(
-        padding: EdgeInsets.symmetric(vertical: 28, horizontal: 8),
-        child: Center(
-          child: Text(
-            'No menu scheduled',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 11,
-            ),
-          ),
-        ),
-      );
-    } else {
-      body = Column(
-        children: response.schedules
-            .map((schedule) => _menuCategoryBox(schedule))
-            .toList(growable: false),
-      );
-    }
-
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Container(
           width: double.infinity,
@@ -1560,54 +1526,90 @@ class _HomeDeliveryDashboardScreenState
           ),
         ),
         const SizedBox(height: 7),
-        body,
+        for (final meal in _scheduleMeals)
+          _menuCategoryBox(date, meal),
       ],
     );
   }
 
-  Widget _menuCategoryBox(MenuSchedule schedule) {
-    final categoryName = schedule.categoryName.trim();
-    final itemNames = schedule.items
-        .map((item) => item.itemName.trim())
-        .where((name) => name.isNotEmpty)
-        .toList(growable: false);
+  Widget _menuCategoryBox(DateTime date, String meal) {
+    final dateKey = _dateKey(date);
+    final isLoading = _loadingMenuDates.contains(dateKey);
+    final error = _menuScheduleErrors[dateKey];
+    // Show only items returned by the schedule API for this exact date and meal.
+    final displayItems = _scheduledMenuItems(date, meal);
 
-    final Widget content = itemNames.isEmpty
-        ? const Center(
-            child: Text(
-              'No items scheduled',
+    Widget content;
+    if (isLoading) {
+      content = const Center(
+        child: SizedBox(
+          width: 18,
+          height: 18,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    } else if (error != null) {
+      content = Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Unable to load menu',
+              textAlign: TextAlign.center,
               style: TextStyle(
                 color: AppColors.textSecondary,
-                fontSize: 11,
+                fontSize: 10,
               ),
             ),
-          )
-        : ListView.builder(
-            primary: false,
-            padding: EdgeInsets.zero,
-            itemCount: itemNames.length,
-            itemBuilder: (context, index) => Padding(
-              padding: const EdgeInsets.only(bottom: 5, right: 3),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    '• ',
-                    style: TextStyle(color: Color(0xFF0788BD)),
-                  ),
-                  Expanded(
-                    child: Text(
-                      itemNames[index],
-                      style: const TextStyle(
-                        color: Color(0xFF0788BD),
-                        fontSize: 11,
-                      ),
+            TextButton(
+              onPressed: () => _loadMenuScheduleDate(date, force: true),
+              style: TextButton.styleFrom(
+                visualDensity: VisualDensity.compact,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                minimumSize: const Size(0, 28),
+              ),
+              child: const Text('Retry', style: TextStyle(fontSize: 10)),
+            ),
+          ],
+        ),
+      );
+    } else if (displayItems.isEmpty) {
+      content = const Center(
+        child: Text(
+          'No items scheduled',
+          style: TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 11,
+          ),
+        ),
+      );
+    } else {
+      content = Scrollbar(
+        child: ListView.builder(
+          primary: false,
+          padding: EdgeInsets.zero,
+          itemCount: displayItems.length,
+          itemBuilder: (context, index) => Padding(
+            padding: const EdgeInsets.only(bottom: 5, right: 3),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('• ', style: TextStyle(color: Color(0xFF0788BD))),
+                Expanded(
+                  child: Text(
+                    displayItems[index],
+                    style: const TextStyle(
+                      color: Color(0xFF0788BD),
+                      fontSize: 11,
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          );
+          ),
+        ),
+      );
+    }
 
     return Container(
       height: 174,
@@ -1622,10 +1624,7 @@ class _HomeDeliveryDashboardScreenState
         children: [
           Center(
             child: Text(
-              categoryName.toUpperCase(),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              meal.toUpperCase(),
               style: const TextStyle(
                 color: Color(0xFF0788BD),
                 fontSize: 10,

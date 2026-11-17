@@ -3,12 +3,11 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/theme.dart';
 import '../../home/category/screens/category_screen.dart';
 import '../../home/payment/screens/payment_screen.dart';
-
 import '../../home/roles/screens/role_screen.dart';
 import '../../home/sub_categories/screens/sub_category_screens.dart';
 import '../../home/menu_scheduling/screens/menu_scheduling_screen.dart';
 import '../../home/item/screens/item_screen.dart';
-import '../../home/customers/screens/customers_screen.dart';
+import '../../home/customers/screens/add_customer_screen.dart';
 import '../../inventory/units/screens/units_screen.dart';
 import '../../inventory/inventory_category/screens/inventory_category_screen.dart';
 import '../../inventory/inventory_sub_category/screens/inv_subcategory_screen.dart';
@@ -19,9 +18,9 @@ import '../../home/delivery_schedule/screens/delivery_schedule_screen.dart';
 import '../../home/operators_adding/screens/operator_add_screens.dart';
 import '../../inventory/inventory_items/screens/inventory_items_screen.dart';
 import '../../home/dashboard/screens/dashboard_screens.dart';
+import '../../home/item/screens/item_screen.dart';
+import '../../home/order_selection/screens/order_selection_screen.dart';
 import '../../auth/screens/login_Screen.dart';
-import '../../home/business_profile/screens/business_profile_screens.dart';
-import '../../home/kot_management/screens/kot_management_screen.dart';
 
 class HomeDeliverySettingsScreen extends StatelessWidget {
   final String userName;
@@ -124,15 +123,6 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                               icon: Icons.storefront_outlined,
                               iconBackground: const Color(0xFFEDE9FE),
                               iconColor: const Color(0xFF7C3AED),
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute<void>(
-                                    builder: (_) =>
-                                        const BusinessProfileScreen(),
-                                  ),
-                                );
-                              },
                             ),
                           ],
                         ),
@@ -200,11 +190,19 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
 
                             _settingCard(
                               context,
-                              title: 'Prices',
-                              subtitle: 'Set and manage item prices',
+                              title: 'item',
+                              subtitle: 'Set and manage item',
                               icon: Icons.sell_outlined,
                               iconBackground: const Color(0xFFF0E9FF),
                               iconColor: const Color(0xFF7C3AED),
+                               onTap: () {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const ItemScreen(),
+    ),
+  );
+},
                             ),
 
                             _settingCard(
@@ -279,14 +277,14 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                               icon: Icons.people_outline,
                               iconBackground: const Color(0xFFE6F0FF),
                               iconColor: const Color(0xFF2563EB),
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const CustomersScreen(),
-                                  ),
-                                );
-                              },
+                             onTap: () {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const AddCustomerScreen(),
+    ),
+  );
+},
                             ),
                             _settingCard(
                               context,
@@ -297,6 +295,22 @@ class HomeDeliverySettingsScreen extends StatelessWidget {
                               iconBackground: const Color(0xFFFFE8EE),
                               iconColor: const Color(0xFFE11D48),
                             ),
+                            _settingCard(
+  context,
+  title: 'Order Selection',
+  subtitle: 'Select customers and create monthly orders',
+  icon: Icons.receipt_long_outlined,
+  iconBackground: const Color(0xFFFFF0DA),
+  iconColor: const Color(0xFFD97706),
+   onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const OrderSelectionScreen(),
+      ),
+    );
+  },
+),
                           ],
                         ),
 
@@ -627,16 +641,7 @@ onTap: () {
             icon: Icons.grid_view_outlined,
             title: 'Management',
             compact: compact,
-  onTap: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute<void>(
-        builder: (_) => const KotManagementScreen(),
-      ),
-    );
-  },
-),
-          
+          ),
 
           const Spacer(),
 
@@ -993,6 +998,9 @@ Widget _buildTopBar(
 
           const SizedBox(height: 14),
 
+          // ========================================================
+          // RESPONSIVE CARDS
+          // ========================================================
           LayoutBuilder(
             builder: (context, constraints) {
               int columns;
@@ -1022,6 +1030,9 @@ Widget _buildTopBar(
     );
   }
 
+  // ============================================================
+  // SETTING CARD
+  // ============================================================
 
   Widget _settingCard(
     BuildContext context, {
@@ -1064,6 +1075,9 @@ Widget _buildTopBar(
           ),
           child: Row(
             children: [
+              // ======================================================
+              // ICON
+              // ======================================================
               Container(
                 width: 48,
                 height: 48,

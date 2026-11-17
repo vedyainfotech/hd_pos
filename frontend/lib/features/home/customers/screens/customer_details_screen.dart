@@ -29,14 +29,13 @@ class _CustomerDetailsScreenState
   }
 
 Future<void> _editCustomer() async {
-  final result = await Navigator.push<bool>(
-    context,
-    MaterialPageRoute(
-      builder: (_) => AddCustomerScreen(
-        customer: _customer,
-      ),
-    ),
-  );
+  final result = await Navigator.push<Customer?>(
+  context,
+  MaterialPageRoute(
+    builder: (_) => AddCustomerScreen(customer: _customer),
+  ),
+);
+  
 
   if (!mounted) return;
 
@@ -51,7 +50,7 @@ Future<void> _editCustomer() async {
   }
 
   // Show success only after a successful update.
-  if (result == true) {
+if (result != null) {
     _showSuccessToast('Customer updated successfully');
   }
 }
@@ -122,102 +121,88 @@ void _showSuccessToast(String message) {
 
  @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-
-        final isMobile = width < 600;
-        final isTablet = width >= 600 && width < 1000;
-
-        return Scaffold(
-          backgroundColor: AppColors.background,
-         appBar: AppBar(
-                centerTitle: false,
-                titleSpacing: 0,
-                title: Builder(
-                  builder: (context) {
-                    final width = MediaQuery.of(context).size.width;
-
-                    return Text(
-                      width < 420
-                          ? 'Customer'
-                          : 'Customer Details',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    );
-                  },
-                ),
-                actions: [
-                  IconButton(
-                    onPressed: _editCustomer,
-                    icon: const Icon(
-                      Icons.edit_outlined,
-                    ),
-                    tooltip: 'Edit Customer',
-                  ),
-                ],
-              ),
-          body: SafeArea(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.all(
-                isMobile
-                    ? 14
-                    : isTablet
-                        ? 20
-                        : 28,
-              ),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    maxWidth: 1100,
-                  ),
-                  child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
-                    children: [
-                      _buildCustomerHeader(
-                        isMobile: isMobile,
-                      ),
-
-                      const SizedBox(height: 18),
-
-                      _buildCustomerInformation(),
-
-                      const SizedBox(height: 18),
-
-    
-
-                      const SizedBox(height: 18),
-
-                      _buildAddresses(
-                        isMobile: isMobile,
-                      ),
-
-                      const SizedBox(height: 30),
-
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: _editCustomer,
-                          icon: const Icon(
-                            Icons.edit_outlined,
-                            size: 19,
-                          ),
-                          label: const Text('Edit Customer'),
-                        ),
-                      ),
-
-                      const SizedBox(height: 20),
-                    ],
-                  ),
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Customer Details'),
+      ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isMobile = constraints.maxWidth < 600;
+          final isTablet = constraints.maxWidth >= 600 &&
+              constraints.maxWidth < 1000;
+          return SingleChildScrollView(
+            padding: EdgeInsets.all(isMobile ? 14 : (isTablet ? 20 : 28)),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1100),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildCustomerHeader(isMobile: isMobile),
+                    const SizedBox(height: 18),
+                    _buildCustomerInformation(),
+                    const SizedBox(height: 18),
+                    _buildAddresses(isMobile: isMobile),
+                    const SizedBox(height: 18),
+                  ],
                 ),
               ),
             ),
+          );
+        },
+      ),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: AppColors.background,
+            border: Border(top: BorderSide(color: AppColors.border)),
           ),
-        );
-      },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              SizedBox(
+                width: 145,
+                height: 42,
+                child: OutlinedButton(
+                  onPressed: () => Navigator.of(context).maybePop(),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.textPrimary,
+                    backgroundColor: AppColors.surface,
+                    side: BorderSide(color: AppColors.border),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(9),
+                    ),
+                  ),
+                  child: const Text('Back'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              SizedBox(
+                width: 170,
+                height: 42,
+                child: ElevatedButton(
+                  onPressed: _editCustomer,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(9),
+                    ),
+                  ),
+                  child: const Text('Edit Customer'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
+
   Widget _buildCustomerHeader({
     required bool isMobile,
   }) {
@@ -408,6 +393,25 @@ void _showSuccessToast(String message) {
               address.contactNumber,
             ),
           ),
+
+          _detailRow(
+            icon: Icons.home_work_outlined,
+            label: 'Address Type',
+            value: _valueOrNotProvided(address.addressType),
+          ),
+
+          if (address.houseName.trim().isNotEmpty)
+            _detailRow(
+              icon: address.addressType == 'Office'
+                  ? Icons.business_outlined
+                  : Icons.badge_outlined,
+              label: address.addressType == 'Office'
+                  ? 'Office Name'
+                  : address.addressType == 'Other'
+                      ? 'Address Name'
+                      : 'Home Name',
+              value: address.houseName,
+            ),
 
           _detailRow(
             icon: Icons.home_outlined,

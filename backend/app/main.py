@@ -12,6 +12,7 @@ from app.routers.inventory_category import router as inventory_category_router
 from app.routers.inventory_subcategory import router as inventory_subcategory_router
 from app.routers.delivery_person import router as delivery_person_router
 from app.routers.delivery_person_schedule import router as delivery_person_schedule_router
+from app.routers.customer import router as customer_router
 
 
 
@@ -32,6 +33,7 @@ app.include_router(inventory_category_router)
 app.include_router(inventory_subcategory_router)
 app.include_router(delivery_person_router)
 app.include_router(delivery_person_schedule_router)
+app.include_router(customer_router)
 
 
 app.add_middleware(
